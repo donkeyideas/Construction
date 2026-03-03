@@ -28,6 +28,7 @@ interface Estimate {
   total_price: number;
   margin_pct: number;
   project_id: string | null;
+  opportunity_id: string | null;
   created_at: string;
 }
 
@@ -45,10 +46,18 @@ interface Project {
   code: string | null;
 }
 
+interface Opportunity {
+  id: string;
+  name: string;
+  client_name: string | null;
+  stage: string | null;
+}
+
 interface EstimatingClientProps {
   estimates: Estimate[];
   assemblies: Assembly[];
   projects: Project[];
+  opportunities: Opportunity[];
   companyId: string;
 }
 
@@ -88,6 +97,7 @@ export default function EstimatingClient({
   estimates,
   assemblies,
   projects,
+  opportunities,
   companyId,
 }: EstimatingClientProps) {
   const t = useTranslations("app");
@@ -135,6 +145,9 @@ export default function EstimatingClient({
       const cost = parseFloat(formData.total_cost) || 0;
       const price = parseFloat(formData.total_price) || 0;
       const margin = price > 0 ? ((price - cost) / price) * 100 : 0;
+      // Opportunity selections use "opp:" prefix — don't store as project_id
+      const selectedId = formData.project_id;
+      const isOpportunity = selectedId.startsWith("opp:");
       const res = await fetch("/api/estimating", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -142,7 +155,8 @@ export default function EstimatingClient({
           estimate_number: formData.estimate_number.trim() || autoNumber,
           title: formData.title,
           description: formData.description || null,
-          project_id: formData.project_id || null,
+          project_id: isOpportunity ? null : (selectedId || null),
+          opportunity_id: isOpportunity ? selectedId.replace("opp:", "") : null,
           status: formData.status || "draft",
           tax_pct: parseFloat(formData.tax_pct) || 0,
           total_cost: cost,
@@ -287,6 +301,7 @@ export default function EstimatingClient({
                 <tbody>
                   {estimates.map((est) => {
                     const project = projects.find((p) => p.id === est.project_id);
+                    const opportunity = !project && est.opportunity_id ? opportunities.find((o) => o.id === est.opportunity_id) : null;
                     return (
                       <tr
                         key={est.id}
@@ -295,7 +310,7 @@ export default function EstimatingClient({
                       >
                         <td><span style={{ fontWeight: 600 }}>{est.estimate_number}</span></td>
                         <td>{est.title}</td>
-                        <td>{project ? `${project.code || ""} ${project.name}`.trim() : "—"}</td>
+                        <td>{project ? `${project.code || ""} ${project.name}`.trim() : opportunity ? `${opportunity.name}` : "—"}</td>
                         <td>
                           <span className={`bid-status bid-status-${est.status === "approved" ? "won" : est.status === "rejected" ? "lost" : est.status === "in_review" ? "submitted" : "in_progress"}`}>
                             {STATUS_LABELS[est.status] || est.status}
@@ -387,7 +402,16 @@ export default function EstimatingClient({
                     <label className="ticket-form-label">{t("estimatingFormProject")}</label>
                     <select className="ticket-form-select" value={formData.project_id} onChange={(e) => setFormData((p) => ({ ...p, project_id: e.target.value }))}>
                       <option value="">{t("estimatingNoProject")}</option>
-                      {projects.map((p) => <option key={p.id} value={p.id}>{p.code ? `${p.code} - ` : ""}{p.name}</option>)}
+                      {projects.length > 0 && (
+                        <optgroup label="Projects">
+                          {projects.map((p) => <option key={p.id} value={p.id}>{p.code ? `${p.code} - ` : ""}{p.name}</option>)}
+                        </optgroup>
+                      )}
+                      {opportunities.length > 0 && (
+                        <optgroup label="Pipeline (Opportunities)">
+                          {opportunities.map((o) => <option key={`opp-${o.id}`} value={`opp:${o.id}`}>{o.name}{o.client_name ? ` — ${o.client_name}` : ""}</option>)}
+                        </optgroup>
+                      )}
                     </select>
                   </div>
                   <div className="ticket-form-group">
@@ -428,10 +452,10 @@ export default function EstimatingClient({
                     <input className="ticket-form-input" type="number" min="0" step="0.5" value={formData.profit_pct} onChange={(e) => setFormData((p) => ({ ...p, profit_pct: e.target.value }))} />
                   </div>
                 </div>
-                <div className="ticket-form-actions">
-                  <button type="button" className="btn btn-ghost" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
-                  <button type="submit" className="btn btn-primary" disabled={creating}>
-                    {creating ? <Loader2 size={14} className="spin-icon" /> : <Plus size={14} />}
+                <div className="ticket-form-actions" style={{ borderTop: "1px solid var(--border)", padding: "16px 24px", marginTop: 8 }}>
+                  <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
+                  <button type="submit" className="ui-btn ui-btn-md ui-btn-primary" disabled={creating}>
+                    {creating ? <span className="ui-btn-spinner" /> : <Plus size={14} />}
                     {creating ? t("estimatingCreating") : t("estimatingCreateEstimate")}
                   </button>
                 </div>

@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
         title: body.title,
         description: body.description || null,
         project_id: body.project_id || null,
+        opportunity_id: body.opportunity_id || null,
         status: body.status || "draft",
         tax_pct: body.tax_pct ?? 0,
         total_cost: body.total_cost ?? 0,

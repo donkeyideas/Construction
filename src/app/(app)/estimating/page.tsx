@@ -21,7 +21,7 @@ export default async function EstimatingPage() {
     );
   }
 
-  const [estimatesResult, assembliesResult, projectsResult] = await Promise.all([
+  const [estimatesResult, assembliesResult, projectsResult, opportunitiesResult] = await Promise.all([
     supabase
       .from("estimates")
       .select("*")
@@ -37,6 +37,12 @@ export default async function EstimatingPage() {
       .select("id, name, code")
       .eq("company_id", userCompany.companyId)
       .order("name"),
+    supabase
+      .from("opportunities")
+      .select("id, name, client_name, stage")
+      .eq("company_id", userCompany.companyId)
+      .not("stage", "eq", "lost")
+      .order("name"),
   ]);
 
   return (
@@ -44,6 +50,7 @@ export default async function EstimatingPage() {
       estimates={estimatesResult.data ?? []}
       assemblies={assembliesResult.data ?? []}
       projects={projectsResult.data ?? []}
+      opportunities={opportunitiesResult.data ?? []}
       companyId={userCompany.companyId}
     />
   );
