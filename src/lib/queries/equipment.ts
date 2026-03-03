@@ -157,6 +157,8 @@ export interface CreateAssignmentData {
   project_id?: string;
   property_id?: string;
   assigned_to?: string;
+  assigned_date?: string;
+  status?: AssignmentStatus;
   notes?: string;
 }
 
@@ -236,6 +238,22 @@ export async function getEquipmentList(
 
   const eqProjMap = new Map((eqProjRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
   const eqAssigneeMap = new Map((eqAssigneeRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
+
+  // For any assigned_to IDs not found in user_profiles, also check contacts table
+  const eqUnresolvedIds = [...eqAssigneeIds].filter((id) => !eqAssigneeMap.has(id));
+  if (eqUnresolvedIds.length > 0) {
+    const { data: contactRows } = await supabase
+      .from("contacts")
+      .select("id, first_name, last_name, email")
+      .in("id", eqUnresolvedIds);
+    for (const c of contactRows ?? []) {
+      eqAssigneeMap.set(c.id, {
+        id: c.id,
+        full_name: `${c.first_name} ${c.last_name}`.trim(),
+        email: c.email ?? "",
+      });
+    }
+  }
 
   for (const e of items) {
     e.project = e.current_project_id ? eqProjMap.get(e.current_project_id) ?? null : null;
@@ -555,6 +573,22 @@ export async function getAssignments(
   const aProjMap = new Map((aProjRes.data ?? []).map((p: { id: string; name: string }) => [p.id, p]));
   const aAssigneeMap = new Map((aAssigneeRes.data ?? []).map((p: { id: string; full_name: string; email: string }) => [p.id, p]));
 
+  // For any assigned_to IDs not found in user_profiles, also check contacts table
+  const unresolvedIds = [...aAssigneeIds].filter((id) => !aAssigneeMap.has(id));
+  if (unresolvedIds.length > 0) {
+    const { data: contactRows } = await supabase
+      .from("contacts")
+      .select("id, first_name, last_name, email")
+      .in("id", unresolvedIds);
+    for (const c of contactRows ?? []) {
+      aAssigneeMap.set(c.id, {
+        id: c.id,
+        full_name: `${c.first_name} ${c.last_name}`.trim(),
+        email: c.email ?? "",
+      });
+    }
+  }
+
   for (const a of assignments) {
     a.equipment = a.equipment_id ? aEqMap.get(a.equipment_id) ?? null : null;
     a.project = a.project_id ? aProjMap.get(a.project_id) ?? null : null;
@@ -584,8 +618,8 @@ export async function createAssignment(
       property_id: data.property_id ?? null,
       assigned_to: data.assigned_to ?? null,
       assigned_by: userId,
-      assigned_date: new Date().toISOString(),
-      status: "active",
+      assigned_date: data.assigned_date || new Date().toISOString(),
+      status: data.status || "active",
       notes: data.notes ?? null,
     })
     .select()

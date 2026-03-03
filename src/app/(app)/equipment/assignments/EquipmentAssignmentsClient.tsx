@@ -20,6 +20,7 @@ import type {
   AssignmentStatus,
 } from "@/lib/queries/equipment";
 import type { CompanyMember } from "@/lib/queries/tickets";
+import type { Contact } from "@/lib/queries/people";
 import ImportModal from "@/components/ImportModal";
 import type { ImportColumn } from "@/lib/utils/csv-parser";
 import { formatDateSafe } from "@/lib/utils/format";
@@ -62,6 +63,7 @@ interface EquipmentAssignmentsClientProps {
   assignments: EquipmentAssignmentRow[];
   equipmentList: EquipmentRow[];
   members: CompanyMember[];
+  contacts: Contact[];
   projects: { id: string; name: string }[];
   userId: string;
   companyId: string;
@@ -71,6 +73,7 @@ export default function EquipmentAssignmentsClient({
   assignments,
   equipmentList,
   members,
+  contacts,
   projects,
   userId,
   companyId,
@@ -123,6 +126,8 @@ export default function EquipmentAssignmentsClient({
     equipment_id: "",
     context_id: "",
     assigned_to: "",
+    assigned_date: new Date().toISOString().split("T")[0],
+    status: "active" as string,
     notes: "",
   });
 
@@ -229,6 +234,8 @@ export default function EquipmentAssignmentsClient({
           equipment_id: formData.equipment_id,
           ...parseContext(formData.context_id),
           assigned_to: formData.assigned_to || undefined,
+          assigned_date: formData.assigned_date || undefined,
+          status: formData.status || "active",
           notes: formData.notes || undefined,
         }),
       });
@@ -242,6 +249,8 @@ export default function EquipmentAssignmentsClient({
         equipment_id: "",
         context_id: "",
         assigned_to: "",
+        assigned_date: new Date().toISOString().split("T")[0],
+        status: "active",
         notes: "",
       });
       setShowCreate(false);
@@ -665,12 +674,55 @@ export default function EquipmentAssignmentsClient({
                   }
                 >
                   <option value="">{t("unassigned")}</option>
-                  {members.map((m) => (
-                    <option key={m.user_id} value={m.user_id}>
-                      {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
-                    </option>
-                  ))}
+                  {members.length > 0 && (
+                    <optgroup label="Team Members">
+                      {members.map((m) => (
+                        <option key={m.user_id} value={m.user_id}>
+                          {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {contacts.filter((c) => c.is_active).length > 0 && (
+                    <optgroup label="Contacts">
+                      {contacts
+                        .filter((c) => c.is_active)
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.first_name} {c.last_name}{c.contact_type ? ` (${c.contact_type})` : ""}
+                          </option>
+                        ))}
+                    </optgroup>
+                  )}
                 </select>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div className="equipment-form-group">
+                  <label className="equipment-form-label">{t("columnAssignedDate")}</label>
+                  <input
+                    type="date"
+                    className="equipment-form-select"
+                    value={formData.assigned_date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, assigned_date: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="equipment-form-group">
+                  <label className="equipment-form-label">{t("columnStatus")}</label>
+                  <select
+                    className="equipment-form-select"
+                    value={formData.status}
+                    onChange={(e) =>
+                      setFormData({ ...formData, status: e.target.value })
+                    }
+                  >
+                    <option value="active">{t("assignmentStatusActive")}</option>
+                    <option value="returned">{t("assignmentStatusReturned")}</option>
+                  </select>
+                </div>
               </div>
 
               <div className="equipment-form-group">
@@ -775,11 +827,26 @@ export default function EquipmentAssignmentsClient({
                   onChange={(e) => setEditData({ ...editData, assigned_to: e.target.value })}
                 >
                   <option value="">{t("unassigned")}</option>
-                  {members.map((m) => (
-                    <option key={m.user_id} value={m.user_id}>
-                      {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
-                    </option>
-                  ))}
+                  {members.length > 0 && (
+                    <optgroup label="Team Members">
+                      {members.map((m) => (
+                        <option key={m.user_id} value={m.user_id}>
+                          {m.user?.full_name || m.user?.email || "Unknown"} ({m.role})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {contacts.filter((c) => c.is_active).length > 0 && (
+                    <optgroup label="Contacts">
+                      {contacts
+                        .filter((c) => c.is_active)
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.first_name} {c.last_name}{c.contact_type ? ` (${c.contact_type})` : ""}
+                          </option>
+                        ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
 

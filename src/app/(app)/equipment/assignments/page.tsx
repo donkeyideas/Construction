@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getAssignments, getEquipmentList } from "@/lib/queries/equipment";
 import { getCompanyMembers } from "@/lib/queries/tickets";
+import { getContacts } from "@/lib/queries/people";
 import EquipmentAssignmentsClient from "./EquipmentAssignmentsClient";
 import { redirect } from "next/navigation";
 
@@ -17,10 +18,11 @@ export default async function EquipmentAssignmentsPage() {
     redirect("/login");
   }
 
-  const [assignments, equipmentList, members, projectsRes] = await Promise.all([
+  const [assignments, equipmentList, members, contacts, projectsRes] = await Promise.all([
     getAssignments(supabase, userCtx.companyId),
     getEquipmentList(supabase, userCtx.companyId),
     getCompanyMembers(supabase, userCtx.companyId),
+    getContacts(supabase, userCtx.companyId),
     supabase
       .from("projects")
       .select("id, name")
@@ -35,6 +37,7 @@ export default async function EquipmentAssignmentsPage() {
       assignments={assignments}
       equipmentList={equipmentList}
       members={members}
+      contacts={contacts}
       projects={projects}
       userId={userCtx.userId}
       companyId={userCtx.companyId}

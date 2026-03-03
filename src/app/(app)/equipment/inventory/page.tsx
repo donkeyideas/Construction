@@ -39,6 +39,25 @@ export default async function EquipmentInventoryPage() {
     linkedJEs[entityId] = entries.map((e) => ({ id: e.id, entry_number: e.entry_number }));
   }
 
+  // Fetch depreciation JEs — reference format: depreciation:{equipment_id}:{YYYY-MM}
+  const { data: depJERows } = await supabase
+    .from("journal_entries")
+    .select("id, entry_number, reference")
+    .eq("company_id", userCtx.companyId)
+    .like("reference", "depreciation:%")
+    .order("entry_date", { ascending: true });
+
+  const depreciationJEs: Record<string, { id: string; entry_number: string }[]> = {};
+  for (const je of depJERows ?? []) {
+    // reference = "depreciation:{equipmentId}:{YYYY-MM}"
+    const parts = (je.reference as string).split(":");
+    if (parts.length >= 2) {
+      const eqId = parts[1];
+      if (!depreciationJEs[eqId]) depreciationJEs[eqId] = [];
+      depreciationJEs[eqId].push({ id: je.id, entry_number: je.entry_number });
+    }
+  }
+
   return (
     <EquipmentInventoryClient
       equipment={equipment}
@@ -48,6 +67,7 @@ export default async function EquipmentInventoryPage() {
       userId={userCtx.userId}
       companyId={userCtx.companyId}
       linkedJEs={linkedJEs}
+      depreciationJEs={depreciationJEs}
     />
   );
 }

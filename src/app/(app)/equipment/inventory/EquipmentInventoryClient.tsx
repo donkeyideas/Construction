@@ -61,6 +61,7 @@ interface EquipmentInventoryClientProps {
   userId: string;
   companyId: string;
   linkedJEs?: Record<string, { id: string; entry_number: string }[]>;
+  depreciationJEs?: Record<string, { id: string; entry_number: string }[]>;
 }
 
 const equipmentImportColumns: ImportColumn[] = [
@@ -90,6 +91,7 @@ export default function EquipmentInventoryClient({
   userId,
   companyId,
   linkedJEs = {},
+  depreciationJEs = {},
 }: EquipmentInventoryClientProps) {
   const router = useRouter();
   const t = useTranslations("equipment");
@@ -1010,6 +1012,27 @@ export default function EquipmentInventoryClient({
                         <div style={{ height: 6, background: "var(--border)", borderRadius: 3, marginTop: 8 }}>
                           <div style={{ height: "100%", borderRadius: 3, width: `${Math.min(100, pct)}%`, background: pct >= 90 ? "var(--color-red)" : pct >= 70 ? "var(--color-amber)" : "var(--color-green)", transition: "width 0.3s" }} />
                         </div>
+                        {depreciationJEs[selectedItem.id]?.length ? (
+                          <div style={{ marginTop: 8, fontSize: "0.82rem" }}>
+                            <label className="detail-label">Recorded JEs ({depreciationJEs[selectedItem.id].length})</label>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+                              {depreciationJEs[selectedItem.id].map((je) => (
+                                <Link
+                                  key={je.id}
+                                  href={`/financial/general-ledger?entry=${je.entry_number}`}
+                                  className="je-link"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {je.entry_number}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ marginTop: 8, fontSize: "0.82rem", color: "var(--color-amber)" }}>
+                            No depreciation JEs recorded yet
+                          </div>
+                        )}
                       </div>
                     );
                   })()

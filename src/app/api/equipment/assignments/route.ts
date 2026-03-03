@@ -79,6 +79,8 @@ export async function POST(request: NextRequest) {
         project_id: body.project_id || undefined,
         property_id: body.property_id || undefined,
         assigned_to: body.assigned_to || undefined,
+        assigned_date: body.assigned_date || undefined,
+        status: body.status || undefined,
         notes: body.notes?.trim() || undefined,
       }
     );
