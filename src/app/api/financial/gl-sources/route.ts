@@ -77,7 +77,7 @@ export async function GET(req: Request) {
       .range(from, from + PAGE_SIZE - 1);
 
     if (!lines || lines.length === 0) break;
-    allLines.push(...(lines as typeof allLines));
+    allLines.push(...(lines as unknown as typeof allLines));
     if (lines.length < PAGE_SIZE) break;
     from += PAGE_SIZE;
   }
