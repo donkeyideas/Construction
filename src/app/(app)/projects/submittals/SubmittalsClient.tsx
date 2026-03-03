@@ -180,6 +180,7 @@ export default function SubmittalsClient({
   const [createError, setCreateError] = useState("");
   const [formData, setFormData] = useState({
     project_id: "",
+    submittal_number: "",
     title: "",
     spec_section: "",
     due_date: "",
@@ -232,6 +233,7 @@ export default function SubmittalsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           project_id: formData.project_id,
+          submittal_number: formData.submittal_number || undefined,
           title: formData.title,
           spec_section: formData.spec_section || undefined,
           due_date: formData.due_date || undefined,
@@ -246,7 +248,7 @@ export default function SubmittalsClient({
         throw new Error(data.error || t("failedToCreateSubmittal"));
       }
 
-      setFormData({ project_id: "", title: "", spec_section: "", due_date: "", reviewer_id: "", status: "pending", review_comments: "" });
+      setFormData({ project_id: "", submittal_number: "", title: "", spec_section: "", due_date: "", reviewer_id: "", status: "pending", review_comments: "" });
       setShowCreate(false);
       router.refresh();
     } catch (err: unknown) {
@@ -470,9 +472,15 @@ export default function SubmittalsClient({
                   {projects.map((p) => <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>)}
                 </select>
               </div>
-              <div className="ticket-form-group">
-                <label className="ticket-form-label">{t("titleRequired")}</label>
-                <input type="text" className="ticket-form-input" required placeholder={t("submittalTitlePlaceholder")} value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("subNumber")}</label>
+                  <input type="text" className="ticket-form-input" placeholder="e.g. SUB-001 (auto if blank)" value={formData.submittal_number} onChange={(e) => setFormData({ ...formData, submittal_number: e.target.value })} />
+                </div>
+                <div className="ticket-form-group" style={{ flex: 2 }}>
+                  <label className="ticket-form-label">{t("titleRequired")}</label>
+                  <input type="text" className="ticket-form-input" required placeholder={t("submittalTitlePlaceholder")} value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+                </div>
               </div>
               <div className="ticket-form-row">
                 <div className="ticket-form-group">

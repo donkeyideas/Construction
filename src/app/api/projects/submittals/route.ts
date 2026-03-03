@@ -26,15 +26,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Title is required." }, { status: 400 });
     }
 
-    // Auto-generate submittal number: count existing for this project + 1
-    const { count } = await supabase
-      .from("submittals")
-      .select("id", { count: "exact", head: true })
-      .eq("company_id", userCtx.companyId)
-      .eq("project_id", body.project_id);
+    // Use provided submittal number or auto-generate
+    let submittal_number = body.submittal_number?.trim();
+    if (!submittal_number) {
+      const { count } = await supabase
+        .from("submittals")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", userCtx.companyId)
+        .eq("project_id", body.project_id);
 
-    const num = (count ?? 0) + 1;
-    const submittal_number = `SUB-${String(num).padStart(3, "0")}`;
+      const num = (count ?? 0) + 1;
+      submittal_number = `SUB-${String(num).padStart(3, "0")}`;
+    }
 
     const insertData: Record<string, unknown> = {
       company_id: userCtx.companyId,
