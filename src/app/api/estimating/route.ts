@@ -42,10 +42,14 @@ export async function POST(req: NextRequest) {
         title: body.title,
         description: body.description || null,
         project_id: body.project_id || null,
+        status: body.status || "draft",
+        tax_pct: body.tax_pct ?? 0,
+        total_cost: body.total_cost ?? 0,
+        total_price: body.total_price ?? 0,
+        margin_pct: body.margin_pct ?? 0,
         overhead_pct: body.overhead_pct ?? 10,
         profit_pct: body.profit_pct ?? 10,
         created_by: userCompany.userId,
-        status: "draft",
       })
       .select()
       .single();

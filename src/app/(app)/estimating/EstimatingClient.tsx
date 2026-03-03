@@ -9,6 +9,7 @@ import {
   FileText,
   DollarSign,
   Package,
+  TrendingUp,
   X,
   Loader2,
   Upload,
@@ -103,11 +104,21 @@ export default function EstimatingClient({
     title: "",
     description: "",
     project_id: "",
+    status: "draft",
+    tax_pct: "0",
+    total_cost: "0",
+    total_price: "0",
     overhead_pct: "10",
     profit_pct: "10",
   });
 
+  // Auto-calculated margin %
+  const formCost = parseFloat(formData.total_cost) || 0;
+  const formPrice = parseFloat(formData.total_price) || 0;
+  const formMargin = formPrice > 0 ? ((formPrice - formCost) / formPrice) * 100 : 0;
+
   const totalEstimates = estimates.length;
+  const totalCost = estimates.reduce((sum, e) => sum + (e.total_cost || 0), 0);
   const totalValue = estimates.reduce((sum, e) => sum + (e.total_price || 0), 0);
   const avgMargin = totalEstimates > 0
     ? estimates.reduce((sum, e) => sum + (e.margin_pct || 0), 0) / totalEstimates
@@ -120,6 +131,9 @@ export default function EstimatingClient({
 
     try {
       const number = `EST-${String(totalEstimates + 1).padStart(4, "0")}`;
+      const cost = parseFloat(formData.total_cost) || 0;
+      const price = parseFloat(formData.total_price) || 0;
+      const margin = price > 0 ? ((price - cost) / price) * 100 : 0;
       const res = await fetch("/api/estimating", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -128,6 +142,11 @@ export default function EstimatingClient({
           title: formData.title,
           description: formData.description || null,
           project_id: formData.project_id || null,
+          status: formData.status || "draft",
+          tax_pct: parseFloat(formData.tax_pct) || 0,
+          total_cost: cost,
+          total_price: price,
+          margin_pct: Math.round(margin * 100) / 100,
           overhead_pct: parseFloat(formData.overhead_pct) || 10,
           profit_pct: parseFloat(formData.profit_pct) || 10,
         }),
@@ -139,7 +158,7 @@ export default function EstimatingClient({
       }
 
       setShowCreate(false);
-      setFormData({ title: "", description: "", project_id: "", overhead_pct: "10", profit_pct: "10" });
+      setFormData({ title: "", description: "", project_id: "", status: "draft", tax_pct: "0", total_cost: "0", total_price: "0", overhead_pct: "10", profit_pct: "10" });
       router.refresh();
     } catch (err: unknown) {
       setCreateError(err instanceof Error ? err.message : t("estimatingCreateFailed"));
@@ -188,35 +207,27 @@ export default function EstimatingClient({
         </div>
       </div>
 
-      {/* KPIs - matches Dashboard kpi-grid */}
-      <div className="kpi-grid">
-        <div className="card kpi">
-          <div className="kpi-info">
-            <span className="kpi-label">{t("estimatingTotalEstimates")}</span>
-            <span className="kpi-value">{totalEstimates}</span>
-          </div>
-          <div className="kpi-icon"><FileText size={22} /></div>
+      {/* KPIs */}
+      <div className="financial-kpi-row" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon blue"><FileText size={18} /></div>
+          <span className="fin-kpi-label">{t("estimatingTotalEstimates")}</span>
+          <span className="fin-kpi-value">{totalEstimates}</span>
         </div>
-        <div className="card kpi">
-          <div className="kpi-info">
-            <span className="kpi-label">{t("estimatingTotalValue")}</span>
-            <span className="kpi-value">{formatCompactCurrency(totalValue)}</span>
-          </div>
-          <div className="kpi-icon"><DollarSign size={22} /></div>
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon green"><DollarSign size={18} /></div>
+          <span className="fin-kpi-label">{t("estimatingTotalValue")}</span>
+          <span className="fin-kpi-value">{formatCompactCurrency(totalValue)}</span>
         </div>
-        <div className="card kpi">
-          <div className="kpi-info">
-            <span className="kpi-label">{t("estimatingAvgMargin")}</span>
-            <span className="kpi-value">{avgMargin.toFixed(1)}%</span>
-          </div>
-          <div className="kpi-icon"><Calculator size={22} /></div>
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon amber"><TrendingUp size={18} /></div>
+          <span className="fin-kpi-label">{t("estimatingAvgMargin")}</span>
+          <span className="fin-kpi-value">{avgMargin.toFixed(1)}%</span>
         </div>
-        <div className="card kpi">
-          <div className="kpi-info">
-            <span className="kpi-label">{t("estimatingAssemblies")}</span>
-            <span className="kpi-value">{assemblies.length}</span>
-          </div>
-          <div className="kpi-icon"><Package size={22} /></div>
+        <div className="fin-kpi">
+          <div className="fin-kpi-icon red"><Calculator size={18} /></div>
+          <span className="fin-kpi-label">Total Cost</span>
+          <span className="fin-kpi-value">{formatCompactCurrency(totalCost)}</span>
         </div>
       </div>
 
@@ -343,7 +354,7 @@ export default function EstimatingClient({
       {/* Create Modal - matches ticket modal pattern */}
       {showCreate && (
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
-          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px" }}>
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "600px" }}>
             <div className="ticket-modal-header">
               <h3>{t("estimatingNewEstimate")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}><X size={18} /></button>
@@ -351,22 +362,57 @@ export default function EstimatingClient({
             <form onSubmit={handleCreate}>
               <div className="ticket-modal-content">
                 {createError && <div className="settings-form-message error">{createError}</div>}
-                <div className="ticket-form-group">
-                  <label className="ticket-form-label">{t("estimatingFormTitle")} *</label>
-                  <input className="ticket-form-input" required value={formData.title} onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))} />
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group" style={{ flex: 2 }}>
+                    <label className="ticket-form-label">{t("estimatingFormTitle")} *</label>
+                    <input className="ticket-form-input" required value={formData.title} onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))} />
+                  </div>
+                  <div className="ticket-form-group" style={{ flex: 1 }}>
+                    <label className="ticket-form-label">Estimate #</label>
+                    <input className="ticket-form-input" value={`EST-${String(totalEstimates + 1).padStart(4, "0")}`} readOnly style={{ opacity: 0.7 }} />
+                  </div>
                 </div>
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">{t("estimatingFormDescription")}</label>
                   <textarea className="ticket-form-textarea" rows={2} value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} />
                 </div>
-                <div className="ticket-form-group">
-                  <label className="ticket-form-label">{t("estimatingFormProject")}</label>
-                  <select className="ticket-form-select" value={formData.project_id} onChange={(e) => setFormData((p) => ({ ...p, project_id: e.target.value }))}>
-                    <option value="">{t("estimatingNoProject")}</option>
-                    {projects.map((p) => <option key={p.id} value={p.id}>{p.code ? `${p.code} - ` : ""}{p.name}</option>)}
-                  </select>
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">{t("estimatingFormProject")}</label>
+                    <select className="ticket-form-select" value={formData.project_id} onChange={(e) => setFormData((p) => ({ ...p, project_id: e.target.value }))}>
+                      <option value="">{t("estimatingNoProject")}</option>
+                      {projects.map((p) => <option key={p.id} value={p.id}>{p.code ? `${p.code} - ` : ""}{p.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Status</label>
+                    <select className="ticket-form-select" value={formData.status} onChange={(e) => setFormData((p) => ({ ...p, status: e.target.value }))}>
+                      <option value="draft">Draft</option>
+                      <option value="in_review">In Review</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Total Cost ($)</label>
+                    <input className="ticket-form-input" type="number" min="0" step="0.01" value={formData.total_cost} onChange={(e) => setFormData((p) => ({ ...p, total_cost: e.target.value }))} />
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Total Price ($)</label>
+                    <input className="ticket-form-input" type="number" min="0" step="0.01" value={formData.total_price} onChange={(e) => setFormData((p) => ({ ...p, total_price: e.target.value }))} />
+                  </div>
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Margin %</label>
+                    <input className="ticket-form-input" value={`${formMargin.toFixed(1)}%`} readOnly style={{ opacity: 0.7 }} />
+                  </div>
+                </div>
+                <div className="ticket-form-row">
+                  <div className="ticket-form-group">
+                    <label className="ticket-form-label">Tax %</label>
+                    <input className="ticket-form-input" type="number" min="0" step="0.25" value={formData.tax_pct} onChange={(e) => setFormData((p) => ({ ...p, tax_pct: e.target.value }))} />
+                  </div>
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">{t("estimatingOverheadPct")}</label>
                     <input className="ticket-form-input" type="number" min="0" step="0.5" value={formData.overhead_pct} onChange={(e) => setFormData((p) => ({ ...p, overhead_pct: e.target.value }))} />

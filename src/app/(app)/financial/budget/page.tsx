@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { syncBudgetActualsFromInvoices } from "@/lib/queries/financial";
 import type { BudgetLineRow } from "@/lib/queries/financial";
 import BudgetClient from "./BudgetClient";
 
@@ -35,9 +36,12 @@ export default async function BudgetPage({ searchParams }: PageProps) {
 
   const selectedProjectId = params.projectId || (projects.length > 0 ? projects[0].id : null);
 
-  // Fetch budget lines for the selected project
+  // Auto-sync actuals from invoices, then fetch budget lines
   let budgetLines: BudgetLineRow[] = [];
   if (selectedProjectId) {
+    // Sync actual amounts from invoices/expenses before displaying
+    await syncBudgetActualsFromInvoices(supabase, userCompany.companyId, selectedProjectId);
+
     const { data: linesData } = await supabase
       .from("project_budget_lines")
       .select("*")

@@ -548,6 +548,9 @@ export default function BudgetClient({
                   onChange={(e) => setCreateForm((f) => ({ ...f, actual_amount: e.target.value }))}
                   placeholder="0.00"
                 />
+                <span style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 4, display: "block" }}>
+                  Auto-synced from invoices on page load. Override here if needed.
+                </span>
               </div>
               <div className="ticket-form-actions">
                 <button className="btn btn-ghost" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
@@ -647,6 +650,9 @@ export default function BudgetClient({
                   value={editForm.actual_amount}
                   onChange={(e) => setEditForm((f) => ({ ...f, actual_amount: e.target.value }))}
                 />
+                <span style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: 4, display: "block" }}>
+                  Auto-synced from invoices on page load. Override here if needed.
+                </span>
               </div>
               <div className="ticket-form-actions">
                 <button className="btn btn-ghost" onClick={() => setEditLine(null)}>{t("cancel")}</button>
