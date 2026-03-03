@@ -370,20 +370,21 @@ export default function EstimatingClient({
       {/* Create Modal - matches ticket modal pattern */}
       {showCreate && (
         <div className="ticket-modal-overlay" onClick={() => setShowCreate(false)}>
-          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600, overflowX: "hidden" }}>
-            <div className="ticket-modal-header">
+          <div className="ticket-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600, overflowX: "hidden", padding: 20 }}>
+            <div className="ticket-modal-header" style={{ marginBottom: 12 }}>
               <h3>{t("estimatingNewEstimate")}</h3>
               <button className="ticket-modal-close" onClick={() => setShowCreate(false)}><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate}>
-              <div className="ticket-form">
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {createError && <div className="ticket-form-error">{createError}</div>}
-                <div className="ticket-form-row">
-                  <div className="ticket-form-group" style={{ flex: 2 }}>
+                {/* Row 1: Title + Estimate # */}
+                <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12 }}>
+                  <div className="ticket-form-group">
                     <label className="ticket-form-label">{t("estimatingFormTitle")} *</label>
                     <input className="ticket-form-input" required value={formData.title} onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))} />
                   </div>
-                  <div className="ticket-form-group" style={{ flex: 1 }}>
+                  <div className="ticket-form-group">
                     <label className="ticket-form-label">Estimate #</label>
                     <input
                       className="ticket-form-input"
@@ -393,11 +394,13 @@ export default function EstimatingClient({
                     />
                   </div>
                 </div>
+                {/* Row 2: Description (single line) */}
                 <div className="ticket-form-group">
                   <label className="ticket-form-label">{t("estimatingFormDescription")}</label>
-                  <textarea className="ticket-form-textarea" rows={2} value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} />
+                  <input className="ticket-form-input" value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} placeholder="Brief description..." />
                 </div>
-                <div className="ticket-form-row">
+                {/* Row 3: Project + Status */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">{t("estimatingFormProject")}</label>
                     <select className="ticket-form-select" value={formData.project_id} onChange={(e) => setFormData((p) => ({ ...p, project_id: e.target.value }))}>
@@ -424,7 +427,8 @@ export default function EstimatingClient({
                     </select>
                   </div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                {/* Row 4: Cost + Price + Margin */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Total Cost ($)</label>
                     <input className="ticket-form-input" type="number" min="0" step="0.01" value={formData.total_cost} onChange={(e) => setFormData((p) => ({ ...p, total_cost: e.target.value }))} />
@@ -438,7 +442,8 @@ export default function EstimatingClient({
                     <input className="ticket-form-input" value={`${formMargin.toFixed(1)}%`} readOnly style={{ opacity: 0.7 }} />
                   </div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                {/* Row 5: Tax + Overhead + Profit */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                   <div className="ticket-form-group">
                     <label className="ticket-form-label">Tax %</label>
                     <input className="ticket-form-input" type="number" min="0" step="0.25" value={formData.tax_pct} onChange={(e) => setFormData((p) => ({ ...p, tax_pct: e.target.value }))} />
@@ -452,7 +457,8 @@ export default function EstimatingClient({
                     <input className="ticket-form-input" type="number" min="0" step="0.5" value={formData.profit_pct} onChange={(e) => setFormData((p) => ({ ...p, profit_pct: e.target.value }))} />
                   </div>
                 </div>
-                <div className="ticket-form-actions" style={{ borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 8 }}>
+                {/* Actions */}
+                <div className="ticket-form-actions" style={{ borderTop: "1px solid var(--border)", paddingTop: 12, marginTop: 4 }}>
                   <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)}>{t("cancel")}</button>
                   <button type="submit" className="ui-btn ui-btn-md ui-btn-primary" disabled={creating}>
                     {creating ? <span className="ui-btn-spinner" /> : <Plus size={14} />}
