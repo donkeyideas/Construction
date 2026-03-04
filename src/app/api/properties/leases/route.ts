@@ -7,6 +7,50 @@ import {
   generateSecurityDepositJournalEntry,
 } from "@/lib/utils/invoice-accounting";
 import { generateAllRentAccrualJEs } from "@/lib/utils/lease-accounting";
+import { SupabaseClient } from "@supabase/supabase-js";
+
+// ---------------------------------------------------------------------------
+// Helpers – sync unit status & property occupancy after lease changes
+// ---------------------------------------------------------------------------
+
+/** Mark a unit as occupied/vacant and update the property's occupied_units count. */
+async function syncUnitAndProperty(
+  supabase: SupabaseClient,
+  unitId: string,
+  propertyId: string,
+  status: "occupied" | "vacant",
+  tenantName: string | null
+) {
+  // 1. Update the unit
+  await supabase
+    .from("units")
+    .update({
+      status,
+      current_tenant_id: null, // we don't have a tenant user_id, just the name
+      metadata: tenantName ? { tenant_name: tenantName } : {},
+    })
+    .eq("id", unitId);
+
+  // 2. Recalculate occupied_units on the property
+  await refreshPropertyOccupancy(supabase, propertyId);
+}
+
+/** Recount occupied units and update the property row. */
+async function refreshPropertyOccupancy(
+  supabase: SupabaseClient,
+  propertyId: string
+) {
+  const { count } = await supabase
+    .from("units")
+    .select("id", { count: "exact", head: true })
+    .eq("property_id", propertyId)
+    .eq("status", "occupied");
+
+  await supabase
+    .from("properties")
+    .update({ occupied_units: count ?? 0 })
+    .eq("id", propertyId);
+}
 
 // ---------------------------------------------------------------------------
 // POST /api/properties/leases - Create a new lease
@@ -104,6 +148,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    // ── Mark unit as occupied & update property occupancy ────────────
+    await syncUnitAndProperty(
+      supabase,
+      body.unit_id,
+      unit.property_id,
+      "occupied",
+      body.tenant_name.trim()
+    );
+
     // Generate lease revenue schedule + security deposit JE
     try {
       const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
@@ -177,7 +230,7 @@ export async function PATCH(request: NextRequest) {
     // Verify the lease exists and belongs to the user's company
     const { data: existingLease } = await supabase
       .from("leases")
-      .select("id")
+      .select("id, unit_id, property_id, tenant_name, status")
       .eq("id", body.id)
       .eq("company_id", userCtx.companyId)
       .single();
@@ -227,6 +280,33 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // ── Sync unit status when lease status changes ──────────────────
+    const newStatus = updates.status as string | undefined;
+    if (newStatus) {
+      const wasActive = existingLease.status === "active";
+      const isNowActive = newStatus === "active";
+
+      if (wasActive && !isNowActive) {
+        // Lease deactivated → mark unit vacant
+        await syncUnitAndProperty(
+          supabase,
+          existingLease.unit_id,
+          existingLease.property_id,
+          "vacant",
+          null
+        );
+      } else if (!wasActive && isNowActive) {
+        // Lease reactivated → mark unit occupied
+        await syncUnitAndProperty(
+          supabase,
+          existingLease.unit_id,
+          existingLease.property_id,
+          "occupied",
+          updated.tenant_name
+        );
+      }
+    }
+
     // If lease_end, lease_start, or auto_renew changed, backfill any new months (non-blocking)
     if (updates.lease_end !== undefined || updates.lease_start !== undefined || updates.auto_renew !== undefined) {
       generateAllRentAccrualJEs(supabase, userCtx.companyId, userCtx.userId, [{
@@ -272,10 +352,10 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Verify the lease exists and belongs to the user's company
+    // Fetch the lease to get unit_id and property_id before deleting
     const { data: existingLease } = await supabase
       .from("leases")
-      .select("id")
+      .select("id, unit_id, property_id, status")
       .eq("id", body.id)
       .eq("company_id", userCtx.companyId)
       .single();
@@ -289,6 +369,17 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error("Delete lease error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // ── Mark unit as vacant if the deleted lease was active ──────────
+    if (existingLease.status === "active") {
+      await syncUnitAndProperty(
+        supabase,
+        existingLease.unit_id,
+        existingLease.property_id,
+        "vacant",
+        null
+      );
     }
 
     return NextResponse.json({ success: true });
