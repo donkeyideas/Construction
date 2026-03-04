@@ -782,7 +782,7 @@ export interface VendorProjectDetail {
   status: string;
   start_date: string | null;
   end_date: string | null;
-  project_number: string | null;
+  code: string | null;
   contract: {
     id: string;
     title: string;
@@ -822,7 +822,7 @@ export async function getVendorProjectDetail(
   // Fetch project details
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, status, start_date, end_date, project_number")
+    .select("id, name, status, start_date, end_date, code")
     .eq("id", projectId)
     .single();
 
@@ -843,7 +843,7 @@ export async function getVendorProjectDetail(
     status: project.status ?? "planning",
     start_date: project.start_date ?? null,
     end_date: project.end_date ?? null,
-    project_number: project.project_number ?? null,
+    code: project.code ?? null,
     contract: {
       id: contract.id,
       title: contract.title,

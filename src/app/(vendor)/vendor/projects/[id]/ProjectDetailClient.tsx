@@ -31,7 +31,7 @@ export default function ProjectDetailClient({ project }: { project: VendorProjec
         <div className="vd-header-left">
           <h2>{project.name}</h2>
           <span className="vd-header-sub">
-            {project.project_number || t("projectDetail.noProjectNumber")}
+            {project.code || t("projectDetail.noProjectNumber")}
           </span>
         </div>
         <span className={`vd-badge vd-badge-${project.status}`}>{project.status.replace(/_/g, " ")}</span>

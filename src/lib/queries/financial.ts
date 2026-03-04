@@ -202,7 +202,7 @@ export interface ProjectRow {
   id: string;
   name: string;
   status: string;
-  project_number: string | null;
+  code: string | null;
 }
 
 /* ------------------------------------------------------------------
@@ -2346,7 +2346,7 @@ export async function getProjects(
 ): Promise<ProjectRow[]> {
   const { data, error } = await supabase
     .from("projects")
-    .select("id, name, status, project_number")
+    .select("id, name, status, code")
     .eq("company_id", companyId)
     .order("name", { ascending: true });
 
