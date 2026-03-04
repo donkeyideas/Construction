@@ -6174,7 +6174,12 @@
     "cancel": "Cancelar",
     "nameRequired": "El nombre de la propiedad es obligatorio.",
     "addressRequired": "La dirección es obligatoria.",
-    "cityStateZipRequired": "Ciudad, estado y código postal son obligatorios."
+    "cityStateZipRequired": "Ciudad, estado y código postal son obligatorios.",
+    "basicInformation": "Información Básica",
+    "propertyLocation": "Ubicación de la Propiedad",
+    "financialDetails": "Detalles Financieros",
+    "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "Breve descripción de la propiedad..."
   },
   "documents": {
     "planRoom": {

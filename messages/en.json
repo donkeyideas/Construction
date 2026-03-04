@@ -6174,7 +6174,12 @@
     "cancel": "Cancel",
     "nameRequired": "Property name is required.",
     "addressRequired": "Address is required.",
-    "cityStateZipRequired": "City, state, and ZIP are required."
+    "cityStateZipRequired": "City, state, and ZIP are required.",
+    "basicInformation": "Basic Information",
+    "propertyLocation": "Property Location",
+    "financialDetails": "Financial Details",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Brief description of the property..."
   },
   "documents": {
     "planRoom": {

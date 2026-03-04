@@ -574,6 +574,7 @@ export async function getMaintenanceRequests(
 
 export interface CreatePropertyData {
   name: string;
+  description?: string | null;
   property_type: string;
   address_line1: string;
   city: string;
@@ -597,6 +598,7 @@ export async function createProperty(
     .insert({
       company_id: companyId,
       name: data.name,
+      description: data.description ?? null,
       property_type: data.property_type,
       address_line1: data.address_line1,
       city: data.city,

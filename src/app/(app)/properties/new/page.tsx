@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 const UNIT_TYPES = [
@@ -31,6 +31,7 @@ export default function NewPropertyPage() {
 
   const [form, setForm] = useState({
     name: "",
+    description: "",
     property_type: "residential",
     address_line1: "",
     city: "",
@@ -82,6 +83,7 @@ export default function NewPropertyPage() {
     try {
       const body = {
         name: form.name.trim(),
+        description: form.description.trim() || undefined,
         property_type: form.property_type,
         address_line1: form.address_line1.trim(),
         city: form.city.trim(),
@@ -124,347 +126,325 @@ export default function NewPropertyPage() {
   return (
     <div>
       {/* Header */}
-      <div className="properties-header">
+      <div className="projects-header">
         <div>
-          <div style={{ marginBottom: "8px" }}>
+          <div style={{ marginBottom: 8 }}>
             <Link
               href="/properties"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
                 fontSize: "0.82rem",
                 color: "var(--muted)",
                 textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
               }}
             >
-              <ArrowLeft size={14} />
-              {t("backToProperties")}
+              <ArrowLeft size={14} /> {t("backToProperties")}
             </Link>
           </div>
           <h2>{t("addProperty")}</h2>
-          <p>{t("createNewProperty")}</p>
+          <p className="projects-header-sub">
+            {t("createNewProperty")}
+          </p>
         </div>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="property-form">
-        {error && (
-          <div
-            style={{
-              padding: "12px 16px",
-              background: "var(--color-red-light)",
-              color: "var(--color-red)",
-              borderRadius: "8px",
-              fontSize: "0.85rem",
-              marginBottom: "20px",
-            }}
-          >
-            {error}
-          </div>
-        )}
+      {error && <div className="form-error">{error}</div>}
 
-        <div className="property-form-grid">
-          {/* Name */}
-          <div className="ui-field full-width">
-            <label className="ui-label" htmlFor="name">
-              {t("propertyName")}
-            </label>
-            <input
-              id="name"
-              name="name"
-              className="ui-input"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="e.g. Riverside Apartments"
-              required
-            />
-          </div>
-
-          {/* Property Type */}
-          <div className="ui-field">
-            <label className="ui-label" htmlFor="property_type">
-              {t("propertyType")}
-            </label>
-            <select
-              id="property_type"
-              name="property_type"
-              className="ui-input"
-              value={form.property_type}
-              onChange={handleChange}
-            >
-              <option value="residential">{t("residential")}</option>
-              <option value="commercial">{t("commercial")}</option>
-              <option value="industrial">{t("industrial")}</option>
-              <option value="mixed_use">{t("mixedUse")}</option>
-            </select>
-          </div>
-
-          {/* Year Built */}
-          <div className="ui-field">
-            <label className="ui-label" htmlFor="year_built">
-              {t("yearBuilt")}
-            </label>
-            <input
-              id="year_built"
-              name="year_built"
-              type="number"
-              className="ui-input"
-              value={form.year_built}
-              onChange={handleChange}
-              placeholder="e.g. 2005"
-              min="1800"
-              max="2100"
-            />
-          </div>
-
-          {/* Address */}
-          <div className="ui-field full-width">
-            <label className="ui-label" htmlFor="address_line1">
-              {t("address")}
-            </label>
-            <input
-              id="address_line1"
-              name="address_line1"
-              className="ui-input"
-              value={form.address_line1}
-              onChange={handleChange}
-              placeholder={t("streetAddress")}
-              required
-            />
-          </div>
-
-          {/* City */}
-          <div className="ui-field">
-            <label className="ui-label" htmlFor="city">
-              {t("city")}
-            </label>
-            <input
-              id="city"
-              name="city"
-              className="ui-input"
-              value={form.city}
-              onChange={handleChange}
-              placeholder="City"
-              required
-            />
-          </div>
-
-          {/* State */}
-          <div className="ui-field">
-            <label className="ui-label" htmlFor="state">
-              {t("state")}
-            </label>
-            <input
-              id="state"
-              name="state"
-              className="ui-input"
-              value={form.state}
-              onChange={handleChange}
-              placeholder="e.g. CA"
-              maxLength={2}
-              required
-            />
-          </div>
-
-          {/* ZIP */}
-          <div className="ui-field">
-            <label className="ui-label" htmlFor="zip">
-              {t("zipCode")}
-            </label>
-            <input
-              id="zip"
-              name="zip"
-              className="ui-input"
-              value={form.zip}
-              onChange={handleChange}
-              placeholder="e.g. 90210"
-              required
-            />
-          </div>
-
-          {/* Total Sq Ft */}
-          <div className="ui-field">
-            <label className="ui-label" htmlFor="total_sqft">
-              {t("totalSqFt")}
-            </label>
-            <input
-              id="total_sqft"
-              name="total_sqft"
-              type="number"
-              className="ui-input"
-              value={form.total_sqft}
-              onChange={handleChange}
-              placeholder="e.g. 50000"
-              min="0"
-            />
-          </div>
-
-          {/* Total Units */}
-          <div className="ui-field">
-            <label className="ui-label" htmlFor="total_units">
-              {t("totalUnits")}
-            </label>
-            <input
-              id="total_units"
-              name="total_units"
-              type="number"
-              className="ui-input"
-              value={form.total_units}
-              onChange={handleChange}
-              placeholder="e.g. 24"
-              min="0"
-            />
-          </div>
-
-          {/* Purchase Price */}
-          <div className="ui-field">
-            <label className="ui-label" htmlFor="purchase_price">
-              {t("purchasePrice")}
-            </label>
-            <input
-              id="purchase_price"
-              name="purchase_price"
-              type="number"
-              className="ui-input"
-              value={form.purchase_price}
-              onChange={handleChange}
-              placeholder="e.g. 2500000"
-              min="0"
-              step="0.01"
-            />
-          </div>
-
-          {/* Land Value — shown when purchase_price > 0 */}
-          {hasPurchasePrice && (
-            <div className="ui-field">
-              <label className="ui-label" htmlFor="land_value">
-                Land Value <span style={{ fontWeight: 400, color: "var(--muted)" }}>(optional)</span>
+      <form onSubmit={handleSubmit} className="project-form">
+        {/* Basic Information */}
+        <div className="project-form-section">
+          <div className="card-title">{t("basicInformation")}</div>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label" htmlFor="name">
+                {t("propertyName")} *
               </label>
               <input
-                id="land_value"
-                name="land_value"
-                type="number"
-                className="ui-input"
-                value={form.land_value}
+                id="name"
+                name="name"
+                type="text"
+                className="form-input"
+                value={form.name}
                 onChange={handleChange}
-                placeholder={`e.g. ${form.purchase_price ? Math.round(parseFloat(form.purchase_price) * 0.2).toLocaleString() : "500000"} (leave blank for 20% auto-estimate)`}
-                min="0"
-                step="0.01"
+                placeholder="e.g. Riverside Apartments"
+                required
               />
-              <div style={{ fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
-                Non-depreciable land portion. If blank, 20% of purchase price is assumed for depreciation.
-              </div>
             </div>
-          )}
-
-          {/* Current Value */}
-          <div className="ui-field">
-            <label className="ui-label" htmlFor="current_value">
-              {t("currentValue")}
-            </label>
-            <input
-              id="current_value"
-              name="current_value"
-              type="number"
-              className="ui-input"
-              value={form.current_value}
-              onChange={handleChange}
-              placeholder="e.g. 3000000"
-              min="0"
-              step="0.01"
-            />
+            <div className="form-group full-width">
+              <label className="form-label" htmlFor="description">
+                {t("descriptionLabel")}
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                className="form-textarea"
+                value={form.description}
+                onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                placeholder={t("descriptionPlaceholder")}
+                rows={3}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="property_type">
+                {t("propertyType")}
+              </label>
+              <select
+                id="property_type"
+                name="property_type"
+                className="form-select"
+                value={form.property_type}
+                onChange={handleChange}
+              >
+                <option value="residential">{t("residential")}</option>
+                <option value="commercial">{t("commercial")}</option>
+                <option value="industrial">{t("industrial")}</option>
+                <option value="mixed_use">{t("mixedUse")}</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="year_built">
+                {t("yearBuilt")}
+              </label>
+              <input
+                id="year_built"
+                name="year_built"
+                type="number"
+                className="form-input"
+                value={form.year_built}
+                onChange={handleChange}
+                placeholder="e.g. 2005"
+                min="1800"
+                max="2100"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="total_sqft">
+                {t("totalSqFt")}
+              </label>
+              <input
+                id="total_sqft"
+                name="total_sqft"
+                type="number"
+                className="form-input"
+                value={form.total_sqft}
+                onChange={handleChange}
+                placeholder="e.g. 50000"
+                min="0"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="total_units">
+                {t("totalUnits")}
+              </label>
+              <input
+                id="total_units"
+                name="total_units"
+                type="number"
+                className="form-input"
+                value={form.total_units}
+                onChange={handleChange}
+                placeholder="e.g. 24"
+                min="0"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Financing Method — shown when purchase_price > 0 */}
-        {hasPurchasePrice && (
-          <div
-            style={{
-              marginTop: "20px",
-              padding: "16px 20px",
-              background: "var(--card)",
-              border: "1px solid var(--border)",
-              borderRadius: "10px",
-            }}
-          >
-            <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--text)", marginBottom: "4px" }}>
-              Financing Method
+        {/* Location */}
+        <div className="project-form-section">
+          <div className="card-title">{t("propertyLocation")}</div>
+          <div className="form-grid">
+            <div className="form-group full-width">
+              <label className="form-label" htmlFor="address_line1">
+                {t("address")} *
+              </label>
+              <input
+                id="address_line1"
+                name="address_line1"
+                type="text"
+                className="form-input"
+                value={form.address_line1}
+                onChange={handleChange}
+                placeholder={t("streetAddress")}
+                required
+              />
             </div>
-            <div style={{ fontSize: "0.8rem", color: "var(--muted)", marginBottom: "14px" }}>
-              How was this property acquired? Determines the accounting entry (DR Building / CR Cash or Mortgage Payable).
+            <div className="form-group">
+              <label className="form-label" htmlFor="city">
+                {t("city")} *
+              </label>
+              <input
+                id="city"
+                name="city"
+                type="text"
+                className="form-input"
+                value={form.city}
+                onChange={handleChange}
+                placeholder="City"
+                required
+              />
             </div>
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              {[
-                { value: "mortgage", label: "Mortgage / Financed", desc: "CR Mortgage Payable" },
-                { value: "cash", label: "Cash Purchase", desc: "CR Cash" },
-              ].map((opt) => {
-                const selected = form.financing_method === opt.value;
-                return (
-                  <label
-                    key={opt.value}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      cursor: "pointer",
-                      padding: "10px 16px",
-                      borderRadius: "8px",
-                      border: `2px solid ${selected ? "var(--color-primary, #6366f1)" : "var(--border)"}`,
-                      background: selected ? "var(--color-primary-light, rgba(99,102,241,0.08))" : "var(--bg)",
-                      transition: "border-color 0.15s, background 0.15s",
-                      minWidth: "180px",
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="financing_method"
-                      value={opt.value}
-                      checked={selected}
-                      onChange={handleChange}
-                      style={{ accentColor: "var(--color-primary, #6366f1)", flexShrink: 0 }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: "0.87rem", color: "var(--text)" }}>{opt.label}</div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontFamily: "monospace", marginTop: "2px" }}>{opt.desc}</div>
-                    </div>
-                  </label>
-                );
-              })}
+            <div className="form-group">
+              <label className="form-label" htmlFor="state">
+                {t("state")} *
+              </label>
+              <input
+                id="state"
+                name="state"
+                type="text"
+                className="form-input"
+                value={form.state}
+                onChange={handleChange}
+                placeholder="e.g. CA"
+                maxLength={2}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="zip">
+                {t("zipCode")} *
+              </label>
+              <input
+                id="zip"
+                name="zip"
+                type="text"
+                className="form-input"
+                value={form.zip}
+                onChange={handleChange}
+                placeholder="e.g. 90210"
+                required
+              />
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Financial Details */}
+        <div className="project-form-section">
+          <div className="card-title">{t("financialDetails")}</div>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label" htmlFor="purchase_price">
+                {t("purchasePrice")}
+              </label>
+              <input
+                id="purchase_price"
+                name="purchase_price"
+                type="number"
+                className="form-input"
+                value={form.purchase_price}
+                onChange={handleChange}
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="current_value">
+                {t("currentValue")}
+              </label>
+              <input
+                id="current_value"
+                name="current_value"
+                type="number"
+                className="form-input"
+                value={form.current_value}
+                onChange={handleChange}
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            {hasPurchasePrice && (
+              <div className="form-group">
+                <label className="form-label" htmlFor="land_value">
+                  Land Value
+                </label>
+                <input
+                  id="land_value"
+                  name="land_value"
+                  type="number"
+                  className="form-input"
+                  value={form.land_value}
+                  onChange={handleChange}
+                  placeholder={`e.g. ${form.purchase_price ? Math.round(parseFloat(form.purchase_price) * 0.2).toLocaleString() : "500000"}`}
+                  min="0"
+                  step="0.01"
+                />
+                <span className="form-hint">
+                  Non-depreciable land portion. If blank, 20% of purchase price is assumed.
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Financing Method */}
+          {hasPurchasePrice && (
+            <div style={{ marginTop: 20 }}>
+              <label className="form-label" style={{ marginBottom: 10, display: "block" }}>
+                Financing Method
+              </label>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {[
+                  { value: "mortgage", label: "Mortgage / Financed", desc: "CR Mortgage Payable" },
+                  { value: "cash", label: "Cash Purchase", desc: "CR Cash" },
+                ].map((opt) => {
+                  const selected = form.financing_method === opt.value;
+                  return (
+                    <label
+                      key={opt.value}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        cursor: "pointer",
+                        padding: "10px 16px",
+                        borderRadius: 8,
+                        border: `2px solid ${selected ? "var(--color-blue)" : "var(--border)"}`,
+                        background: selected ? "rgba(59,130,246,0.08)" : "var(--bg)",
+                        transition: "border-color 0.15s, background 0.15s",
+                        minWidth: 180,
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="financing_method"
+                        value={opt.value}
+                        checked={selected}
+                        onChange={handleChange}
+                        style={{ accentColor: "var(--color-blue)", flexShrink: 0 }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: "0.87rem", color: "var(--text)" }}>{opt.label}</div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--muted)", fontFamily: "monospace", marginTop: 2 }}>{opt.desc}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Unit Defaults — shown when total_units > 0 */}
         {unitCount > 0 && (
-          <div
-            style={{
-              marginTop: "28px",
-              padding: "20px 24px",
-              background: "var(--color-blue-light, rgba(59,130,246,0.06))",
-              border: "1px solid var(--color-blue, #3b82f6)",
-              borderRadius: "10px",
-            }}
-          >
-            <div style={{ marginBottom: "16px" }}>
-              <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: "4px" }}>
-                Unit Defaults
-              </div>
-              <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
-                {unitCount} units will be created automatically. Set defaults here — you can edit each unit individually after creation.
-              </div>
+          <div className="project-form-section" style={{ borderColor: "var(--color-blue)", background: "rgba(59,130,246,0.04)" }}>
+            <div className="card-title">
+              Unit Defaults
+              <span style={{ fontWeight: 400, fontSize: "0.8rem", color: "var(--muted)", marginLeft: 8 }}>
+                {unitCount} units will be created automatically
+              </span>
             </div>
-
-            <div className="property-form-grid">
-              {/* Default Unit Type */}
-              <div className="ui-field">
-                <label className="ui-label" htmlFor="default_unit_type">
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label" htmlFor="default_unit_type">
                   Unit Type
                 </label>
                 <select
                   id="default_unit_type"
                   name="default_unit_type"
-                  className="ui-input"
+                  className="form-select"
                   value={form.default_unit_type || DEFAULT_UNIT_TYPE_BY_PROPERTY[form.property_type] || "1br"}
                   onChange={handleChange}
                 >
@@ -473,51 +453,45 @@ export default function NewPropertyPage() {
                   ))}
                 </select>
               </div>
-
-              {/* Floors */}
-              <div className="ui-field">
-                <label className="ui-label" htmlFor="floors">
+              <div className="form-group">
+                <label className="form-label" htmlFor="floors">
                   Number of Floors
                 </label>
                 <input
                   id="floors"
                   name="floors"
                   type="number"
-                  className="ui-input"
+                  className="form-input"
                   value={form.floors}
                   onChange={handleChange}
                   placeholder="e.g. 3 (for 101, 201, 301...)"
                   min="1"
                 />
               </div>
-
-              {/* Default Sq Ft per Unit */}
-              <div className="ui-field">
-                <label className="ui-label" htmlFor="default_sqft_per_unit">
+              <div className="form-group">
+                <label className="form-label" htmlFor="default_sqft_per_unit">
                   Sq Ft Per Unit
                 </label>
                 <input
                   id="default_sqft_per_unit"
                   name="default_sqft_per_unit"
                   type="number"
-                  className="ui-input"
+                  className="form-input"
                   value={form.default_sqft_per_unit}
                   onChange={handleChange}
                   placeholder="e.g. 850"
                   min="0"
                 />
               </div>
-
-              {/* Default Market Rent */}
-              <div className="ui-field">
-                <label className="ui-label" htmlFor="default_market_rent">
+              <div className="form-group">
+                <label className="form-label" htmlFor="default_market_rent">
                   Market Rent Per Unit ($)
                 </label>
                 <input
                   id="default_market_rent"
                   name="default_market_rent"
                   type="number"
-                  className="ui-input"
+                  className="form-input"
                   value={form.default_market_rent}
                   onChange={handleChange}
                   placeholder="e.g. 1800"
@@ -528,14 +502,14 @@ export default function NewPropertyPage() {
             </div>
 
             {/* Preview of unit numbers */}
-            <div style={{ marginTop: "12px", fontSize: "0.78rem", color: "var(--muted)" }}>
+            <div style={{ marginTop: 12, fontSize: "0.78rem", color: "var(--muted)" }}>
               Unit numbering preview:{" "}
               <span style={{ fontFamily: "monospace", color: "var(--text)" }}>
                 {(() => {
                   const floors = parseInt(form.floors, 10) || 0;
                   if (floors > 1) {
                     const perFloor = Math.ceil(unitCount / floors);
-                    const examples = [];
+                    const examples: string[] = [];
                     outer: for (let f = 1; f <= floors; f++) {
                       for (let u = 1; u <= perFloor; u++) {
                         examples.push(`${f}${String(u).padStart(2, "0")}`);
@@ -553,21 +527,18 @@ export default function NewPropertyPage() {
           </div>
         )}
 
-        <div className="property-form-actions">
-          <button
-            type="submit"
-            className="ui-btn ui-btn-md ui-btn-primary"
-            disabled={saving}
-          >
-            {saving && <span className="ui-btn-spinner" />}
-            <Save size={16} />
+        {/* Actions */}
+        <div className="form-actions">
+          <Link href="/properties" className="btn-secondary">
+            <X size={14} />
+            {t("cancel")}
+          </Link>
+          <button type="submit" className="btn-primary" disabled={saving}>
+            <Save size={14} />
             {saving
               ? (unitCount > 0 ? `Creating property + ${unitCount} units...` : t("saving"))
               : t("createProperty")}
           </button>
-          <Link href="/properties" className="ui-btn ui-btn-md ui-btn-secondary">
-            {t("cancel")}
-          </Link>
         </div>
       </form>
     </div>

@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
 
     const property = await createProperty(supabase, ctx.companyId, {
       name: body.name,
+      description: body.description ?? null,
       property_type: body.property_type,
       address_line1: body.address_line1,
       city: body.city,
