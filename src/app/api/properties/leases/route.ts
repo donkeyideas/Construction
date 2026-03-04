@@ -295,6 +295,32 @@ export async function PATCH(request: NextRequest) {
           "vacant",
           null
         );
+
+        // ── Delete future rent accrual JEs when lease is terminated/expired ──
+        if (newStatus === "terminated" || newStatus === "expired") {
+          const today = new Date().toISOString().slice(0, 10);
+          const leaseId = existingLease.id;
+
+          for (const pattern of [
+            `rent:accrual:${leaseId}:%`,
+            `lease_accrual:${leaseId}:%`,
+            `lease_recognition:${leaseId}:%`,
+          ]) {
+            const { data: jes } = await supabase
+              .from("journal_entries")
+              .select("id, entry_date")
+              .eq("company_id", userCtx.companyId)
+              .like("reference", pattern)
+              .gt("entry_date", today);
+
+            if (jes && jes.length > 0) {
+              await supabase
+                .from("journal_entries")
+                .delete()
+                .in("id", jes.map((j: { id: string }) => j.id));
+            }
+          }
+        }
       } else if (!wasActive && isNowActive) {
         // Lease reactivated → mark unit occupied
         await syncUnitAndProperty(
@@ -364,6 +390,33 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Lease not found" }, { status: 404 });
     }
 
+    // ── Clean up ALL journal entries linked to this lease ────────────
+    // JEs reference leases via the `reference` text field (no FK).
+    // Patterns: rent:accrual:{id}:*, lease_accrual:{id}:*, lease_recognition:{id}:*, lease:{id}
+    const leaseId = existingLease.id;
+    const refPatterns = [
+      `rent:accrual:${leaseId}:%`,
+      `lease_accrual:${leaseId}:%`,
+      `lease_recognition:${leaseId}:%`,
+      `lease:${leaseId}`,
+    ];
+
+    for (const pattern of refPatterns) {
+      const { data: jes } = await supabase
+        .from("journal_entries")
+        .select("id")
+        .eq("company_id", userCtx.companyId)
+        .like("reference", pattern);
+
+      if (jes && jes.length > 0) {
+        await supabase
+          .from("journal_entries")
+          .delete()
+          .in("id", jes.map((j: { id: string }) => j.id));
+      }
+    }
+
+    // ── Delete the lease (cascades to rent_payments, lease_revenue_schedule) ──
     const { error } = await supabase.from("leases").delete().eq("id", body.id);
 
     if (error) {
