@@ -1486,78 +1486,147 @@ export async function generateLeaseRevenueSchedule(
     }
   }
 
-  return { scheduledCount, jeCount: 0 };
+  // Auto-recognize past/current months (create JEs for months already earned)
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const accountMap = await buildCompanyAccountMap(supabase, companyId);
+  const { recognizedCount } = await recognizeLeaseRevenue(
+    supabase, companyId, _userId, today, accountMap, lease.id
+  );
+
+  return { scheduledCount, jeCount: recognizedCount };
 }
 
 /**
- * Recognize lease revenue for a given month.
- * For each scheduled row on that date:
- *   DR Deferred Rental Revenue / CR Rental Income
+ * Recognize lease revenue for all scheduled rows up to a given date.
+ * GAAP (ASC 842): Recognize rental income as earned, month by month.
+ *   DR 1220 Rent Receivable / CR 4100 Rental Income
  *
  * Updates status from 'scheduled' to 'accrued'.
- * Reference format: lease_recognition:{leaseId}:{YYYY-MM}
+ * Reference format: lease_accrual:{leaseId}:{YYYY-MM}
+ *
+ * Can be called:
+ *   - On lease creation (for past/current months)
+ *   - Monthly via cron or manual trigger
+ *   - For a specific lease or all leases in a company
  */
 export async function recognizeLeaseRevenue(
   supabase: SupabaseClient,
   companyId: string,
   userId: string,
-  scheduleDate: string, // YYYY-MM-DD (1st of month)
-  accountMap: CompanyAccountMap
+  throughDate: string, // YYYY-MM-DD — recognize all scheduled months <= this date
+  accountMap: CompanyAccountMap,
+  leaseId?: string // optional — restrict to a single lease
 ): Promise<{ recognizedCount: number }> {
-  if (!accountMap.deferredRentalRevenueId || !accountMap.rentalIncomeId) {
+  // Resolve Rent Receivable and Rental Income accounts
+  let rentReceivableId = accountMap.rentReceivableId;
+  if (!rentReceivableId) {
+    rentReceivableId = await findOrCreateCOAAccount(
+      supabase, companyId,
+      "1220", "Rent Receivable", "asset", "current_asset", "debit",
+      "Accrued rent earned but not yet collected from tenants"
+    );
+    if (rentReceivableId) accountMap.rentReceivableId = rentReceivableId;
+  }
+
+  let rentalIncomeId = accountMap.rentalIncomeId;
+  if (!rentalIncomeId) {
+    rentalIncomeId = await findOrCreateCOAAccount(
+      supabase, companyId,
+      "4100", "Rental Income", "revenue", "operating_revenue", "credit",
+      "Revenue from tenant rent payments"
+    );
+    if (rentalIncomeId) accountMap.rentalIncomeId = rentalIncomeId;
+  }
+
+  if (!rentReceivableId || !rentalIncomeId) {
+    console.error("[lease-recognize] Could not resolve Rent Receivable or Rental Income accounts");
     return { recognizedCount: 0 };
   }
 
-  const { data: rows } = await supabase
+  // Fetch all scheduled rows up to throughDate
+  let query = supabase
     .from("lease_revenue_schedule")
-    .select("id, lease_id, property_id, monthly_rent")
+    .select("id, lease_id, property_id, monthly_rent, schedule_date, leases(tenant_name)")
     .eq("company_id", companyId)
-    .eq("schedule_date", scheduleDate)
-    .eq("status", "scheduled");
+    .eq("status", "scheduled")
+    .lte("schedule_date", throughDate)
+    .order("schedule_date", { ascending: true });
 
+  if (leaseId) {
+    query = query.eq("lease_id", leaseId);
+  }
+
+  const { data: rows } = await query;
   if (!rows || rows.length === 0) return { recognizedCount: 0 };
 
   let recognizedCount = 0;
 
-  for (const row of rows) {
-    const ym = scheduleDate.substring(0, 7);
-    const description = `Revenue recognition (${ym})`;
-    const reference = `lease_recognition:${row.lease_id}:${ym}`;
+  // Process in batches of 10 for performance
+  const BATCH_SIZE = 10;
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, i + BATCH_SIZE);
+    await Promise.allSettled(
+      batch.map(async (row) => {
+        const ym = row.schedule_date.substring(0, 7);
+        const lease = row.leases as unknown as { tenant_name: string } | null;
+        const tenantName = lease?.tenant_name ?? "Tenant";
+        const description = `Rent accrual - ${tenantName} (${ym})`;
+        const reference = `lease_accrual:${row.lease_id}:${ym}`;
 
-    const entryData: JournalEntryCreateData = {
-      entry_number: `JE-RREV-${row.lease_id.substring(0, 6)}-${ym}`,
-      entry_date: scheduleDate,
-      description,
-      reference,
-      lines: [
-        {
-          account_id: accountMap.deferredRentalRevenueId!,
-          debit: row.monthly_rent,
-          credit: 0,
+        // Check if JE already exists (idempotent)
+        const { data: existing } = await supabase
+          .from("journal_entries")
+          .select("id")
+          .eq("company_id", companyId)
+          .eq("reference", reference)
+          .limit(1);
+
+        if (existing && existing.length > 0) {
+          // JE exists — just update schedule row status
+          await supabase
+            .from("lease_revenue_schedule")
+            .update({ status: "accrued", accrual_je_id: existing[0].id })
+            .eq("id", row.id);
+          recognizedCount++;
+          return;
+        }
+
+        const entryData: JournalEntryCreateData = {
+          entry_number: `JE-RENT-${row.lease_id.substring(0, 6)}-${ym}`,
+          entry_date: row.schedule_date,
           description,
-          property_id: row.property_id,
-        },
-        {
-          account_id: accountMap.rentalIncomeId!,
-          debit: 0,
-          credit: row.monthly_rent,
-          description,
-          property_id: row.property_id,
-        },
-      ],
-    };
+          reference,
+          lines: [
+            {
+              account_id: rentReceivableId!,
+              debit: row.monthly_rent,
+              credit: 0,
+              description,
+              property_id: row.property_id,
+            },
+            {
+              account_id: rentalIncomeId!,
+              debit: 0,
+              credit: row.monthly_rent,
+              description,
+              property_id: row.property_id,
+            },
+          ],
+        };
 
-    const jeResult = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+        const jeResult = await createPostedJournalEntry(supabase, companyId, userId, entryData);
 
-    await supabase
-      .from("lease_revenue_schedule")
-      .update({
-        status: "accrued",
-        recognition_je_id: jeResult?.id ?? null,
+        await supabase
+          .from("lease_revenue_schedule")
+          .update({
+            status: "accrued",
+            accrual_je_id: jeResult?.id ?? null,
+          })
+          .eq("id", row.id);
+
+        recognizedCount++;
       })
-      .eq("id", row.id);
-
-    recognizedCount++;
+    );
   }
 
   return { recognizedCount };

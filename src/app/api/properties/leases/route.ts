@@ -5,7 +5,6 @@ import {
   buildCompanyAccountMap,
   generateLeaseRevenueSchedule,
   generateSecurityDepositJournalEntry,
-  type CompanyAccountMap,
 } from "@/lib/utils/invoice-accounting";
 import { SupabaseClient } from "@supabase/supabase-js";
 
@@ -165,13 +164,14 @@ export async function POST(request: NextRequest) {
       body.tenant_name.trim()
     );
 
-    // Generate security deposit JE + revenue schedule (schedule rows only, no JEs).
-    // GAAP: rental income JEs are created when revenue is recognized each month,
-    // not upfront. Schedule rows track the future obligation.
+    // Generate security deposit JE + revenue schedule.
+    // Schedule rows are created for all months. Past/current months are
+    // auto-recognized (JEs created). Future months stay as [Scheduled].
     try {
+      const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
+
       // Security deposit JE: DR Cash / CR Security Deposits Held (single JE)
       if (body.security_deposit && Number(body.security_deposit) > 0) {
-        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
         await generateSecurityDepositJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
           leaseId: lease.id,
           amount: Number(body.security_deposit),
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
         }, accountMap);
       }
 
-      // Revenue schedule: bulk-insert schedule rows (fast, no JEs)
+      // Revenue schedule: bulk-insert schedule rows + auto-recognize past months
       const result = await generateLeaseRevenueSchedule(
         supabase, userCtx.companyId, userCtx.userId,
         {
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
           lease_start: body.lease_start,
           lease_end: body.lease_end,
         },
-        {} as CompanyAccountMap // not used — schedule rows only
+        accountMap
       );
       console.log("[lease-create] Revenue schedule:", result);
     } catch (jeErr) {
