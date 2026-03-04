@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Building2, Users, FileText,
   Globe, ChevronRight, CreditCard, Settings,
   Shield, Wrench, Headphones, TrendingUp, Mail,
-  Megaphone,
+  Share2,
 } from "lucide-react";
 import {
   superAdminNavigation,
@@ -28,7 +28,7 @@ const iconMap: Record<string, React.ElementType> = {
   headphones: Headphones,
   "trending-up": TrendingUp,
   settings: Settings,
-  megaphone: Megaphone,
+  "share-2": Share2,
 };
 
 function NavItemComponent({

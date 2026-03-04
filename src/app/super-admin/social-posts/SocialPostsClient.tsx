@@ -4,10 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
-  Clock,
   CheckCircle,
-  Settings,
-  Link2,
   Send,
   Trash2,
   Edit3,
@@ -19,7 +16,6 @@ import {
   Copy,
   Calendar,
   Zap,
-  XCircle,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -62,11 +58,11 @@ interface Props {
 // ---------------------------------------------------------------------------
 
 const PLATFORMS = [
-  { key: "twitter", label: "Twitter / X", icon: "𝕏", color: "#000" },
-  { key: "linkedin", label: "LinkedIn", icon: "in", color: "#0A66C2" },
-  { key: "facebook", label: "Facebook", icon: "f", color: "#1877F2" },
-  { key: "instagram", label: "Instagram", icon: "📷", color: "#E4405F" },
-  { key: "tiktok", label: "TikTok", icon: "♪", color: "#000" },
+  { key: "twitter", label: "Twitter / X" },
+  { key: "linkedin", label: "LinkedIn" },
+  { key: "facebook", label: "Facebook" },
+  { key: "instagram", label: "Instagram" },
+  { key: "tiktok", label: "TikTok" },
 ] as const;
 
 const PLATFORM_LIMITS: Record<string, number> = {
@@ -89,20 +85,16 @@ const TONES = [
 ];
 
 const TABS = [
-  { key: "generator", icon: Sparkles, label: "Generator" },
-  { key: "queue", icon: Clock, label: "Queue" },
-  { key: "published", icon: CheckCircle, label: "Published" },
-  { key: "automation", icon: Settings, label: "Automation" },
-  { key: "connections", icon: Link2, label: "Connections" },
+  { key: "generator", label: "Generator" },
+  { key: "queue", label: "Queue" },
+  { key: "published", label: "Published" },
+  { key: "automation", label: "Automation" },
+  { key: "connections", label: "Connections" },
 ] as const;
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function platformIcon(key: string) {
-  return PLATFORMS.find((p) => p.key === key)?.icon || "?";
-}
 
 function platformLabel(key: string) {
   return PLATFORMS.find((p) => p.key === key)?.label || key;
@@ -690,7 +682,6 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
             className={`settings-tab ${activeTab === tab.key ? "active" : ""}`}
             onClick={() => setActiveTab(tab.key)}
           >
-            <tab.icon size={14} style={{ marginRight: 6 }} />
             {tab.label}
           </button>
         ))}
@@ -720,7 +711,7 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                     )
                   }
                 >
-                  <span style={{ fontWeight: 700 }}>{p.icon}</span> {p.label}
+                  {p.label}
                 </button>
               ))}
             </div>
@@ -780,8 +771,7 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                     return (
                       <div key={idx} className="sa-social-preview">
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                          <span style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontSize: "1.1rem" }}>{platformIcon(gp.platform)}</span>
+                          <span style={{ fontWeight: 600 }}>
                             {platformLabel(gp.platform)}
                           </span>
                           <CharCounter current={gp.content.length} max={limit} />
@@ -902,7 +892,6 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                     {queuePosts.map((post) => (
                       <tr key={post.id}>
                         <td>
-                          <span style={{ fontWeight: 700, marginRight: 6 }}>{platformIcon(post.platform)}</span>
                           {platformLabel(post.platform)}
                         </td>
                         <td style={{ maxWidth: 300 }}>
@@ -1025,8 +1014,8 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
             <div className="sa-kpi-grid" style={{ marginBottom: 20 }}>
               {PLATFORMS.map((p) => (
                 <div key={p.key} className="sa-kpi-card">
-                  <div className="sa-kpi-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontWeight: 700 }}>{p.icon}</span> {p.label}
+                  <div className="sa-kpi-label">
+                    {p.label}
                   </div>
                   <div className="sa-kpi-value">{pubStatsByPlatform[p.key] || 0}</div>
                 </div>
@@ -1063,7 +1052,6 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                     {publishedPosts.map((post) => (
                       <tr key={post.id}>
                         <td>
-                          <span style={{ fontWeight: 700, marginRight: 6 }}>{platformIcon(post.platform)}</span>
                           {platformLabel(post.platform)}
                         </td>
                         <td style={{ maxWidth: 400 }}>
@@ -1131,7 +1119,7 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                             )
                           }
                         >
-                          <span style={{ fontWeight: 700 }}>{p.icon}</span> {p.label}
+                          {p.label}
                         </button>
                       ))}
                     </div>
@@ -1242,7 +1230,6 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                 {/* Twitter */}
                 <div className="sa-social-connection-card">
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    <span style={{ fontWeight: 700, fontSize: "1.1rem" }}>𝕏</span>
                     <span style={{ fontWeight: 600, fontSize: "1rem" }}>Twitter / X</span>
                     <span className={connStatus.twitter ? "sa-social-connected" : "sa-social-disconnected"} style={{ marginLeft: "auto", fontSize: "0.8rem", fontWeight: 600 }}>
                       {connStatus.twitter ? "Connected" : "Not connected"}
@@ -1291,7 +1278,6 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                 {/* LinkedIn */}
                 <div className="sa-social-connection-card">
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    <span style={{ fontWeight: 700, fontSize: "1rem", color: "#0A66C2" }}>in</span>
                     <span style={{ fontWeight: 600, fontSize: "1rem" }}>LinkedIn</span>
                     <span className={connStatus.linkedin ? "sa-social-connected" : "sa-social-disconnected"} style={{ marginLeft: "auto", fontSize: "0.8rem", fontWeight: 600 }}>
                       {connStatus.linkedin ? "Connected" : "Not connected"}
@@ -1331,7 +1317,6 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                 {/* Facebook */}
                 <div className="sa-social-connection-card">
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    <span style={{ fontWeight: 700, fontSize: "1rem", color: "#1877F2" }}>f</span>
                     <span style={{ fontWeight: 600, fontSize: "1rem" }}>Facebook</span>
                     <span className={connStatus.facebook ? "sa-social-connected" : "sa-social-disconnected"} style={{ marginLeft: "auto", fontSize: "0.8rem", fontWeight: 600 }}>
                       {connStatus.facebook ? "Connected" : "Not connected"}
@@ -1383,7 +1368,6 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                 {/* Instagram (not supported) */}
                 <div className="sa-social-connection-card" style={{ opacity: 0.6 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: "1.1rem" }}>📷</span>
                     <span style={{ fontWeight: 600, fontSize: "1rem" }}>Instagram</span>
                     <span className="sa-social-disconnected" style={{ marginLeft: "auto", fontSize: "0.8rem", fontWeight: 600 }}>
                       Text-only not supported
@@ -1397,7 +1381,6 @@ export default function SocialPostsClient({ posts: initialPosts, stats }: Props)
                 {/* TikTok (coming soon) */}
                 <div className="sa-social-connection-card" style={{ opacity: 0.6 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontWeight: 700, fontSize: "1.1rem" }}>♪</span>
                     <span style={{ fontWeight: 600, fontSize: "1rem" }}>TikTok</span>
                     <span className="sa-social-disconnected" style={{ marginLeft: "auto", fontSize: "0.8rem", fontWeight: 600 }}>
                       Coming soon
