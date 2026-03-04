@@ -574,7 +574,7 @@ export async function getMaintenanceRequests(
 
 export interface CreatePropertyData {
   name: string;
-  description?: string | null;
+  description?: string;
   property_type: string;
   address_line1: string;
   city: string;
@@ -598,7 +598,6 @@ export async function createProperty(
     .insert({
       company_id: companyId,
       name: data.name,
-      description: data.description ?? null,
       property_type: data.property_type,
       address_line1: data.address_line1,
       city: data.city,
@@ -612,6 +611,7 @@ export async function createProperty(
       current_value: data.current_value ?? null,
       monthly_revenue: 0,
       monthly_expenses: 0,
+      ...(data.description ? { metadata: { description: data.description } } : {}),
     })
     .select()
     .single();
