@@ -12,7 +12,6 @@ import {
   Loader2,
   ImageIcon,
   X,
-  ExternalLink,
   Check,
   Zap,
   Ticket,
@@ -1100,6 +1099,13 @@ export default function SettingsClient({
                   const annualTotal = annualPrice * 12;
                   const annualSavings = (monthlyPrice * 12) - annualTotal;
                   const isCurrent = plan === tierKey;
+                  const needsPayment = isCurrent && (
+                    company.subscription_status === "past_due" ||
+                    company.subscription_status === "grace_period" ||
+                    company.subscription_status === "canceled" ||
+                    company.subscription_status === "suspended" ||
+                    (company.trial_ends_at && new Date(company.trial_ends_at) < new Date() && !company.stripe_subscription_id)
+                  );
                   const isLowerTier =
                     (tierKey === "starter" && plan !== "starter") ||
                     (tierKey === "professional" && plan === "enterprise");
@@ -1149,7 +1155,15 @@ export default function SettingsClient({
                       <div style={{ fontSize: "0.78rem", color: "var(--muted)", marginBottom: "12px" }}>
                         {description}
                       </div>
-                      {isCurrent ? (
+                      {needsPayment ? (
+                        <button
+                          className="btn-primary"
+                          style={{ width: "100%", justifyContent: "center", backgroundColor: "var(--color-green)" }}
+                          onClick={() => openCheckout(tierKey, billingInterval)}
+                        >
+                          Reactivate Plan
+                        </button>
+                      ) : isCurrent ? (
                         <div style={{ textAlign: "center", padding: "8px 0", fontSize: "0.85rem", fontWeight: 600, color: tierColor }}>
                           Current Plan
                         </div>
@@ -1175,36 +1189,9 @@ export default function SettingsClient({
                 })}
               </div>
 
-              {/* Manage Billing (for existing Stripe customers) */}
+              {/* Subscription actions */}
               {company.stripe_customer_id && (
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <button
-                    className="btn-secondary"
-                    onClick={async () => {
-                      setBillingMessage(null);
-                      try {
-                        const res = await fetch("/api/stripe/portal", { method: "POST" });
-                        if (res.ok) {
-                          const { url } = await res.json();
-                          window.open(url, "_blank");
-                        } else {
-                          const data = await res.json().catch(() => ({}));
-                          setBillingMessage({
-                            type: "error",
-                            text: data.error || t("stripeBillingPortalNotConfigured"),
-                          });
-                        }
-                      } catch {
-                        setBillingMessage({
-                          type: "error",
-                          text: t("stripeBillingPortalNotConfiguredShort"),
-                        });
-                      }
-                    }}
-                  >
-                    <ExternalLink size={14} />
-                    {t("manageBilling")}
-                  </button>
                   {company.stripe_subscription_id && company.subscription_status !== "canceling" && (
                     <button
                       className="btn-secondary"

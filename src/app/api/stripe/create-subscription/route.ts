@@ -113,6 +113,17 @@ export async function POST(request: NextRequest) {
         .eq("id", userCtx.companyId);
     }
 
+    // Cancel any existing incomplete/past_due subscriptions to avoid stacking
+    const existingSubs = await stripe.subscriptions.list({
+      customer: customerId,
+      limit: 10,
+    });
+    for (const sub of existingSubs.data) {
+      if (sub.status === "incomplete" || sub.status === "incomplete_expired" || sub.status === "past_due") {
+        await stripe.subscriptions.cancel(sub.id);
+      }
+    }
+
     // Create subscription with incomplete payment — returns PaymentIntent client_secret
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
