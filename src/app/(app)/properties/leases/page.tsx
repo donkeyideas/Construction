@@ -31,8 +31,9 @@ export default async function LeasesPage() {
       .eq("company_id", companyId),
     supabase
       .from("units")
-      .select("id, unit_number, property_id, properties(name)")
-      .eq("company_id", companyId),
+      .select("id, unit_number, status, property_id, properties(name)")
+      .eq("company_id", companyId)
+      .order("unit_number", { ascending: true }),
   ]);
 
   const leases = leasesResult.data ?? [];
@@ -40,6 +41,7 @@ export default async function LeasesPage() {
   const units = (unitsResult.data ?? []).map((u: any) => ({
     id: u.id,
     unit_number: u.unit_number,
+    status: u.status ?? "vacant",
     property_id: u.property_id,
     property_name: (u.properties as any)?.name ?? "Unknown",
   }));

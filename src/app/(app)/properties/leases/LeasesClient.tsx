@@ -53,6 +53,7 @@ interface Lease {
 interface UnitOption {
   id: string;
   unit_number: string;
+  status: string;
   property_id: string;
   property_name: string;
 }
@@ -173,12 +174,14 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
 
   // ---- State ----
   const [statusFilter, setStatusFilter] = useState("all");
+  const [propertyFilter, setPropertyFilter] = useState("all");
 
   // Create modal
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [createForm, setCreateForm] = useState({
+    property_id: "",
     unit_id: "",
     tenant_name: "",
     tenant_email: "",
@@ -192,6 +195,13 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
     terms: "",
     auto_renew: false,
   });
+
+  // Filter units by selected property (only vacant units, sorted by unit_number)
+  const filteredUnits = useMemo(() => {
+    return units
+      .filter((u) => u.status === "vacant" && (!createForm.property_id || u.property_id === createForm.property_id))
+      .sort((a, b) => a.unit_number.localeCompare(b.unit_number, undefined, { numeric: true }));
+  }, [units, createForm.property_id]);
 
   // Detail / edit modal
   const [selectedLease, setSelectedLease] = useState<Lease | null>(null);
@@ -277,10 +287,16 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
   const vacantUnits = Math.max(units.length - activeUnitIds.size, 0);
 
   // Filtered leases for the table
-  const filteredLeases = useMemo(
-    () => (statusFilter === "all" ? leases : leases.filter((l) => l.status === statusFilter)),
-    [leases, statusFilter]
-  );
+  const filteredLeases = useMemo(() => {
+    let result = leases;
+    if (statusFilter !== "all") {
+      result = result.filter((l) => l.status === statusFilter);
+    }
+    if (propertyFilter !== "all") {
+      result = result.filter((l) => l.properties?.name === propertyFilter);
+    }
+    return result;
+  }, [leases, statusFilter, propertyFilter]);
 
   // ---- Row highlight ----
   function getRowHighlight(leaseEnd: string | null): string {
@@ -307,6 +323,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
   // ---- Create handlers ----
   function openCreate() {
     setCreateForm({
+      property_id: "",
       unit_id: "",
       tenant_name: "",
       tenant_email: "",
@@ -677,7 +694,7 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
         </div>
       </div>
 
-      {/* Status Filters */}
+      {/* Filters */}
       <div className="fin-filters">
         <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>
           {t("statusLabel")}
@@ -693,6 +710,25 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
             {s.label}
           </button>
         ))}
+
+        <span style={{ width: "1px", height: "24px", background: "var(--border)", margin: "0 0.5rem" }} />
+
+        <label style={{ fontSize: "0.82rem", color: "var(--muted)", fontWeight: 500 }}>
+          {t("property")}
+        </label>
+        <select
+          className="ticket-form-select"
+          style={{ width: "auto", minWidth: "160px", padding: "0.3rem 0.5rem", fontSize: "0.82rem" }}
+          value={propertyFilter}
+          onChange={(e) => setPropertyFilter(e.target.value)}
+        >
+          <option value="all">{t("all")}</option>
+          {properties
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((p) => (
+              <option key={p.id} value={p.name}>{p.name}</option>
+            ))}
+        </select>
       </div>
 
       {/* Lease Table */}
@@ -771,18 +807,8 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
                           ? formatCurrency(lease.security_deposit)
                           : "--"}
                       </td>
-                      <td>
-                        <span
-                          className={
-                            lease.auto_renew ? "badge badge-green" : "badge badge-amber"
-                          }
-                        >
-                          {lease.auto_renew ? t("yes") : t("no")}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={getStatusBadge(lease.status)}>{lease.status}</span>
-                      </td>
+                      <td>{lease.auto_renew ? t("yes") : t("no")}</td>
+                      <td>{lease.status}</td>
                     </tr>
                   );
                 })}
@@ -1109,21 +1135,40 @@ export default function LeasesClient({ leases, properties, units }: LeasesClient
             {createError && <div className="ticket-form-error">{createError}</div>}
 
             <form onSubmit={handleCreate} className="ticket-form">
-              <div className="ticket-form-group">
-                <label className="ticket-form-label">{t("unitRequired")}</label>
-                <select
-                  className="ticket-form-select"
-                  value={createForm.unit_id}
-                  onChange={(e) => setCreateForm({ ...createForm, unit_id: e.target.value })}
-                  required
-                >
-                  <option value="">{t("selectAUnit")}</option>
-                  {units.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.property_name} - {t("unit")} {u.unit_number}
-                    </option>
-                  ))}
-                </select>
+              <div className="ticket-form-row">
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("property")} *</label>
+                  <select
+                    className="ticket-form-select"
+                    value={createForm.property_id}
+                    onChange={(e) => setCreateForm({ ...createForm, property_id: e.target.value, unit_id: "" })}
+                    required
+                  >
+                    <option value="">Select a property...</option>
+                    {properties
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                  </select>
+                </div>
+                <div className="ticket-form-group">
+                  <label className="ticket-form-label">{t("unitRequired")}</label>
+                  <select
+                    className="ticket-form-select"
+                    value={createForm.unit_id}
+                    onChange={(e) => setCreateForm({ ...createForm, unit_id: e.target.value })}
+                    required
+                    disabled={!createForm.property_id}
+                  >
+                    <option value="">{createForm.property_id ? t("selectAUnit") : "Select property first..."}</option>
+                    {filteredUnits.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {t("unit")} {u.unit_number}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="ticket-form-group">
