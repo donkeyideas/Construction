@@ -1680,35 +1680,10 @@ export async function getCashFlowStatement(
   const incomeStatement = await getIncomeStatement(supabase, companyId, startDate, endDate);
   const netIncome = incomeStatement.netIncome;
 
-  // Get AR/AP changes during the period (paginated to avoid 1000-row limit)
-  // AR at start vs AR at end
-  const [arStartRows, arEndRows, apStartRows, apEndRows] = await Promise.all([
-    paginatedQuery<{ balance_due: number }>((from, to) =>
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-        .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", startDate).range(from, to)),
-    paginatedQuery<{ balance_due: number }>((from, to) =>
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-        .eq("invoice_type", "receivable").not("status", "eq", "voided").lte("invoice_date", endDate).range(from, to)),
-    paginatedQuery<{ balance_due: number }>((from, to) =>
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-        .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", startDate).range(from, to)),
-    paginatedQuery<{ balance_due: number }>((from, to) =>
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId)
-        .eq("invoice_type", "payable").not("status", "eq", "voided").lte("invoice_date", endDate).range(from, to)),
-  ]);
-
-  const arStart = arStartRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
-  const arEnd = arEndRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
-  const apStart = apStartRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
-  const apEnd = apEndRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
-
-  const arChange = -(arEnd - arStart); // Decrease in AR = cash inflow
-  const apChange = apEnd - apStart; // Increase in AP = cash inflow
-
+  // All AR/AP/working-capital changes are derived from JE lines below (single source of truth).
+  // This avoids the old invoice-based AR/AP calculation which double-counted with the JE working-capital loop.
   const operating: CashFlowSection[] = [
     { label: "Net Income", amount: netIncome },
-    { label: "Changes in Accounts Receivable", amount: arChange },
-    { label: "Changes in Accounts Payable", amount: apChange },
   ];
 
   // Investing activities — pull from journal entries hitting fixed asset accounts (1500-1999 range)
@@ -1719,7 +1694,7 @@ export async function getCashFlowStatement(
   const financing: CashFlowSection[] = [];
   let netFinancing = 0;
 
-  // Paginated query for investing and financing activities
+  // Paginated query for operating working-capital, investing, and financing activities
   {
     const cfLines = await paginatedQuery<{
       debit: number; credit: number;
@@ -1738,7 +1713,7 @@ export async function getCashFlowStatement(
 
     const investingMap = new Map<string, number>();
     const financingMap = new Map<string, number>();
-    const workingCapitalMap = new Map<string, number>();
+    const operatingMap = new Map<string, number>();
 
     for (const line of cfLines) {
       const account = line.chart_of_accounts;
@@ -1764,37 +1739,83 @@ export async function getCashFlowStatement(
       const netAmount = (line.debit ?? 0) - (line.credit ?? 0);
       const nameLower = account.name.toLowerCase();
 
-      // Fixed assets (investing): accounts 1500-1999 or sub_type 'fixed_asset'/'contra_asset'
-      if (account.sub_type === "fixed_asset" || account.sub_type === "contra_asset" ||
-          (num >= 1500 && num < 2000)) {
+      // ── Skip Cash accounts — Cash is the result, not an adjustment ──
+      if (num === 1000 || nameLower.includes("cash") || nameLower.includes("checking") || nameLower.includes("savings")) {
+        continue;
+      }
+
+      // ── Skip revenue & expense accounts — already captured in Net Income ──
+      if (account.account_type === "revenue" || account.account_type === "expense") {
+        continue;
+      }
+
+      // ── Contra-assets (Accumulated Depreciation) → Operating add-back ──
+      // Depreciation is a non-cash charge already deducted from Net Income.
+      // Add it back in operating, NOT investing.
+      if (account.sub_type === "contra_asset") {
+        // CR to contra asset → netAmount negative → -netAmount is positive (add-back) ✓
+        operatingMap.set("Depreciation & Amortization", (operatingMap.get("Depreciation & Amortization") ?? 0) - netAmount);
+        continue;
+      }
+
+      // ── Fixed assets (investing): accounts 1500-1999 or sub_type 'fixed_asset' ──
+      if (account.sub_type === "fixed_asset" || (num >= 1500 && num < 2000)) {
         const label = account.name;
         investingMap.set(label, (investingMap.get(label) ?? 0) + netAmount);
       }
 
-      // Debt accounts (financing): accounts 2100-2399 or sub_type 'long_term_liability'
+      // ── AR (operating working capital) ──
+      else if (num === 1100 || nameLower.includes("accounts receivable") || nameLower.includes("receivable")) {
+        // Increase in AR = cash NOT received = negative adjustment
+        operatingMap.set("Changes in Accounts Receivable", (operatingMap.get("Changes in Accounts Receivable") ?? 0) - netAmount);
+      }
+
+      // ── AP (operating working capital) ──
+      else if (num === 2000 || nameLower.includes("accounts payable")) {
+        // Increase in AP = cash NOT paid = positive adjustment
+        operatingMap.set("Changes in Accounts Payable", (operatingMap.get("Changes in Accounts Payable") ?? 0) - netAmount);
+      }
+
+      // ── Other current liabilities (operating working capital) ──
+      else if (account.account_type === "liability" && account.sub_type !== "long_term_liability" && num < 2100) {
+        operatingMap.set(`Changes in ${account.name}`, (operatingMap.get(`Changes in ${account.name}`) ?? 0) - netAmount);
+      }
+
+      // ── Debt accounts (financing): accounts 2100-2399 or sub_type 'long_term_liability' ──
       else if (account.sub_type === "long_term_liability" || (num >= 2100 && num < 2400)) {
         const label = account.name;
         // Credit to liability = cash inflow (loan draw), Debit = cash outflow (repayment)
         financingMap.set(label, (financingMap.get(label) ?? 0) - netAmount);
       }
 
-      // Equity accounts (financing): accounts 3000-3299 excluding retained earnings
+      // ── Equity accounts (financing): accounts 3000-3299 excluding retained earnings ──
       else if (account.account_type === "equity" && num >= 3000 && num < 3200) {
         const label = account.name;
         financingMap.set(label, (financingMap.get(label) ?? 0) - netAmount);
       }
 
-      // Working capital: payment clearing accounts, rent receivable, prepaid
-      // (current assets 1050-1499 that aren't Cash/Checking/Savings/AR)
+      // ── Other current assets (operating working capital): 1050-1499 ──
       else if (
         account.sub_type === "current_asset" &&
-        num >= 1050 && num < 1500 &&
-        !nameLower.includes("cash") &&
-        !nameLower.includes("checking") &&
-        !nameLower.includes("savings")
+        num >= 1050 && num < 1500
       ) {
         // Increase in current asset = cash used (negative for operating)
-        workingCapitalMap.set(account.name, (workingCapitalMap.get(account.name) ?? 0) + netAmount);
+        operatingMap.set(`Changes in ${account.name}`, (operatingMap.get(`Changes in ${account.name}`) ?? 0) - netAmount);
+      }
+    }
+
+    // Populate operating adjustments (order: depreciation, AR, AP, then others)
+    const opOrder = ["Depreciation & Amortization", "Changes in Accounts Receivable", "Changes in Accounts Payable"];
+    for (const key of opOrder) {
+      const val = operatingMap.get(key);
+      if (val !== undefined && Math.abs(val) > 0.01) {
+        operating.push({ label: key, amount: val });
+        operatingMap.delete(key);
+      }
+    }
+    for (const [label, amount] of operatingMap) {
+      if (Math.abs(amount) > 0.01) {
+        operating.push({ label, amount });
       }
     }
 
@@ -1811,26 +1832,22 @@ export async function getCashFlowStatement(
         netFinancing += amount;
       }
     }
-
-    // Add working capital changes to operating section
-    for (const [label, amount] of workingCapitalMap) {
-      if (Math.abs(amount) > 0.01) {
-        // Increase in asset = cash outflow (negative), decrease = cash inflow (positive)
-        operating.push({ label: `Changes in ${label}`, amount: -amount });
-      }
-    }
   }
 
   const netOperating = operating.reduce((s, i) => s + i.amount, 0);
   const netChange = netOperating + netInvesting + netFinancing;
 
-  // Get current cash position
-  const { data: bankData } = await supabase
-    .from("bank_accounts")
-    .select("current_balance")
-    .eq("company_id", companyId);
-
-  const endingCash = (bankData ?? []).reduce((s, r) => s + (r.current_balance ?? 0), 0);
+  // Derive cash balances from GL trial balance (consistent with Balance Sheet),
+  // NOT from bank_accounts.current_balance which is a separate manually-entered value.
+  const endTrialBalance = await getTrialBalance(supabase, companyId, endDate);
+  let endingCash = 0;
+  for (const row of endTrialBalance) {
+    const num = parseInt(row.account_number);
+    const nameLower = row.account_name.toLowerCase();
+    if (row.account_type === "asset" && (num === 1000 || nameLower.includes("cash") || nameLower.includes("checking") || nameLower.includes("savings"))) {
+      endingCash += row.total_debit - row.total_credit;
+    }
+  }
   const beginningCash = endingCash - netChange;
 
   return {
