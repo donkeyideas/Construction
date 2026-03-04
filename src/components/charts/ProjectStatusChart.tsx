@@ -71,16 +71,16 @@ export default function ProjectStatusChart({ data, total }: Props) {
 
   return (
     <div style={{ position: "relative" }}>
-      <ResponsiveContainer width="100%" height={220}>
+      <ResponsiveContainer width="100%" height={260}>
         <PieChart>
           <Pie
             data={data}
             dataKey="count"
             nameKey="status"
             cx="50%"
-            cy="50%"
-            innerRadius={55}
-            outerRadius={85}
+            cy="45%"
+            innerRadius={70}
+            outerRadius={105}
             paddingAngle={2}
           >
             {data.map((entry) => (
@@ -102,10 +102,11 @@ export default function ProjectStatusChart({ data, total }: Props) {
       <div
         style={{
           position: "absolute",
-          top: "50%",
+          top: "45%",
           left: "50%",
-          transform: "translate(-50%, -65%)",
+          transform: "translate(-50%, -50%)",
           textAlign: "center",
+          pointerEvents: "none",
         }}
       >
         <div

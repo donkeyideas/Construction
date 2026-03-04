@@ -823,10 +823,13 @@ export async function getProjectsOverview(
     (sum, p) => sum + (p.contract_amount ?? 0),
     0
   );
+  // Average completion across ALL projects; treat completed/closed as 100%
   const avgCompletion =
-    activeProjects.length > 0
-      ? activeProjects.reduce((sum, p) => sum + (p.completion_pct ?? 0), 0) /
-        activeProjects.length
+    projects.length > 0
+      ? projects.reduce((sum, p) => {
+          if (p.status === "completed" || p.status === "closed") return sum + 100;
+          return sum + (p.completion_pct ?? 0);
+        }, 0) / projects.length
       : 0;
 
   // Status breakdown
