@@ -469,7 +469,15 @@ export async function getPropertyTransactions(
     if (je) coveredJeIds.add(je.id);
   }
 
-  // Standalone JE lines (only those NOT already covered by invoices/payments/maintenance/rent)
+  // Pre-populate coveredJeIds with lease schedule JE IDs so they don't appear as
+  // standalone JE lines alongside the "Lease Schedule" rows.
+  for (const row of scheduleRows) {
+    if (row.accrual_je_id) coveredJeIds.add(row.accrual_je_id);
+    if (row.recognition_je_id) coveredJeIds.add(row.recognition_je_id);
+    if (row.collection_je_id) coveredJeIds.add(row.collection_je_id);
+  }
+
+  // Standalone JE lines (only those NOT already covered by invoices/payments/maintenance/rent/leases)
   for (const line of jeLines as JELineRow[]) {
     const je = line.journal_entries as unknown as {
       id: string; entry_number: string; entry_date: string;

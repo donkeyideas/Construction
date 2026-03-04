@@ -1483,55 +1483,72 @@ export async function generateLeaseRevenueSchedule(
 
   const existingDates = new Set((existing ?? []).map((r) => r.schedule_date));
 
+  // Filter to only new months
+  const newMonths = months.filter((m) => !existingDates.has(m));
+  if (newMonths.length === 0) return { scheduledCount: 0, jeCount: 0 };
+
   let scheduledCount = 0;
   let jeCount = 0;
 
-  for (const monthDate of months) {
-    if (existingDates.has(monthDate)) continue;
+  // Process in parallel batches of 10 for performance
+  const BATCH_SIZE = 10;
+  for (let i = 0; i < newMonths.length; i += BATCH_SIZE) {
+    const batch = newMonths.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map(async (monthDate) => {
+        const ym = monthDate.substring(0, 7); // YYYY-MM
+        const description = `Rent accrual - ${lease.tenant_name} (${ym})`;
+        const reference = `lease_accrual:${lease.id}:${ym}`;
 
-    const ym = monthDate.substring(0, 7); // YYYY-MM
-    const description = `Rent accrual - ${lease.tenant_name} (${ym})`;
-    const reference = `lease_accrual:${lease.id}:${ym}`;
-
-    // Create accrual JE: DR Rent Receivable / CR Rental Income
-    const entryData: JournalEntryCreateData = {
-      entry_number: `JE-RENT-${lease.id.substring(0, 6)}-${ym}`,
-      entry_date: monthDate,
-      description,
-      reference,
-      lines: [
-        {
-          account_id: rentReceivableId,
-          debit: lease.monthly_rent,
-          credit: 0,
+        // Create accrual JE: DR Rent Receivable / CR Rental Income
+        const entryData: JournalEntryCreateData = {
+          entry_number: `JE-RENT-${lease.id.substring(0, 6)}-${ym}`,
+          entry_date: monthDate,
           description,
+          reference,
+          lines: [
+            {
+              account_id: rentReceivableId,
+              debit: lease.monthly_rent,
+              credit: 0,
+              description,
+              property_id: lease.property_id,
+            },
+            {
+              account_id: rentalIncomeId,
+              debit: 0,
+              credit: lease.monthly_rent,
+              description,
+              property_id: lease.property_id,
+            },
+          ],
+        };
+
+        const jeResult = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+
+        // Insert schedule row
+        await supabase.from("lease_revenue_schedule").insert({
+          company_id: companyId,
+          lease_id: lease.id,
           property_id: lease.property_id,
-        },
-        {
-          account_id: rentalIncomeId,
-          debit: 0,
-          credit: lease.monthly_rent,
-          description,
-          property_id: lease.property_id,
-        },
-      ],
-    };
+          schedule_date: monthDate,
+          monthly_rent: lease.monthly_rent,
+          status: "scheduled",
+          accrual_je_id: jeResult?.id ?? null,
+        });
 
-    const jeResult = await createPostedJournalEntry(supabase, companyId, userId, entryData);
+        return jeResult;
+      })
+    );
 
-    // Insert schedule row
-    await supabase.from("lease_revenue_schedule").insert({
-      company_id: companyId,
-      lease_id: lease.id,
-      property_id: lease.property_id,
-      schedule_date: monthDate,
-      monthly_rent: lease.monthly_rent,
-      status: "scheduled",
-      accrual_je_id: jeResult?.id ?? null,
-    });
-
-    scheduledCount++;
-    if (jeResult) jeCount++;
+    for (const r of results) {
+      if (r.status === "fulfilled") {
+        scheduledCount++;
+        if (r.value) jeCount++;
+      } else {
+        console.error("[lease-revenue] Batch item failed:", r.reason);
+      }
+    }
   }
 
   return { scheduledCount, jeCount };

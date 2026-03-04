@@ -164,9 +164,9 @@ export async function POST(request: NextRequest) {
       body.tenant_name.trim()
     );
 
-    // Generate lease JEs: revenue schedule + security deposit (non-blocking)
-    // NOTE: Only generateLeaseRevenueSchedule runs. generateAllRentAccrualJEs
-    // was removed because it duplicated entries (different ref pattern, same debit).
+    // Generate lease JEs: revenue schedule + security deposit
+    // Must be awaited (not fire-and-forget) to ensure all months are generated
+    // before the serverless function exits.
     try {
       const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
 
@@ -181,19 +181,15 @@ export async function POST(request: NextRequest) {
       }
 
       // Revenue schedule: monthly accrual JEs from lease_start to lease_end
-      // Fire-and-forget so lease creation returns quickly for long-term leases
-      generateLeaseRevenueSchedule(supabase, userCtx.companyId, userCtx.userId, {
+      const result = await generateLeaseRevenueSchedule(supabase, userCtx.companyId, userCtx.userId, {
         id: lease.id,
         property_id: unit.property_id,
         tenant_name: body.tenant_name.trim(),
         monthly_rent: Number(body.monthly_rent),
         lease_start: body.lease_start,
         lease_end: body.lease_end,
-      }, accountMap).then((r) => {
-        console.log("[lease-create] Revenue schedule:", r);
-      }).catch((err) => {
-        console.error("[lease-create] Revenue schedule failed:", err);
-      });
+      }, accountMap);
+      console.log("[lease-create] Revenue schedule:", result);
     } catch (jeErr) {
       console.error("[lease-create] JE generation failed:", jeErr);
     }
@@ -304,6 +300,8 @@ export async function PATCH(request: NextRequest) {
           const today = new Date().toISOString().slice(0, 10);
           const leaseId = existingLease.id;
 
+          // First, collect all future JE IDs
+          const futureJeIds: string[] = [];
           for (const pattern of [
             `rent:accrual:${leaseId}:%`,
             `lease_accrual:${leaseId}:%`,
@@ -317,11 +315,30 @@ export async function PATCH(request: NextRequest) {
               .gt("entry_date", today);
 
             if (jes && jes.length > 0) {
-              await supabase
-                .from("journal_entries")
-                .delete()
-                .in("id", jes.map((j: { id: string }) => j.id));
+              futureJeIds.push(...jes.map((j: { id: string }) => j.id));
             }
+          }
+
+          if (futureJeIds.length > 0) {
+            // NULL out FK references in lease_revenue_schedule before deleting JEs
+            await supabase
+              .from("lease_revenue_schedule")
+              .update({ accrual_je_id: null, recognition_je_id: null, collection_je_id: null })
+              .eq("lease_id", leaseId)
+              .gt("schedule_date", today);
+
+            // Now delete the JEs (no FK violations)
+            await supabase
+              .from("journal_entries")
+              .delete()
+              .in("id", futureJeIds);
+
+            // Delete future schedule rows too
+            await supabase
+              .from("lease_revenue_schedule")
+              .delete()
+              .eq("lease_id", leaseId)
+              .gt("schedule_date", today);
           }
         }
       } else if (!wasActive && isNowActive) {
@@ -380,10 +397,22 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Lease not found" }, { status: 404 });
     }
 
-    // ── Clean up ALL journal entries linked to this lease ────────────
-    // JEs reference leases via the `reference` text field (no FK).
-    // Patterns: rent:accrual:{id}:*, lease_accrual:{id}:*, lease_recognition:{id}:*, lease:{id}
+    // ── Delete the lease FIRST (cascades to rent_payments, lease_revenue_schedule) ──
+    // This must happen before deleting JEs because lease_revenue_schedule has
+    // FK references (accrual_je_id, recognition_je_id) to journal_entries
+    // WITHOUT ON DELETE CASCADE. Deleting the lease cascades to the schedule
+    // rows, removing those FK references so the JEs can then be deleted.
     const leaseId = existingLease.id;
+
+    const { error } = await supabase.from("leases").delete().eq("id", body.id);
+
+    if (error) {
+      console.error("Delete lease error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // ── Now clean up ALL journal entries linked to this lease ────────────
+    // JEs reference leases via the `reference` text field (no FK).
     const refPatterns = [
       `rent:accrual:${leaseId}:%`,
       `lease_accrual:${leaseId}:%`,
@@ -414,14 +443,6 @@ export async function DELETE(request: NextRequest) {
           console.error(`[lease-delete] Failed to delete JEs for pattern ${pattern}:`, delErr);
         }
       }
-    }
-
-    // ── Delete the lease (cascades to rent_payments, lease_revenue_schedule) ──
-    const { error } = await supabase.from("leases").delete().eq("id", body.id);
-
-    if (error) {
-      console.error("Delete lease error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     // ── Mark unit as vacant if the deleted lease was active ──────────
