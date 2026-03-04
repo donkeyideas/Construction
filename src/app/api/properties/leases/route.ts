@@ -300,46 +300,33 @@ export async function PATCH(request: NextRequest) {
           const today = new Date().toISOString().slice(0, 10);
           const leaseId = existingLease.id;
 
-          // First, collect all future JE IDs
-          const futureJeIds: string[] = [];
+          // NULL out FK references in future schedule rows before deleting JEs
+          await supabase
+            .from("lease_revenue_schedule")
+            .update({ accrual_je_id: null, recognition_je_id: null, collection_je_id: null })
+            .eq("lease_id", leaseId)
+            .gt("schedule_date", today);
+
+          // Delete future JEs directly with .like()
           for (const pattern of [
             `rent:accrual:${leaseId}:%`,
             `lease_accrual:${leaseId}:%`,
             `lease_recognition:${leaseId}:%`,
           ]) {
-            const { data: jes } = await supabase
+            await supabase
               .from("journal_entries")
-              .select("id, entry_date")
+              .delete()
               .eq("company_id", userCtx.companyId)
               .like("reference", pattern)
               .gt("entry_date", today);
-
-            if (jes && jes.length > 0) {
-              futureJeIds.push(...jes.map((j: { id: string }) => j.id));
-            }
           }
 
-          if (futureJeIds.length > 0) {
-            // NULL out FK references in lease_revenue_schedule before deleting JEs
-            await supabase
-              .from("lease_revenue_schedule")
-              .update({ accrual_je_id: null, recognition_je_id: null, collection_je_id: null })
-              .eq("lease_id", leaseId)
-              .gt("schedule_date", today);
-
-            // Now delete the JEs (no FK violations)
-            await supabase
-              .from("journal_entries")
-              .delete()
-              .in("id", futureJeIds);
-
-            // Delete future schedule rows too
-            await supabase
-              .from("lease_revenue_schedule")
-              .delete()
-              .eq("lease_id", leaseId)
-              .gt("schedule_date", today);
-          }
+          // Delete future schedule rows
+          await supabase
+            .from("lease_revenue_schedule")
+            .delete()
+            .eq("lease_id", leaseId)
+            .gt("schedule_date", today);
         }
       } else if (!wasActive && isNowActive) {
         // Lease reactivated → mark unit occupied
@@ -397,52 +384,59 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Lease not found" }, { status: 404 });
     }
 
-    // ── Delete the lease FIRST (cascades to rent_payments, lease_revenue_schedule) ──
-    // This must happen before deleting JEs because lease_revenue_schedule has
-    // FK references (accrual_je_id, recognition_je_id) to journal_entries
-    // WITHOUT ON DELETE CASCADE. Deleting the lease cascades to the schedule
-    // rows, removing those FK references so the JEs can then be deleted.
     const leaseId = existingLease.id;
 
+    // ── Step 1: Null out FK refs in lease_revenue_schedule ──────────
+    // These columns reference journal_entries WITHOUT ON DELETE CASCADE,
+    // so we must clear them before deleting the JEs.
+    const { error: nullErr } = await supabase
+      .from("lease_revenue_schedule")
+      .update({ accrual_je_id: null, recognition_je_id: null, collection_je_id: null })
+      .eq("lease_id", leaseId);
+
+    if (nullErr) {
+      console.error("[lease-delete] Failed to null FK refs in schedule:", nullErr);
+    }
+
+    // ── Step 2: Delete ALL journal entries linked to this lease ──────
+    // Use .like() directly on DELETE (no SELECT+IN needed, avoids row limits).
+    const likePatterns = [
+      `rent:accrual:${leaseId}:%`,
+      `lease_accrual:${leaseId}:%`,
+      `lease_recognition:${leaseId}:%`,
+    ];
+
+    for (const pattern of likePatterns) {
+      const { error: delErr } = await supabase
+        .from("journal_entries")
+        .delete()
+        .eq("company_id", userCtx.companyId)
+        .like("reference", pattern);
+
+      if (delErr) {
+        console.error(`[lease-delete] Failed to delete JEs (LIKE ${pattern}):`, delErr);
+      }
+    }
+
+    // Exact-match patterns (security deposit, etc.)
+    for (const ref of [`lease:${leaseId}`]) {
+      const { error: delErr } = await supabase
+        .from("journal_entries")
+        .delete()
+        .eq("company_id", userCtx.companyId)
+        .eq("reference", ref);
+
+      if (delErr) {
+        console.error(`[lease-delete] Failed to delete JE (ref=${ref}):`, delErr);
+      }
+    }
+
+    // ── Step 3: Delete the lease (cascades to lease_revenue_schedule, rent_payments) ──
     const { error } = await supabase.from("leases").delete().eq("id", body.id);
 
     if (error) {
       console.error("Delete lease error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // ── Now clean up ALL journal entries linked to this lease ────────────
-    // JEs reference leases via the `reference` text field (no FK).
-    const refPatterns = [
-      `rent:accrual:${leaseId}:%`,
-      `lease_accrual:${leaseId}:%`,
-      `lease_recognition:${leaseId}:%`,
-      `lease:${leaseId}`,
-    ];
-
-    for (const pattern of refPatterns) {
-      const { data: jes, error: selErr } = await supabase
-        .from("journal_entries")
-        .select("id")
-        .eq("company_id", userCtx.companyId)
-        .like("reference", pattern);
-
-      if (selErr) {
-        console.error(`[lease-delete] Failed to query JEs for pattern ${pattern}:`, selErr);
-        continue;
-      }
-
-      if (jes && jes.length > 0) {
-        console.log(`[lease-delete] Deleting ${jes.length} JEs matching ${pattern}`);
-        const { error: delErr } = await supabase
-          .from("journal_entries")
-          .delete()
-          .in("id", jes.map((j: { id: string }) => j.id));
-
-        if (delErr) {
-          console.error(`[lease-delete] Failed to delete JEs for pattern ${pattern}:`, delErr);
-        }
-      }
     }
 
     // ── Mark unit as vacant if the deleted lease was active ──────────
