@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/super-admin/social-posts/cron",
+      "schedule": "0 * * * *"
+    }
+  ]
+}

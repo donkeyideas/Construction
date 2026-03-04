@@ -46,7 +46,14 @@ export const superAdminNavigation: SuperAdminNavItem[] = [
     icon: "file-text",
     children: [
       { label: "cmsPages", href: "/super-admin/content" },
+    ],
+  },
+  {
+    label: "marketing",
+    icon: "megaphone",
+    children: [
       { label: "announcements", href: "/super-admin/announcements" },
+      { label: "socialPosts", href: "/super-admin/social-posts" },
     ],
   },
   {
