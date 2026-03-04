@@ -1414,18 +1414,20 @@ export async function generateBulkPaymentJournalEntries(
 // ==========================================================================
 
 /**
- * Generate a full lease revenue schedule with monthly accrual JEs.
- * Creates one lease_revenue_schedule row per month from lease_start to lease_end,
- * and for each month creates an accrual JE:
- *   DR Rent Receivable / CR Deferred Rental Revenue
+ * Generate a lease revenue schedule (schedule rows only, NO journal entries).
  *
- * Reference format: lease_accrual:{leaseId}:{YYYY-MM}
+ * GAAP (ASC 842): Rental income is recognized as earned — month by month.
+ * We do NOT pre-create future JEs. Instead:
+ *   - Schedule rows track the obligation (informational, shown in Transactions)
+ *   - JEs are created only when revenue is recognized (via recognizeLeaseRevenue)
+ *
+ * This makes lease creation instant regardless of term length.
  * Idempotent — skips months that already have a schedule row.
  */
 export async function generateLeaseRevenueSchedule(
   supabase: SupabaseClient,
   companyId: string,
-  userId: string,
+  _userId: string,
   lease: {
     id: string;
     property_id: string;
@@ -1435,35 +1437,9 @@ export async function generateLeaseRevenueSchedule(
     lease_end: string;   // YYYY-MM-DD
     project_id?: string | null;
   },
-  accountMap: CompanyAccountMap
+  _accountMap: CompanyAccountMap
 ): Promise<{ scheduledCount: number; jeCount: number }> {
   if (lease.monthly_rent <= 0) return { scheduledCount: 0, jeCount: 0 };
-
-  // Auto-create missing Rent Receivable and Rental Income accounts
-  let rentReceivableId = accountMap.rentReceivableId;
-  if (!rentReceivableId) {
-    rentReceivableId = await findOrCreateCOAAccount(
-      supabase, companyId,
-      "1220", "Rent Receivable", "asset", "current_asset", "debit",
-      "Accrued rent earned but not yet collected from tenants"
-    );
-    if (rentReceivableId) accountMap.rentReceivableId = rentReceivableId;
-  }
-
-  let rentalIncomeId = accountMap.rentalIncomeId;
-  if (!rentalIncomeId) {
-    rentalIncomeId = await findOrCreateCOAAccount(
-      supabase, companyId,
-      "4100", "Rental Income", "revenue", "operating_revenue", "credit",
-      "Revenue from tenant rent payments"
-    );
-    if (rentalIncomeId) accountMap.rentalIncomeId = rentalIncomeId;
-  }
-
-  if (!rentReceivableId || !rentalIncomeId) {
-    console.error("[lease-revenue] Could not resolve Rent Receivable or Rental Income accounts for company:", companyId);
-    return { scheduledCount: 0, jeCount: 0 };
-  }
 
   // Validate dates: end must be after start
   if (lease.lease_end < lease.lease_start) {
@@ -1487,71 +1463,30 @@ export async function generateLeaseRevenueSchedule(
   const newMonths = months.filter((m) => !existingDates.has(m));
   if (newMonths.length === 0) return { scheduledCount: 0, jeCount: 0 };
 
+  // Bulk-insert all schedule rows in batches of 100 (fast, no JE overhead)
+  const BATCH_SIZE = 100;
   let scheduledCount = 0;
-  let jeCount = 0;
 
-  // Process in parallel batches of 10 for performance
-  const BATCH_SIZE = 10;
   for (let i = 0; i < newMonths.length; i += BATCH_SIZE) {
     const batch = newMonths.slice(i, i + BATCH_SIZE);
-    const results = await Promise.allSettled(
-      batch.map(async (monthDate) => {
-        const ym = monthDate.substring(0, 7); // YYYY-MM
-        const description = `Rent accrual - ${lease.tenant_name} (${ym})`;
-        const reference = `lease_accrual:${lease.id}:${ym}`;
+    const rows = batch.map((monthDate) => ({
+      company_id: companyId,
+      lease_id: lease.id,
+      property_id: lease.property_id,
+      schedule_date: monthDate,
+      monthly_rent: lease.monthly_rent,
+      status: "scheduled",
+    }));
 
-        // Create accrual JE: DR Rent Receivable / CR Rental Income
-        const entryData: JournalEntryCreateData = {
-          entry_number: `JE-RENT-${lease.id.substring(0, 6)}-${ym}`,
-          entry_date: monthDate,
-          description,
-          reference,
-          lines: [
-            {
-              account_id: rentReceivableId,
-              debit: lease.monthly_rent,
-              credit: 0,
-              description,
-              property_id: lease.property_id,
-            },
-            {
-              account_id: rentalIncomeId,
-              debit: 0,
-              credit: lease.monthly_rent,
-              description,
-              property_id: lease.property_id,
-            },
-          ],
-        };
-
-        const jeResult = await createPostedJournalEntry(supabase, companyId, userId, entryData);
-
-        // Insert schedule row
-        await supabase.from("lease_revenue_schedule").insert({
-          company_id: companyId,
-          lease_id: lease.id,
-          property_id: lease.property_id,
-          schedule_date: monthDate,
-          monthly_rent: lease.monthly_rent,
-          status: "scheduled",
-          accrual_je_id: jeResult?.id ?? null,
-        });
-
-        return jeResult;
-      })
-    );
-
-    for (const r of results) {
-      if (r.status === "fulfilled") {
-        scheduledCount++;
-        if (r.value) jeCount++;
-      } else {
-        console.error("[lease-revenue] Batch item failed:", r.reason);
-      }
+    const { error } = await supabase.from("lease_revenue_schedule").insert(rows);
+    if (error) {
+      console.error("[lease-revenue] Batch insert failed:", error);
+    } else {
+      scheduledCount += batch.length;
     }
   }
 
-  return { scheduledCount, jeCount };
+  return { scheduledCount, jeCount: 0 };
 }
 
 /**

@@ -5,6 +5,7 @@ import {
   buildCompanyAccountMap,
   generateLeaseRevenueSchedule,
   generateSecurityDepositJournalEntry,
+  type CompanyAccountMap,
 } from "@/lib/utils/invoice-accounting";
 import { SupabaseClient } from "@supabase/supabase-js";
 
@@ -164,14 +165,13 @@ export async function POST(request: NextRequest) {
       body.tenant_name.trim()
     );
 
-    // Generate lease JEs: revenue schedule + security deposit
-    // Must be awaited (not fire-and-forget) to ensure all months are generated
-    // before the serverless function exits.
+    // Generate security deposit JE + revenue schedule (schedule rows only, no JEs).
+    // GAAP: rental income JEs are created when revenue is recognized each month,
+    // not upfront. Schedule rows track the future obligation.
     try {
-      const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
-
-      // Security deposit JE: DR Cash / CR Security Deposits Held (fast, single JE)
+      // Security deposit JE: DR Cash / CR Security Deposits Held (single JE)
       if (body.security_deposit && Number(body.security_deposit) > 0) {
+        const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
         await generateSecurityDepositJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
           leaseId: lease.id,
           amount: Number(body.security_deposit),
@@ -180,18 +180,22 @@ export async function POST(request: NextRequest) {
         }, accountMap);
       }
 
-      // Revenue schedule: monthly accrual JEs from lease_start to lease_end
-      const result = await generateLeaseRevenueSchedule(supabase, userCtx.companyId, userCtx.userId, {
-        id: lease.id,
-        property_id: unit.property_id,
-        tenant_name: body.tenant_name.trim(),
-        monthly_rent: Number(body.monthly_rent),
-        lease_start: body.lease_start,
-        lease_end: body.lease_end,
-      }, accountMap);
+      // Revenue schedule: bulk-insert schedule rows (fast, no JEs)
+      const result = await generateLeaseRevenueSchedule(
+        supabase, userCtx.companyId, userCtx.userId,
+        {
+          id: lease.id,
+          property_id: unit.property_id,
+          tenant_name: body.tenant_name.trim(),
+          monthly_rent: Number(body.monthly_rent),
+          lease_start: body.lease_start,
+          lease_end: body.lease_end,
+        },
+        {} as CompanyAccountMap // not used — schedule rows only
+      );
       console.log("[lease-create] Revenue schedule:", result);
     } catch (jeErr) {
-      console.error("[lease-create] JE generation failed:", jeErr);
+      console.error("[lease-create] Schedule generation failed:", jeErr);
     }
 
     return NextResponse.json(lease, { status: 201 });
