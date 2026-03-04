@@ -16,7 +16,6 @@ import {
   Trash2,
   Eye,
   Upload,
-  RefreshCw,
 } from "lucide-react";
 import { formatCurrency, formatCompactCurrency, formatPercent } from "@/lib/utils/format";
 import ImportModal from "@/components/ImportModal";
@@ -282,33 +281,8 @@ export default function BudgetClient({
             </div>
           </div>
 
-          {/* Add Budget Line / Import / Sync Buttons */}
+          {/* Add Budget Line / Import Buttons */}
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 16 }}>
-            <button
-              className="ui-btn ui-btn-outline ui-btn-md"
-              onClick={async () => {
-                if (!selectedProjectId) return;
-                try {
-                  const res = await fetch("/api/financial/budget-lines/sync", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ project_id: selectedProjectId }),
-                  });
-                  const data = await res.json();
-                  if (res.ok) {
-                    alert(`Synced ${data.updatedCount} budget lines from invoices`);
-                    router.refresh();
-                  } else {
-                    alert(data.error || "Sync failed");
-                  }
-                } catch {
-                  alert("Network error");
-                }
-              }}
-            >
-              <RefreshCw size={16} />
-              Sync Actuals
-            </button>
             <button className="ui-btn ui-btn-secondary ui-btn-md" onClick={() => setShowImport(true)}>
               <Upload size={16} />
               {t("importCsv")}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getInvoices, createInvoice } from "@/lib/queries/financial";
+import { getInvoices, createInvoice, syncBudgetActualsFromInvoices } from "@/lib/queries/financial";
 import type { InvoiceFilters, InvoiceCreateData } from "@/lib/queries/financial";
 import { buildCompanyAccountMap, generateInvoiceJournalEntry, generateInvoiceDeferralSchedule } from "@/lib/utils/invoice-accounting";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
@@ -172,6 +172,13 @@ export async function POST(request: NextRequest) {
         console.warn("Deferral schedule generation failed:", defErr);
         warnings.push("Deferral schedule generation failed.");
       }
+    }
+
+    // Auto-sync budget actuals when invoice is linked to a project
+    if (data.project_id) {
+      try {
+        await syncBudgetActualsFromInvoices(supabase, userCompany.companyId, data.project_id);
+      } catch (e) { console.warn("Budget sync after invoice create failed (non-blocking):", e); }
     }
 
     return NextResponse.json({ id: result.id, warnings }, { status: 201 });

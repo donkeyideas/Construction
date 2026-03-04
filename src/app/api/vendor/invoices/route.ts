@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { syncBudgetActualsFromInvoices } from "@/lib/queries/financial";
 
 // ---------------------------------------------------------------------------
 // POST /api/vendor/invoices
@@ -126,6 +127,13 @@ export async function POST(request: NextRequest) {
         { error: "Failed to submit invoice. Please try again." },
         { status: 500 }
       );
+    }
+
+    // Auto-sync budget actuals when invoice is linked to a project
+    if (project_id) {
+      try {
+        await syncBudgetActualsFromInvoices(admin, contact.company_id, project_id);
+      } catch (e) { console.warn("Budget sync after vendor invoice failed (non-blocking):", e); }
     }
 
     return NextResponse.json(invoice, { status: 201 });

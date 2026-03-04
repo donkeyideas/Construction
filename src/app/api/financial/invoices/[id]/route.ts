@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getInvoiceById, updateInvoice } from "@/lib/queries/financial";
+import { getInvoiceById, updateInvoice, syncBudgetActualsFromInvoices } from "@/lib/queries/financial";
 import { createNotifications } from "@/lib/utils/notifications";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
 import {
@@ -175,6 +175,14 @@ export async function PATCH(
       }
     }
 
+    // Auto-sync budget actuals when invoice is linked to a project
+    const projectId = body.project_id !== undefined ? body.project_id : existing.project_id;
+    if (projectId) {
+      try {
+        await syncBudgetActualsFromInvoices(supabase, userCompany.companyId, projectId);
+      } catch (e) { console.warn("Budget sync after invoice update failed (non-blocking):", e); }
+    }
+
     return NextResponse.json({ success: true, warnings });
   } catch (error) {
     console.error("PATCH /api/financial/invoices/[id] error:", error);
@@ -215,7 +223,7 @@ export async function DELETE(
 
     const { data: invoiceInfo } = await supabase
       .from("invoices")
-      .select("invoice_type")
+      .select("invoice_type, project_id")
       .eq("id", id)
       .single();
 
@@ -316,6 +324,13 @@ export async function DELETE(
           .update({ status: "voided" })
           .in("id", deferralJEIds);
       }
+    }
+
+    // Auto-sync budget actuals when invoice was linked to a project
+    if (invoiceInfo?.project_id) {
+      try {
+        await syncBudgetActualsFromInvoices(supabase, userCompany.companyId, invoiceInfo.project_id);
+      } catch (e) { console.warn("Budget sync after invoice delete failed (non-blocking):", e); }
     }
 
     return NextResponse.json({ success: true });
