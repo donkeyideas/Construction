@@ -1438,7 +1438,36 @@ export async function generateLeaseRevenueSchedule(
   accountMap: CompanyAccountMap
 ): Promise<{ scheduledCount: number; jeCount: number }> {
   if (lease.monthly_rent <= 0) return { scheduledCount: 0, jeCount: 0 };
-  if (!accountMap.rentReceivableId || !accountMap.deferredRentalRevenueId) {
+
+  // Auto-create missing Rent Receivable and Deferred Rental Revenue accounts
+  let rentReceivableId = accountMap.rentReceivableId;
+  if (!rentReceivableId) {
+    rentReceivableId = await findOrCreateCOAAccount(
+      supabase, companyId,
+      "1220", "Rent Receivable", "asset", "current_asset", "debit",
+      "Accrued rent earned but not yet collected from tenants"
+    );
+    if (rentReceivableId) accountMap.rentReceivableId = rentReceivableId;
+  }
+
+  let deferredRentalRevenueId = accountMap.deferredRentalRevenueId;
+  if (!deferredRentalRevenueId) {
+    deferredRentalRevenueId = await findOrCreateCOAAccount(
+      supabase, companyId,
+      "2400", "Deferred Rental Revenue", "liability", "current_liability", "credit",
+      "Unearned rental revenue to be recognized over the lease term"
+    );
+    if (deferredRentalRevenueId) accountMap.deferredRentalRevenueId = deferredRentalRevenueId;
+  }
+
+  if (!rentReceivableId || !deferredRentalRevenueId) {
+    console.error("[lease-revenue] Could not resolve Rent Receivable or Deferred Rental Revenue accounts for company:", companyId);
+    return { scheduledCount: 0, jeCount: 0 };
+  }
+
+  // Validate dates: end must be after start
+  if (lease.lease_end < lease.lease_start) {
+    console.error("[lease-revenue] Lease end date is before start date:", lease.lease_start, "→", lease.lease_end);
     return { scheduledCount: 0, jeCount: 0 };
   }
 
@@ -1472,14 +1501,14 @@ export async function generateLeaseRevenueSchedule(
       reference,
       lines: [
         {
-          account_id: accountMap.rentReceivableId!,
+          account_id: rentReceivableId,
           debit: lease.monthly_rent,
           credit: 0,
           description,
           property_id: lease.property_id,
         },
         {
-          account_id: accountMap.deferredRentalRevenueId!,
+          account_id: deferredRentalRevenueId,
           debit: 0,
           credit: lease.monthly_rent,
           description,

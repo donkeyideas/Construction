@@ -103,6 +103,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate date order: end must be after start
+    if (body.lease_end <= body.lease_start) {
+      return NextResponse.json(
+        { error: "Lease end date must be after the start date." },
+        { status: 400 }
+      );
+    }
+
     // Look up the unit to get the property_id — also verify it belongs to this company
     const { data: unit, error: unitError } = await supabase
       .from("units")
@@ -157,12 +165,12 @@ export async function POST(request: NextRequest) {
       body.tenant_name.trim()
     );
 
-    // Generate lease revenue schedule + security deposit JE
+    // Generate lease revenue schedule + security deposit JE + rent accrual JEs
     try {
       const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
 
       // Revenue schedule: monthly accrual JEs from lease_start to lease_end
-      await generateLeaseRevenueSchedule(supabase, userCtx.companyId, userCtx.userId, {
+      const schedResult = await generateLeaseRevenueSchedule(supabase, userCtx.companyId, userCtx.userId, {
         id: lease.id,
         property_id: unit.property_id,
         tenant_name: body.tenant_name.trim(),
@@ -170,6 +178,7 @@ export async function POST(request: NextRequest) {
         lease_start: body.lease_start,
         lease_end: body.lease_end,
       }, accountMap);
+      console.log("[lease-create] Revenue schedule:", schedResult);
 
       // Security deposit JE: DR Cash / CR Security Deposits Held
       if (body.security_deposit && Number(body.security_deposit) > 0) {
@@ -180,20 +189,21 @@ export async function POST(request: NextRequest) {
           date: body.lease_start,
         }, accountMap);
       }
-    } catch (jeErr) {
-      console.warn("Lease JE generation failed (non-blocking):", jeErr);
-    }
 
-    // Auto-generate full-term rent accrual JEs (non-blocking)
-    generateAllRentAccrualJEs(supabase, userCtx.companyId, userCtx.userId, [{
-      id: lease.id,
-      tenant_name: body.tenant_name.trim(),
-      monthly_rent: Number(body.monthly_rent),
-      lease_start: body.lease_start,
-      lease_end: body.lease_end,
-      property_id: unit.property_id,
-      auto_renew: body.auto_renew === true,
-    }]).catch((err) => console.warn("[rent-accrual] JE generation failed:", err));
+      // Full-term rent accrual JEs (DR Rent Receivable / CR Rental Income)
+      const accrualResult = await generateAllRentAccrualJEs(supabase, userCtx.companyId, userCtx.userId, [{
+        id: lease.id,
+        tenant_name: body.tenant_name.trim(),
+        monthly_rent: Number(body.monthly_rent),
+        lease_start: body.lease_start,
+        lease_end: body.lease_end,
+        property_id: unit.property_id,
+        auto_renew: body.auto_renew === true,
+      }]);
+      console.log("[lease-create] Rent accrual JEs:", accrualResult);
+    } catch (jeErr) {
+      console.error("[lease-create] JE generation failed:", jeErr);
+    }
 
     return NextResponse.json(lease, { status: 201 });
   } catch (err) {

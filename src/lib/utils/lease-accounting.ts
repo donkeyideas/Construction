@@ -145,6 +145,13 @@ export async function generateAllRentAccrualJEs(
       continue;
     }
 
+    // Validate dates: end must be after start
+    if (lease.lease_end < lease.lease_start) {
+      console.error(`[rent-accrual] Lease ${lease.id}: end date (${lease.lease_end}) is before start date (${lease.lease_start})`);
+      results.push({ leaseId: lease.id, tenantName: lease.tenant_name, created: 0, skipped: 0, monthlyAmount, months: 0 });
+      continue;
+    }
+
     // Generate for the full term. Auto-renew leases get an extra cycle.
     const endStr = getAccrualEndDate(lease.lease_start, lease.lease_end, lease.auto_renew ?? false);
 
@@ -164,6 +171,7 @@ export async function generateAllRentAccrualJEs(
     }
 
     if (months.length === 0) {
+      console.warn(`[rent-accrual] Lease ${lease.id}: 0 months between ${lease.lease_start} and ${endStr}`);
       results.push({ leaseId: lease.id, tenantName: lease.tenant_name, created: 0, skipped: 0, monthlyAmount, months: 0 });
       continue;
     }
