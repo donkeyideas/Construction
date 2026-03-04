@@ -113,10 +113,10 @@ export async function POST(request: NextRequest) {
         .eq("id", userCtx.companyId);
     }
 
-    // Cancel any existing incomplete/past_due subscriptions to avoid stacking
+    // Cancel any existing incomplete/past_due subscriptions and void open invoices
     const existingSubs = await stripe.subscriptions.list({
       customer: customerId,
-      limit: 10,
+      limit: 20,
     });
     for (const sub of existingSubs.data) {
       if (sub.status === "incomplete" || sub.status === "incomplete_expired" || sub.status === "past_due") {
@@ -124,7 +124,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create subscription with incomplete payment — returns PaymentIntent client_secret
+    // Also void any lingering open invoices to clear customer credit balance
+    const openInvoices = await stripe.invoices.list({
+      customer: customerId,
+      status: "open",
+      limit: 20,
+    });
+    for (const inv of openInvoices.data) {
+      try {
+        await stripe.invoices.voidInvoice(inv.id);
+      } catch {
+        // Already voided or finalized — skip
+      }
+    }
+
+    // Create subscription with incomplete payment
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
@@ -132,26 +146,41 @@ export async function POST(request: NextRequest) {
       payment_settings: {
         save_default_payment_method: "on_subscription",
       },
-      expand: ["latest_invoice.payment_intent"],
       metadata: { company_id: userCtx.companyId, plan },
     });
 
-    // Extract the client secret from the PaymentIntent
-    const invoice = subscription.latest_invoice as any;
-    const paymentIntent = invoice?.payment_intent;
+    // Retrieve the invoice separately with payment_intent expanded
+    // (nested expand on subscriptions.create can be unreliable)
+    const invoiceId = typeof subscription.latest_invoice === "string"
+      ? subscription.latest_invoice
+      : subscription.latest_invoice?.id;
 
-    if (!paymentIntent?.client_secret) {
+    if (!invoiceId) {
+      console.error("No latest_invoice on subscription:", subscription.id);
       return NextResponse.json(
-        { error: "Failed to create payment intent for subscription." },
+        { error: "Subscription created but no invoice was generated." },
         { status: 500 }
       );
     }
 
-    // Store the subscription ID on the company so sync can find it
-    await supabase
-      .from("companies")
-      .update({ stripe_subscription_id: subscription.id })
-      .eq("id", userCtx.companyId);
+    const invoice = await stripe.invoices.retrieve(invoiceId, {
+      expand: ["payment_intent"],
+    }) as any;
+
+    const piRaw = invoice.payment_intent;
+    const paymentIntent = typeof piRaw === "string"
+      ? await stripe.paymentIntents.retrieve(piRaw)
+      : piRaw;
+
+    if (!paymentIntent?.client_secret) {
+      console.error("No payment_intent on invoice:", invoiceId, "sub:", subscription.id, "invoice status:", invoice.status, "pi:", piRaw);
+      // Clean up the dangling subscription
+      await stripe.subscriptions.cancel(subscription.id);
+      return NextResponse.json(
+        { error: "Could not initialize payment. Please try again." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       subscriptionId: subscription.id,

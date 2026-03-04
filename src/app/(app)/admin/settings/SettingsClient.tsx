@@ -1099,12 +1099,11 @@ export default function SettingsClient({
                   const annualTotal = annualPrice * 12;
                   const annualSavings = (monthlyPrice * 12) - annualTotal;
                   const isCurrent = plan === tierKey;
+                  const trialExpired = company.trial_ends_at && new Date(company.trial_ends_at) < new Date();
+                  const isInactive = ["past_due", "grace_period", "canceled", "suspended"].includes(company.subscription_status || "");
                   const needsPayment = isCurrent && (
-                    company.subscription_status === "past_due" ||
-                    company.subscription_status === "grace_period" ||
-                    company.subscription_status === "canceled" ||
-                    company.subscription_status === "suspended" ||
-                    (company.trial_ends_at && new Date(company.trial_ends_at) < new Date() && !company.stripe_subscription_id)
+                    isInactive ||
+                    (trialExpired && company.subscription_status !== "active")
                   );
                   const isLowerTier =
                     (tierKey === "starter" && plan !== "starter") ||
