@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 
         const { data: company } = await supabase
           .from("companies")
-          .select("id")
+          .select("id, subscription_plan")
           .eq("stripe_customer_id", customerId)
           .single();
 
@@ -104,6 +104,7 @@ export async function POST(request: NextRequest) {
 
           const updatePayload: Record<string, unknown> = {
             subscription_status: status,
+            stripe_subscription_id: subscription.id,
             updated_at: new Date().toISOString(),
           };
 
@@ -112,10 +113,27 @@ export async function POST(request: NextRequest) {
             updatePayload.grace_period_ends_at = null;
           }
 
+          // Set plan from subscription metadata if available
+          const plan = subscription.metadata?.plan;
+          if (plan && ALLOWED_PLANS.includes(plan)) {
+            updatePayload.subscription_plan = plan;
+          }
+
           await supabase
             .from("companies")
             .update(updatePayload)
             .eq("id", company.id);
+
+          // Record upgrade event when plan changes
+          if (plan && plan !== company.subscription_plan && ALLOWED_PLANS.includes(plan)) {
+            await supabase.from("subscription_events").insert({
+              company_id: company.id,
+              event_type: "upgraded",
+              plan_from: company.subscription_plan,
+              plan_to: plan,
+              stripe_event_id: event.id,
+            });
+          }
         }
         break;
       }

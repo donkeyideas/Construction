@@ -22,8 +22,10 @@ import { MODULES } from "@/lib/constants/modules";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
-  EmbeddedCheckoutProvider,
-  EmbeddedCheckout,
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
 } from "@stripe/react-stripe-js";
 
 import type { CompanyDetails } from "@/lib/queries/admin";
@@ -69,6 +71,122 @@ const INTEGRATIONS = [
   { name: "DocuSign", desc: "E-signatures for contracts and change orders" },
   { name: "Dropbox Business", desc: "Cloud document storage and plan room sync" },
 ];
+
+// ---------------------------------------------------------------------------
+// Stripe PaymentElement form (must be rendered inside <Elements>)
+// ---------------------------------------------------------------------------
+function SubscriptionPaymentForm({
+  onSuccess,
+  onCancel,
+  amount,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+  amount: number;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [paying, setPaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setPaying(true);
+    setError(null);
+
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+      setError(submitError.message || "Validation error");
+      setPaying(false);
+      return;
+    }
+
+    const { error: confirmError } = await stripe.confirmPayment({
+      elements,
+      redirect: "if_required",
+      confirmParams: {
+        return_url: `${window.location.origin}/admin/settings?tab=subscription&success=true`,
+      },
+    });
+
+    if (confirmError) {
+      setError(confirmError.message || "Payment failed. Please try again.");
+      setPaying(false);
+    } else {
+      // Payment succeeded without redirect
+      onSuccess();
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <PaymentElement
+        options={{
+          layout: "tabs",
+        }}
+      />
+
+      {error && (
+        <div
+          style={{
+            marginTop: "12px",
+            padding: "10px 14px",
+            borderRadius: "8px",
+            background: "rgba(239,68,68,0.1)",
+            color: "#ef4444",
+            fontSize: "0.85rem",
+            border: "1px solid rgba(239,68,68,0.2)",
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={!stripe || paying}
+        className="btn-primary"
+        style={{
+          width: "100%",
+          justifyContent: "center",
+          marginTop: "16px",
+          padding: "12px",
+          fontSize: "0.95rem",
+          fontWeight: 600,
+          opacity: paying ? 0.7 : 1,
+        }}
+      >
+        {paying ? (
+          <>
+            <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+            Processing...
+          </>
+        ) : (
+          `Pay $${(amount / 100).toFixed(2)}`
+        )}
+      </button>
+
+      <button
+        type="button"
+        onClick={onCancel}
+        style={{
+          width: "100%",
+          marginTop: "8px",
+          padding: "10px",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "var(--muted)",
+          fontSize: "0.85rem",
+        }}
+      >
+        Cancel
+      </button>
+    </form>
+  );
+}
 
 interface SettingsClientProps {
   company: CompanyDetails;
@@ -193,12 +311,13 @@ export default function SettingsClient({
   const [savingModules, setSavingModules] = useState(false);
   const [moduleMessage, setModuleMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Embedded checkout state
+  // Payment modal state (Stripe Elements)
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
-  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
+  const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
+  const [checkoutAmount, setCheckoutAmount] = useState<number>(0);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [confirmDowngrade, setConfirmDowngrade] = useState(false);
@@ -241,16 +360,17 @@ export default function SettingsClient({
   const openCheckout = useCallback(async (targetPlan: string, billing: "monthly" | "annual" = "monthly") => {
     setBillingMessage(null);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/stripe/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: targetPlan, billing, embedded: true }),
+        body: JSON.stringify({ plan: targetPlan, billing }),
       });
       if (res.ok) {
         const data = await res.json();
         if (data.clientSecret) {
-          setCheckoutClientSecret(data.clientSecret);
+          setPaymentClientSecret(data.clientSecret);
           setCheckoutPlan(targetPlan);
+          setCheckoutAmount(data.amount || 0);
           setCheckoutOpen(true);
         }
       } else {
@@ -267,7 +387,8 @@ export default function SettingsClient({
 
   const handleCheckoutComplete = useCallback(async () => {
     setCheckoutOpen(false);
-    setCheckoutClientSecret(null);
+    setPaymentClientSecret(null);
+    setCheckoutAmount(0);
     setBillingMessage({ type: "success", text: "Syncing your subscription..." });
     try {
       const res = await fetch("/api/stripe/sync-subscription", { method: "POST" });
@@ -1517,8 +1638,8 @@ export default function SettingsClient({
 
       </div>
 
-      {/* Embedded Checkout Modal */}
-      {checkoutOpen && checkoutClientSecret && stripePromise && (
+      {/* Payment Modal with Stripe Elements */}
+      {checkoutOpen && paymentClientSecret && stripePromise && (
         <div
           style={{
             position: "fixed",
@@ -1533,7 +1654,8 @@ export default function SettingsClient({
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setCheckoutOpen(false);
-              setCheckoutClientSecret(null);
+              setPaymentClientSecret(null);
+              setCheckoutAmount(0);
             }
           }}
         >
@@ -1541,12 +1663,14 @@ export default function SettingsClient({
             style={{
               background: "var(--bg, #fff)",
               borderRadius: "12px",
-              width: "min(600px, 95vw)",
+              width: "min(500px, 95vw)",
               maxHeight: "90vh",
               overflow: "auto",
               boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+              border: "1px solid var(--border)",
             }}
           >
+            {/* Modal header */}
             <div
               style={{
                 display: "flex",
@@ -1556,13 +1680,14 @@ export default function SettingsClient({
                 borderBottom: "1px solid var(--border)",
               }}
             >
-              <div style={{ fontWeight: 600, fontSize: "1rem" }}>
+              <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>
                 Upgrade to {checkoutPlan ? checkoutPlan.charAt(0).toUpperCase() + checkoutPlan.slice(1) : ""}
               </div>
               <button
                 onClick={() => {
                   setCheckoutOpen(false);
-                  setCheckoutClientSecret(null);
+                  setPaymentClientSecret(null);
+                  setCheckoutAmount(0);
                 }}
                 style={{
                   background: "none",
@@ -1575,16 +1700,55 @@ export default function SettingsClient({
                 <X size={18} />
               </button>
             </div>
-            <div style={{ padding: "0" }}>
-              <EmbeddedCheckoutProvider
+
+            {/* Plan summary */}
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                <CreditCard size={18} style={{ color: PLAN_COLORS[checkoutPlan || ""] || "var(--primary)" }} />
+                <span style={{ fontWeight: 500 }}>
+                  Buildwrk {checkoutPlan ? checkoutPlan.charAt(0).toUpperCase() + checkoutPlan.slice(1) : ""}
+                </span>
+              </div>
+              <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "4px" }}>
+                {billingInterval === "annual" ? "Annual" : "Monthly"} subscription
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 500 }}>Total</span>
+                <span style={{ fontWeight: 700, fontSize: "1.15rem", color: "var(--primary)" }}>
+                  ${(checkoutAmount / 100).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            {/* Stripe Payment Element */}
+            <div style={{ padding: "20px" }}>
+              <Elements
                 stripe={stripePromise}
                 options={{
-                  clientSecret: checkoutClientSecret,
-                  onComplete: handleCheckoutComplete,
+                  clientSecret: paymentClientSecret,
+                  appearance: {
+                    theme: "night",
+                    variables: {
+                      colorPrimary: "#3b82f6",
+                      colorBackground: "var(--bg-card, #1a1a2e)",
+                      colorText: "var(--text, #e0e0e0)",
+                      colorDanger: "#ef4444",
+                      borderRadius: "8px",
+                      fontFamily: "inherit",
+                    },
+                  },
                 }}
               >
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
+                <SubscriptionPaymentForm
+                  onSuccess={handleCheckoutComplete}
+                  onCancel={() => {
+                    setCheckoutOpen(false);
+                    setPaymentClientSecret(null);
+                    setCheckoutAmount(0);
+                  }}
+                  amount={checkoutAmount}
+                />
+              </Elements>
             </div>
           </div>
         </div>
