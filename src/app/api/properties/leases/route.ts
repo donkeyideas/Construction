@@ -6,7 +6,6 @@ import {
   generateLeaseRevenueSchedule,
   generateSecurityDepositJournalEntry,
 } from "@/lib/utils/invoice-accounting";
-import { generateAllRentAccrualJEs } from "@/lib/utils/lease-accounting";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 // ---------------------------------------------------------------------------
@@ -165,22 +164,13 @@ export async function POST(request: NextRequest) {
       body.tenant_name.trim()
     );
 
-    // Generate lease revenue schedule + security deposit JE + rent accrual JEs
+    // Generate lease JEs: revenue schedule + security deposit (non-blocking)
+    // NOTE: Only generateLeaseRevenueSchedule runs. generateAllRentAccrualJEs
+    // was removed because it duplicated entries (different ref pattern, same debit).
     try {
       const accountMap = await buildCompanyAccountMap(supabase, userCtx.companyId);
 
-      // Revenue schedule: monthly accrual JEs from lease_start to lease_end
-      const schedResult = await generateLeaseRevenueSchedule(supabase, userCtx.companyId, userCtx.userId, {
-        id: lease.id,
-        property_id: unit.property_id,
-        tenant_name: body.tenant_name.trim(),
-        monthly_rent: Number(body.monthly_rent),
-        lease_start: body.lease_start,
-        lease_end: body.lease_end,
-      }, accountMap);
-      console.log("[lease-create] Revenue schedule:", schedResult);
-
-      // Security deposit JE: DR Cash / CR Security Deposits Held
+      // Security deposit JE: DR Cash / CR Security Deposits Held (fast, single JE)
       if (body.security_deposit && Number(body.security_deposit) > 0) {
         await generateSecurityDepositJournalEntry(supabase, userCtx.companyId, userCtx.userId, {
           leaseId: lease.id,
@@ -190,17 +180,20 @@ export async function POST(request: NextRequest) {
         }, accountMap);
       }
 
-      // Full-term rent accrual JEs (DR Rent Receivable / CR Rental Income)
-      const accrualResult = await generateAllRentAccrualJEs(supabase, userCtx.companyId, userCtx.userId, [{
+      // Revenue schedule: monthly accrual JEs from lease_start to lease_end
+      // Fire-and-forget so lease creation returns quickly for long-term leases
+      generateLeaseRevenueSchedule(supabase, userCtx.companyId, userCtx.userId, {
         id: lease.id,
+        property_id: unit.property_id,
         tenant_name: body.tenant_name.trim(),
         monthly_rent: Number(body.monthly_rent),
         lease_start: body.lease_start,
         lease_end: body.lease_end,
-        property_id: unit.property_id,
-        auto_renew: body.auto_renew === true,
-      }]);
-      console.log("[lease-create] Rent accrual JEs:", accrualResult);
+      }, accountMap).then((r) => {
+        console.log("[lease-create] Revenue schedule:", r);
+      }).catch((err) => {
+        console.error("[lease-create] Revenue schedule failed:", err);
+      });
     } catch (jeErr) {
       console.error("[lease-create] JE generation failed:", jeErr);
     }
@@ -343,19 +336,6 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // If lease_end, lease_start, or auto_renew changed, backfill any new months (non-blocking)
-    if (updates.lease_end !== undefined || updates.lease_start !== undefined || updates.auto_renew !== undefined) {
-      generateAllRentAccrualJEs(supabase, userCtx.companyId, userCtx.userId, [{
-        id: updated.id,
-        tenant_name: updated.tenant_name,
-        monthly_rent: Number(updated.monthly_rent),
-        lease_start: updated.lease_start,
-        lease_end: updated.lease_end,
-        property_id: updated.property_id,
-        auto_renew: updated.auto_renew ?? false,
-      }]).catch((err) => console.warn("[rent-accrual] PATCH JE generation failed:", err));
-    }
-
     return NextResponse.json(updated);
   } catch (err) {
     console.error("PATCH /api/properties/leases error:", err);
@@ -412,17 +392,27 @@ export async function DELETE(request: NextRequest) {
     ];
 
     for (const pattern of refPatterns) {
-      const { data: jes } = await supabase
+      const { data: jes, error: selErr } = await supabase
         .from("journal_entries")
         .select("id")
         .eq("company_id", userCtx.companyId)
         .like("reference", pattern);
 
+      if (selErr) {
+        console.error(`[lease-delete] Failed to query JEs for pattern ${pattern}:`, selErr);
+        continue;
+      }
+
       if (jes && jes.length > 0) {
-        await supabase
+        console.log(`[lease-delete] Deleting ${jes.length} JEs matching ${pattern}`);
+        const { error: delErr } = await supabase
           .from("journal_entries")
           .delete()
           .in("id", jes.map((j: { id: string }) => j.id));
+
+        if (delErr) {
+          console.error(`[lease-delete] Failed to delete JEs for pattern ${pattern}:`, delErr);
+        }
       }
     }
 
