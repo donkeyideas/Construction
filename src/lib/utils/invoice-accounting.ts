@@ -1439,7 +1439,7 @@ export async function generateLeaseRevenueSchedule(
 ): Promise<{ scheduledCount: number; jeCount: number }> {
   if (lease.monthly_rent <= 0) return { scheduledCount: 0, jeCount: 0 };
 
-  // Auto-create missing Rent Receivable and Deferred Rental Revenue accounts
+  // Auto-create missing Rent Receivable and Rental Income accounts
   let rentReceivableId = accountMap.rentReceivableId;
   if (!rentReceivableId) {
     rentReceivableId = await findOrCreateCOAAccount(
@@ -1450,18 +1450,18 @@ export async function generateLeaseRevenueSchedule(
     if (rentReceivableId) accountMap.rentReceivableId = rentReceivableId;
   }
 
-  let deferredRentalRevenueId = accountMap.deferredRentalRevenueId;
-  if (!deferredRentalRevenueId) {
-    deferredRentalRevenueId = await findOrCreateCOAAccount(
+  let rentalIncomeId = accountMap.rentalIncomeId;
+  if (!rentalIncomeId) {
+    rentalIncomeId = await findOrCreateCOAAccount(
       supabase, companyId,
-      "2400", "Deferred Rental Revenue", "liability", "current_liability", "credit",
-      "Unearned rental revenue to be recognized over the lease term"
+      "4100", "Rental Income", "revenue", "operating_revenue", "credit",
+      "Revenue from tenant rent payments"
     );
-    if (deferredRentalRevenueId) accountMap.deferredRentalRevenueId = deferredRentalRevenueId;
+    if (rentalIncomeId) accountMap.rentalIncomeId = rentalIncomeId;
   }
 
-  if (!rentReceivableId || !deferredRentalRevenueId) {
-    console.error("[lease-revenue] Could not resolve Rent Receivable or Deferred Rental Revenue accounts for company:", companyId);
+  if (!rentReceivableId || !rentalIncomeId) {
+    console.error("[lease-revenue] Could not resolve Rent Receivable or Rental Income accounts for company:", companyId);
     return { scheduledCount: 0, jeCount: 0 };
   }
 
@@ -1493,7 +1493,7 @@ export async function generateLeaseRevenueSchedule(
     const description = `Rent accrual - ${lease.tenant_name} (${ym})`;
     const reference = `lease_accrual:${lease.id}:${ym}`;
 
-    // Create accrual JE: DR Rent Receivable / CR Deferred Rental Revenue
+    // Create accrual JE: DR Rent Receivable / CR Rental Income
     const entryData: JournalEntryCreateData = {
       entry_number: `JE-RENT-${lease.id.substring(0, 6)}-${ym}`,
       entry_date: monthDate,
@@ -1508,7 +1508,7 @@ export async function generateLeaseRevenueSchedule(
           property_id: lease.property_id,
         },
         {
-          account_id: deferredRentalRevenueId,
+          account_id: rentalIncomeId,
           debit: 0,
           credit: lease.monthly_rent,
           description,
