@@ -1034,6 +1034,7 @@
 /* ===== Project Form ===== */
 .project-form {
   max-width: 900px;
+  margin: 0 auto;
 }
 
 .project-form-section {

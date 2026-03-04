@@ -31,6 +31,14 @@ const PROJECT_TYPES = [
   "Other",
 ];
 
+const PROJECT_STATUSES = [
+  { value: "pre_construction", label: "Pre-Construction" },
+  { value: "active", label: "Active" },
+  { value: "on_hold", label: "On Hold" },
+  { value: "completed", label: "Completed" },
+  { value: "closed", label: "Closed" },
+];
+
 function generateProjectCode() {
   const now = new Date();
   const yr = now.getFullYear().toString().slice(-2);
@@ -50,6 +58,7 @@ export default function NewProjectPage() {
   const [code, setCode] = useState(generateProjectCode());
   const [description, setDescription] = useState("");
   const [projectType, setProjectType] = useState("");
+  const [projectStatus, setProjectStatus] = useState("pre_construction");
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -134,6 +143,7 @@ export default function NewProjectPage() {
         code: code.trim(),
         description: description.trim() || undefined,
         project_type: projectType || undefined,
+        status: projectStatus,
         client_name: clientName.trim() || undefined,
         address_line1: addressLine1.trim() || undefined,
         city: city.trim() || undefined,
@@ -269,6 +279,23 @@ export default function NewProjectPage() {
                 {PROJECT_TYPES.map((type) => (
                   <option key={type} value={type}>
                     {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="projectStatus">
+                {t("statusLabel")}
+              </label>
+              <select
+                id="projectStatus"
+                className="form-select"
+                value={projectStatus}
+                onChange={(e) => setProjectStatus(e.target.value)}
+              >
+                {PROJECT_STATUSES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
                   </option>
                 ))}
               </select>

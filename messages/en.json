@@ -2693,6 +2693,7 @@
       "descriptionPlaceholder": "Brief description of the project scope and objectives...",
       "projectTypeLabel": "Project Type",
       "selectType": "Select type...",
+      "statusLabel": "Status",
       "clientInformation": "Client Information",
       "clientNameLabel": "Client Name",
       "clientNamePlaceholder": "e.g. Meridian Development Group",

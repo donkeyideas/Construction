@@ -3620,6 +3620,7 @@
       "descriptionPlaceholder": "Breve descripción del alcance y objetivos del proyecto...",
       "projectTypeLabel": "Tipo de Proyecto",
       "selectType": "Seleccione tipo...",
+      "statusLabel": "Estado",
       "clientInformation": "Información del Cliente",
       "clientNameLabel": "Nombre del Cliente",
       "clientNamePlaceholder": "ej. Grupo de Desarrollo Meridian",

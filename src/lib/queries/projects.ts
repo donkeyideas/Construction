@@ -584,6 +584,7 @@ export interface CreateProjectData {
   project_manager_id?: string;
   superintendent_id?: string;
   metadata?: Record<string, unknown>;
+  status?: string;
 }
 
 export async function createProject(
@@ -611,7 +612,7 @@ export async function createProject(
       project_manager_id: data.project_manager_id ?? null,
       superintendent_id: data.superintendent_id ?? null,
       metadata: data.metadata ?? null,
-      status: "pre_construction",
+      status: data.status ?? "pre_construction",
       completion_pct: 0,
       actual_cost: 0,
     })

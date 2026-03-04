@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
       project_manager_id: body.project_manager_id,
       superintendent_id: body.superintendent_id,
       metadata: body.metadata,
+      status: body.status,
     });
 
     if (error) {
