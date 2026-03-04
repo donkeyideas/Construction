@@ -87,12 +87,12 @@ async function getCompanyAccess(
     const admin = createAdminClient();
     const { data } = await admin
       .from("companies")
-      .select("subscription_status, grace_period_ends_at")
+      .select("subscription_status, grace_period_ends_at, trial_ends_at")
       .eq("id", companyId)
       .single();
 
     const state = getSubscriptionState(
-      data || { subscription_status: "active", grace_period_ends_at: null }
+      data || { subscription_status: "active", grace_period_ends_at: null, trial_ends_at: null }
     );
     cache.set(companyId, { access: state.access, fetchedAt: now });
     return state.access;

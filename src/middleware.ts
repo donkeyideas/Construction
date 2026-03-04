@@ -29,13 +29,13 @@ let cacheTs = 0;
 const CACHE_TTL = 60_000;
 
 /* ─── Subscription status cache (60s TTL) ─── */
-const subCache = new Map<string, { status: string; graceEndsAt: string | null; ts: number }>();
+const subCache = new Map<string, { status: string; graceEndsAt: string | null; trialEndsAt: string | null; ts: number }>();
 
-async function getCompanySubStatus(companyId: string): Promise<{ status: string; graceEndsAt: string | null }> {
+async function getCompanySubStatus(companyId: string): Promise<{ status: string; graceEndsAt: string | null; trialEndsAt: string | null }> {
   const now = Date.now();
   const cached = subCache.get(companyId);
   if (cached && now - cached.ts < CACHE_TTL) {
-    return { status: cached.status, graceEndsAt: cached.graceEndsAt };
+    return { status: cached.status, graceEndsAt: cached.graceEndsAt, trialEndsAt: cached.trialEndsAt };
   }
 
   try {
@@ -47,18 +47,19 @@ async function getCompanySubStatus(companyId: string): Promise<{ status: string;
 
     const { data } = await admin
       .from("companies")
-      .select("subscription_status, grace_period_ends_at")
+      .select("subscription_status, grace_period_ends_at, trial_ends_at")
       .eq("id", companyId)
       .single();
 
     const result = {
       status: data?.subscription_status || "active",
       graceEndsAt: data?.grace_period_ends_at || null,
+      trialEndsAt: data?.trial_ends_at || null,
     };
     subCache.set(companyId, { ...result, ts: now });
     return result;
   } catch {
-    return { status: "active", graceEndsAt: null };
+    return { status: "active", graceEndsAt: null, trialEndsAt: null };
   }
 }
 
@@ -342,8 +343,14 @@ export async function middleware(request: NextRequest) {
       if (memberForSub) {
         const subStatus = await getCompanySubStatus(memberForSub.company_id);
 
+        const isTrialExpired =
+          subStatus.status === "trialing" &&
+          subStatus.trialEndsAt &&
+          new Date(subStatus.trialEndsAt).getTime() < Date.now();
+
         const isSuspended =
           subStatus.status === "suspended" ||
+          isTrialExpired ||
           (subStatus.status === "grace_period" &&
             subStatus.graceEndsAt &&
             new Date(subStatus.graceEndsAt).getTime() < Date.now());

@@ -17,18 +17,40 @@ export interface SubscriptionState {
 /**
  * Compute subscription access level from company database fields.
  *
- * - active / trialing / canceling / past_due → full access
+ * - active / canceling / past_due → full access
+ * - trialing + trial_ends_at > now → full access
+ * - trialing + trial_ends_at expired → suspended (must subscribe)
  * - grace_period + grace_period_ends_at > now → read-only (with days remaining)
  * - grace_period + expired, or suspended/canceled → suspended
  */
 export function getSubscriptionState(company: {
   subscription_status: string | null;
   grace_period_ends_at: string | null;
+  trial_ends_at?: string | null;
 }): SubscriptionState {
   const status = company.subscription_status || "active";
 
+  // Trialing — check if trial has expired
+  if (status === "trialing") {
+    if (company.trial_ends_at) {
+      const trialEnd = new Date(company.trial_ends_at);
+      const now = new Date();
+      if (trialEnd.getTime() < now.getTime()) {
+        // Trial expired — suspended, must subscribe
+        return {
+          access: "suspended",
+          status: "trial_expired",
+          graceDaysLeft: null,
+          graceEndsAt: null,
+        };
+      }
+    }
+    // Trial still active
+    return { access: "full", status, graceDaysLeft: null, graceEndsAt: null };
+  }
+
   // Active statuses — full access
-  if (["active", "trialing", "canceling", "past_due"].includes(status)) {
+  if (["active", "canceling", "past_due"].includes(status)) {
     return { access: "full", status, graceDaysLeft: null, graceEndsAt: null };
   }
 

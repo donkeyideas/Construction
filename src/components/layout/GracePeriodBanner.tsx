@@ -17,7 +17,7 @@ export function GracePeriodBanner() {
     pathname.startsWith("/super-admin");
 
   const [state, setState] = useState<{
-    type: "grace_period" | "suspended" | null;
+    type: "grace_period" | "suspended" | "trial_expired" | null;
     daysLeft: number;
   }>({ type: null, daysLeft: 0 });
 
@@ -36,11 +36,22 @@ export function GracePeriodBanner() {
           if (!member) return;
           supabase
             .from("companies")
-            .select("subscription_status, grace_period_ends_at")
+            .select("subscription_status, grace_period_ends_at, trial_ends_at")
             .eq("id", member.company_id)
             .single()
             .then(({ data: company }) => {
               if (!company) return;
+
+              // Check for expired trial
+              if (
+                company.subscription_status === "trialing" &&
+                company.trial_ends_at &&
+                new Date(company.trial_ends_at).getTime() < Date.now()
+              ) {
+                setState({ type: "trial_expired", daysLeft: 0 });
+                return;
+              }
+
               if (
                 company.subscription_status === "grace_period" &&
                 company.grace_period_ends_at
@@ -69,15 +80,18 @@ export function GracePeriodBanner() {
   if (!state.type || isPortal) return null;
 
   const isGrace = state.type === "grace_period";
+  const isTrialExpired = state.type === "trial_expired";
+  const isWarning = isGrace;
+  const isDanger = !isWarning;
 
   return (
     <div
       style={{
         padding: "10px 20px",
-        background: isGrace
+        background: isWarning
           ? "rgba(180, 83, 9, 0.08)"
           : "rgba(220, 38, 38, 0.08)",
-        borderBottom: `2px solid ${isGrace ? "var(--color-amber)" : "var(--color-red)"}`,
+        borderBottom: `2px solid ${isWarning ? "var(--color-amber)" : "var(--color-red)"}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -89,7 +103,7 @@ export function GracePeriodBanner() {
         <AlertTriangle
           size={16}
           style={{
-            color: isGrace ? "var(--color-amber)" : "var(--color-red)",
+            color: isWarning ? "var(--color-amber)" : "var(--color-red)",
             flexShrink: 0,
           }}
         />
@@ -97,16 +111,23 @@ export function GracePeriodBanner() {
           <span
             style={{
               fontWeight: 600,
-              color: isGrace ? "var(--color-amber)" : "var(--color-red)",
+              color: isWarning ? "var(--color-amber)" : "var(--color-red)",
             }}
           >
-            {isGrace
-              ? t("gracePeriod.expired", { days: state.daysLeft })
-              : t("gracePeriod.suspended")}
+            {isTrialExpired
+              ? t("gracePeriod.trialExpired")
+              : isGrace
+                ? t("gracePeriod.expired", { days: state.daysLeft })
+                : t("gracePeriod.suspended")}
           </span>
           {isGrace && (
             <span style={{ color: "var(--muted)", marginLeft: "6px" }}>
               {t("gracePeriod.readOnlyDesc")}
+            </span>
+          )}
+          {isTrialExpired && (
+            <span style={{ color: "var(--muted)", marginLeft: "6px" }}>
+              {t("gracePeriod.trialExpiredDesc")}
             </span>
           )}
         </div>

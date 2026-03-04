@@ -192,6 +192,8 @@
     "gracePeriod": {
       "expired": "Your subscription has expired. You have {days} day(s) of read-only access remaining.",
       "suspended": "Your account is suspended. Please resubscribe to restore access.",
+      "trialExpired": "Your free trial has ended.",
+      "trialExpiredDesc": "Subscribe to a plan to continue using Buildwrk.",
       "readOnlyDesc": "You can view all data and export reports, but cannot create or edit records.",
       "resubscribeNow": "Resubscribe Now"
     },
