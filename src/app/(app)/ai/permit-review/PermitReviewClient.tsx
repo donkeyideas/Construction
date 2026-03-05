@@ -631,10 +631,11 @@ export default function PermitReviewClient({
   }, [analyticsLoading]);
 
   useEffect(() => {
-    if (activeTab === "analytics" && !analytics) {
+    if (activeTab === "analytics") {
       loadAnalytics();
     }
-  }, [activeTab, analytics, loadAnalytics]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   // ---- Export as HTML ----
   const handleExport = useCallback(() => {

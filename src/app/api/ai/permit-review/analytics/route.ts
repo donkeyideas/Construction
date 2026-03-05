@@ -104,7 +104,7 @@ export async function GET(req: Request) {
         { name: "Issues Found", value: statusCounts.issues_found, color: "#dc2626" },
       ],
       reviewsOverTime: Object.entries(monthlyData).map(([month, count]) => ({
-        month,
+        month: month.split("-").reverse().join("/"),
         count,
       })),
       sectionFlagRates: sectionBarData,
