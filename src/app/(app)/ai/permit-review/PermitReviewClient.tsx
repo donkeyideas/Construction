@@ -98,6 +98,7 @@ interface ProviderOption {
   provider_name: string;
   model_id: string;
   task_type: string;
+  is_default: boolean;
 }
 
 interface JurisdictionOption {
@@ -238,7 +239,10 @@ export default function PermitReviewClient({
   const [projectContext, setProjectContext] = useState<Record<string, unknown> | null>(null);
 
   // ---- Default provider helper ----
-  const defaultProvider = providers.find((p) => p.task_type === "documents") || providers[0];
+  const defaultProvider = providers.find((p) => p.is_default && p.task_type === "documents")
+    || providers.find((p) => p.task_type === "documents")
+    || providers.find((p) => p.is_default)
+    || providers[0];
 
   // ---- Close jurisdiction dropdown on outside click ----
   useEffect(() => {

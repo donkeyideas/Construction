@@ -16,7 +16,7 @@ export default async function PermitReviewPage() {
   const [providersRes, projectsRes, reviewsRes] = await Promise.all([
     supabase
       .from("ai_provider_configs")
-      .select("id, provider_name, model_id, is_active, task_type")
+      .select("id, provider_name, model_id, is_active, use_for_chat, use_for_documents, use_for_predictions, is_default")
       .eq("company_id", companyId)
       .eq("is_active", true)
       .order("provider_name"),
@@ -37,7 +37,8 @@ export default async function PermitReviewPage() {
     id: p.id as string,
     provider_name: p.provider_name as string,
     model_id: (p.model_id ?? "") as string,
-    task_type: (p.task_type ?? "chat") as string,
+    task_type: p.use_for_documents ? "documents" : p.use_for_predictions ? "predictions" : "chat",
+    is_default: !!p.is_default,
   }));
 
   const hasProvider = providers.length > 0;
