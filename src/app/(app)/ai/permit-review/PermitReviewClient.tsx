@@ -53,14 +53,14 @@ type ReviewPhase = "idle" | "analyzing" | "results";
 type ActiveTab = "review" | "analytics";
 
 const ANALYSIS_STEPS = [
-  { label: "Structural", icon: "🏗️", detail: "Load requirements, foundations, structural members" },
-  { label: "Fire Safety", icon: "🔥", detail: "Fire-resistance ratings, egress, sprinklers" },
-  { label: "Electrical", icon: "⚡", detail: "Service entrance, circuits, grounding" },
-  { label: "Plumbing", icon: "🚿", detail: "Fixture counts, water supply, drainage" },
-  { label: "Mechanical / HVAC", icon: "❄️", detail: "Ventilation rates, equipment sizing" },
-  { label: "Zoning", icon: "📐", detail: "Setbacks, height restrictions, parking" },
-  { label: "ADA / Accessibility", icon: "♿", detail: "Accessible routes, door widths, signage" },
-  { label: "Environmental", icon: "🌿", detail: "Stormwater, erosion control, energy efficiency" },
+  { label: "Structural", detail: "Load requirements, foundations, structural members" },
+  { label: "Fire Safety", detail: "Fire-resistance ratings, egress, sprinklers" },
+  { label: "Electrical", detail: "Service entrance, circuits, grounding" },
+  { label: "Plumbing", detail: "Fixture counts, water supply, drainage" },
+  { label: "Mechanical / HVAC", detail: "Ventilation rates, equipment sizing" },
+  { label: "Zoning", detail: "Setbacks, height restrictions, parking" },
+  { label: "ADA / Accessibility", detail: "Accessible routes, door widths, signage" },
+  { label: "Environmental", detail: "Stormwater, erosion control, energy efficiency" },
 ];
 
 interface PermitSection {
@@ -1061,7 +1061,7 @@ ${ahjHtml}
                       key={step.label}
                       className={`analyzing-step ${isPast ? "done" : ""} ${isCurrent ? "active" : ""}`}
                     >
-                      <span className="analyzing-step-icon">{isPast ? "✓" : step.icon}</span>
+                      <span className="analyzing-step-icon">{isPast ? "✓" : i + 1}</span>
                       <div className="analyzing-step-text">
                         <span className="analyzing-step-label">{step.label}</span>
                         {isCurrent && <span className="analyzing-step-detail">{step.detail}</span>}
