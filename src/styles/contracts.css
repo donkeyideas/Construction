@@ -324,11 +324,8 @@
 .contracts-type-badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: 10px;
   font-size: 0.75rem;
   font-weight: 500;
-  background: var(--surface);
   color: var(--text);
   font-family: var(--font-sans);
   white-space: nowrap;

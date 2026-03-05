@@ -402,15 +402,15 @@ export default function PromoCodesClient({ promoCodes }: Props) {
                     </td>
                     <td>
                       {!p.is_active ? (
-                        <span className="sa-badge" style={{ background: "var(--surface)", color: "var(--muted)" }}>
+                        <span className="sa-badge" style={{ color: "var(--muted)" }}>
                           {t("inactive")}
                         </span>
                       ) : isExpired ? (
-                        <span className="sa-badge" style={{ background: "rgba(239,68,68,0.1)", color: "var(--color-red, #ef4444)" }}>
+                        <span className="sa-badge" style={{ color: "var(--color-red, #ef4444)" }}>
                           Expired
                         </span>
                       ) : isMaxedOut ? (
-                        <span className="sa-badge" style={{ background: "rgba(245,158,11,0.1)", color: "var(--color-amber, #f59e0b)" }}>
+                        <span className="sa-badge" style={{ color: "var(--color-amber, #f59e0b)" }}>
                           Maxed Out
                         </span>
                       ) : (
@@ -760,7 +760,7 @@ export default function PromoCodesClient({ promoCodes }: Props) {
                       {selectedPromo.is_active ? (
                         <span className="sa-badge sa-badge-green">{t("active")}</span>
                       ) : (
-                        <span className="sa-badge" style={{ background: "var(--surface)", color: "var(--muted)" }}>
+                        <span className="sa-badge" style={{ color: "var(--muted)" }}>
                           {t("inactive")}
                         </span>
                       )}

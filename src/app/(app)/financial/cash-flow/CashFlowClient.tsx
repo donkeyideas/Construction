@@ -248,7 +248,7 @@ export default function CashFlowClient({
                     <div style={{ fontWeight: 600, fontSize: "0.92rem" }}>
                       {account.name}
                       {account.is_default && (
-                        <span style={{ marginLeft: "8px", fontSize: "0.68rem", padding: "1px 6px", borderRadius: "4px", background: "var(--color-green-light)", color: "var(--color-green)", fontWeight: 600 }}>
+                        <span style={{ marginLeft: "8px", fontSize: "0.68rem", color: "var(--color-green)", fontWeight: 600 }}>
                           {t("cashFlow.default")}
                         </span>
                       )}

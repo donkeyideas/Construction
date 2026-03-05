@@ -214,7 +214,7 @@ h1, h2, h3, h4 {
 .hp-pricing-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
 .hp-pricing-featured { border-color: var(--color-blue); box-shadow: 0 4px 24px rgba(29, 78, 216, 0.12); }
 .hp-pricing-featured:hover { box-shadow: 0 8px 36px rgba(29, 78, 216, 0.18); }
-.hp-pricing-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--color-blue); color: #fff; font-size: 0.75rem; font-weight: 600; padding: 4px 16px; border-radius: 20px; white-space: nowrap; }
+.hp-pricing-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); color: var(--color-blue); font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
 .hp-pricing-name { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
 .hp-pricing-desc { font-size: 0.88rem; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
 .hp-pricing-price { margin-bottom: 28px; display: flex; align-items: baseline; }

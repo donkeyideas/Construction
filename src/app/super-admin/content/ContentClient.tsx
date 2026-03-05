@@ -453,7 +453,7 @@ export default function ContentClient({ pages }: Props) {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>{plan.name || `Plan ${pi + 1}`}</span>
                   {plan.badge && (
-                    <span style={{ fontSize: "0.7rem", padding: "2px 8px", background: "rgba(29, 78, 216, 0.1)", color: "var(--color-blue)", borderRadius: 8, fontWeight: 600 }}>
+                    <span style={{ fontSize: "0.7rem", color: "var(--color-blue)", fontWeight: 600 }}>
                       {plan.badge}
                     </span>
                   )}

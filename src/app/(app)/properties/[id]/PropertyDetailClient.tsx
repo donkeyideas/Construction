@@ -2909,7 +2909,7 @@ function FinancialsTabContent({
               <div>
                 <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
                   {GATEWAY_PROVIDERS.find((p) => p.key === gatewayStatus.provider)?.name || gatewayStatus.provider}
-                  <span style={{ marginLeft: 8, fontSize: "0.75rem", padding: "2px 8px", borderRadius: 12, background: "color-mix(in srgb, var(--color-green) 15%, transparent)", color: "var(--color-green)" }}>
+                  <span style={{ marginLeft: 8, fontSize: "0.75rem", color: "var(--color-green)", fontWeight: 600 }}>
                     {t("providerConnected")}
                   </span>
                 </div>

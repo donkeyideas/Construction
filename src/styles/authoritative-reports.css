@@ -137,23 +137,18 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
   white-space: nowrap;
 }
 
 .saved-report-type-badge[data-type="market_feasibility"] {
-  background: #1B2A4A15;
   color: #1B2A4A;
 }
 
 .saved-report-type-badge[data-type="offering_memorandum"] {
-  background: #0D3B3E15;
   color: #0D3B3E;
 }
 
 .saved-report-type-badge[data-type="basis_of_design"] {
-  background: #2D2D3D15;
   color: #2D2D3D;
 }
 

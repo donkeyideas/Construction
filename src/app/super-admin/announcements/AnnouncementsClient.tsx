@@ -291,7 +291,7 @@ export default function AnnouncementsClient({ announcements }: Props) {
                     {a.is_active ? (
                       <span className="sa-badge sa-badge-green">{t("active")}</span>
                     ) : (
-                      <span className="sa-badge" style={{ background: "var(--surface)", color: "var(--muted)" }}>
+                      <span className="sa-badge" style={{ color: "var(--muted)" }}>
                         {t("inactive")}
                       </span>
                     )}
@@ -536,7 +536,7 @@ export default function AnnouncementsClient({ announcements }: Props) {
                       {selectedAnn.is_active ? (
                         <span className="sa-badge sa-badge-green">{t("active")}</span>
                       ) : (
-                        <span className="sa-badge" style={{ background: "var(--surface)", color: "var(--muted)" }}>
+                        <span className="sa-badge" style={{ color: "var(--muted)" }}>
                           {t("inactive")}
                         </span>
                       )}

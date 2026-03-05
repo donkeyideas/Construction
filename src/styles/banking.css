@@ -320,8 +320,6 @@
 .banking-type-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 8px;
   font-size: 0.72rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -330,34 +328,18 @@
 }
 
 .banking-type-badge.type-checking {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
-[data-theme="dark"] .banking-type-badge.type-checking {
-  background: rgba(29, 78, 216, 0.15);
-}
-
 .banking-type-badge.type-savings {
-  background: rgba(22, 163, 74, 0.08);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .banking-type-badge.type-savings {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .banking-type-badge.type-credit {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .banking-type-badge.type-credit {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .banking-type-badge.type-other {
-  background: var(--surface);
   color: var(--muted);
 }
 
@@ -366,8 +348,6 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
-  border-radius: 10px;
   font-size: 0.75rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -518,11 +498,8 @@
 .banking-category-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 8px;
   font-size: 0.72rem;
   font-weight: 500;
-  background: var(--surface);
   color: var(--text);
   font-family: var(--font-sans);
   text-transform: capitalize;

@@ -80,11 +80,8 @@
 
 .section-txn-source-badge {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 20px;
   font-size: 0.72rem;
   font-weight: 600;
-  background: rgba(99, 102, 241, 0.08);
   color: var(--color-blue);
   white-space: nowrap;
 }

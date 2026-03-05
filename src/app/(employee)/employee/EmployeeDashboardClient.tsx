@@ -748,11 +748,11 @@ export default function EmployeeDashboardClient({
               : t("activeProjects", { count: dashboard.projects.length })}
           </div>
           {isClockedIn ? (
-            <span className="vendor-welcome-badge" style={{ background: "var(--color-green)" }}>
+            <span className="vendor-welcome-badge" style={{ color: "var(--color-green)" }}>
               {t("clockedIn")}
             </span>
           ) : (
-            <span className="vendor-welcome-badge" style={{ background: "var(--muted)" }}>
+            <span className="vendor-welcome-badge" style={{ color: "var(--muted)" }}>
               {t("clockedOut")}
             </span>
           )}

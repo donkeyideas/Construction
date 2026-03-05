@@ -324,8 +324,6 @@
 .equipment-maint-type-badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: 10px;
   font-size: 0.75rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -333,40 +331,20 @@
 }
 
 .equipment-maint-type-badge.maint-preventive {
-  background: rgba(22, 163, 74, 0.08);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .equipment-maint-type-badge.maint-preventive {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .equipment-maint-type-badge.maint-corrective {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .equipment-maint-type-badge.maint-corrective {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .equipment-maint-type-badge.maint-inspection {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
-[data-theme="dark"] .equipment-maint-type-badge.maint-inspection {
-  background: rgba(29, 78, 216, 0.15);
-}
-
 .equipment-maint-type-badge.maint-emergency {
-  background: rgba(220, 38, 38, 0.1);
   color: var(--color-red);
   font-weight: 700;
-}
-
-[data-theme="dark"] .equipment-maint-type-badge.maint-emergency {
-  background: rgba(220, 38, 38, 0.15);
 }
 
 /* ===== Empty State ===== */

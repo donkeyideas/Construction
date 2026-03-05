@@ -332,55 +332,34 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 3px 10px;
-  border-radius: 4px;
 }
 
 .inbox-type-info {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
-[data-theme="dark"] .inbox-type-info {
-  background: rgba(29, 78, 216, 0.15);
-}
-
 .inbox-type-warning {
-  background: var(--color-amber-light);
   color: var(--color-amber);
-}
-
-[data-theme="dark"] .inbox-type-warning {
-  background: rgba(180, 83, 9, 0.15);
 }
 
 .inbox-type-error,
 .inbox-type-critical {
-  background: rgba(220, 38, 38, 0.08);
   color: var(--color-red);
 }
 
 .inbox-type-success {
-  background: rgba(22, 163, 74, 0.08);
   color: var(--color-green);
 }
 
 .inbox-type-message {
-  background: var(--surface);
   color: var(--muted);
 }
 
 .inbox-type-announcement {
-  background: rgba(180, 83, 9, 0.08);
   color: var(--color-amber, #b45309);
 }
 
-[data-theme="dark"] .inbox-type-announcement {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .inbox-type-approval {
-  background: rgba(22, 163, 74, 0.08);
   color: var(--color-green, #16a34a);
 }
 

@@ -803,7 +803,7 @@ export default function ARClient({
                         {entry.description || "Journal Entry"}
                       </td>
                       <td>
-                        <span style={{ fontSize: "0.72rem", background: "rgba(59,130,246,0.12)", color: "var(--color-blue)", padding: "2px 7px", borderRadius: 4, fontWeight: 600 }}>
+                        <span style={{ fontSize: "0.72rem", color: "var(--color-blue)", fontWeight: 600 }}>
                           GL Entry
                         </span>
                       </td>
@@ -812,7 +812,7 @@ export default function ARClient({
                       <td className="amount-col">{formatCurrency(Math.abs(net))}</td>
                       <td className="amount-col" style={{ color: "var(--color-blue)" }}>{formatCurrency(net > 0 ? net : 0)}</td>
                       <td>
-                        <span style={{ fontSize: "0.72rem", background: "rgba(59,130,246,0.12)", color: "var(--color-blue)", padding: "2px 7px", borderRadius: 4, fontWeight: 600 }}>
+                        <span style={{ fontSize: "0.72rem", color: "var(--color-blue)", fontWeight: 600 }}>
                           posted
                         </span>
                       </td>

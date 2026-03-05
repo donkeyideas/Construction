@@ -2208,11 +2208,7 @@
 .thumbnail-card-type-badge {
   font-size: 0.6rem;
   font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--surface);
   color: var(--muted);
-  border: 1px solid var(--border);
   text-transform: uppercase;
 }
 

@@ -187,9 +187,6 @@
 }
 .vendor-welcome-badge {
   display: inline-block;
-  padding: 3px 12px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, .18);
   font-size: 0.75rem;
   font-weight: 600;
 }
@@ -678,7 +675,6 @@
   background: linear-gradient(135deg, var(--color-blue, #2c5282) 0%, var(--color-blue-dark, #1e3a5f) 100%);
 }
 [data-variant="corporate"] .vendor-welcome-badge {
-  background: rgba(255, 255, 255, .2);
 }
 [data-variant="corporate"] .vendor-project-badge {
   color: var(--color-blue, #2c5282);
