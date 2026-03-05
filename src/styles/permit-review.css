@@ -1,0 +1,533 @@
+/* ===================================================
+   AI Permit Review Feature Styles
+   =================================================== */
+
+/* ---------- Status badges ---------- */
+
+.permit-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.permit-status-badge.likely-compliant {
+  color: var(--color-green);
+  background: rgba(22, 163, 74, 0.1);
+}
+
+.permit-status-badge.needs-review {
+  color: var(--color-amber);
+  background: rgba(217, 119, 6, 0.1);
+}
+
+.permit-status-badge.issues-found {
+  color: var(--color-red);
+  background: rgba(220, 38, 38, 0.1);
+}
+
+/* ---------- Config form ---------- */
+
+.permit-config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 640px) {
+  .permit-config-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.permit-config-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.permit-config-grid input,
+.permit-config-grid select {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.permit-config-grid input:focus,
+.permit-config-grid select:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+/* ---------- Document input ---------- */
+
+.permit-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.permit-textarea:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.permit-textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.permit-char-count {
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.permit-char-count.over-limit {
+  color: var(--color-red);
+  font-weight: 600;
+}
+
+/* ---------- Analyzing animation ---------- */
+
+.permit-analyzing {
+  text-align: center;
+  padding: 80px 24px;
+}
+
+.permit-analyzing .analyzing-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--color-blue);
+  margin: 0 auto 20px;
+  animation: permitPulse 2s ease-in-out infinite;
+}
+
+@keyframes permitPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.05); }
+}
+
+.permit-analyzing h2 {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.permit-analyzing p {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+/* ---------- Results KPI row ---------- */
+
+.permit-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 640px) {
+  .permit-kpi-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Section breakdown ---------- */
+
+.permit-sections-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.permit-sections-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.permit-section-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.permit-section-row:last-child {
+  border-bottom: none;
+}
+
+.permit-section-name {
+  flex: 0 0 180px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .permit-section-name {
+    flex: 0 0 120px;
+    font-size: 0.8rem;
+  }
+}
+
+.permit-section-badge {
+  flex: 0 0 56px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.permit-section-badge.pass {
+  color: var(--color-green);
+  background: rgba(22, 163, 74, 0.1);
+}
+
+.permit-section-badge.flag {
+  color: var(--color-amber);
+  background: rgba(217, 119, 6, 0.1);
+}
+
+.permit-section-badge.fail {
+  color: var(--color-red);
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.permit-section-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--surface);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.permit-section-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s ease;
+}
+
+.permit-section-bar-fill.pass {
+  background: var(--color-green);
+}
+
+.permit-section-bar-fill.flag {
+  background: var(--color-amber);
+}
+
+.permit-section-bar-fill.fail {
+  background: var(--color-red);
+}
+
+.permit-section-pct {
+  flex: 0 0 40px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* ---------- Issues list ---------- */
+
+.permit-issues-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.permit-issues-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.permit-issue-item {
+  padding: 16px 20px;
+  border-left: 4px solid var(--border);
+  border-radius: 0 8px 8px 0;
+  background: var(--surface);
+  margin-bottom: 12px;
+}
+
+.permit-issue-item:last-child {
+  margin-bottom: 0;
+}
+
+.permit-issue-item.severity-critical {
+  border-left-color: var(--color-red);
+}
+
+.permit-issue-item.severity-major {
+  border-left-color: var(--color-amber);
+}
+
+.permit-issue-item.severity-minor {
+  border-left-color: var(--color-blue);
+}
+
+.permit-issue-item.severity-info {
+  border-left-color: var(--muted);
+}
+
+.permit-issue-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.permit-issue-severity {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.permit-issue-severity.critical {
+  color: var(--color-red);
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.permit-issue-severity.major {
+  color: var(--color-amber);
+  background: rgba(217, 119, 6, 0.1);
+}
+
+.permit-issue-severity.minor {
+  color: var(--color-blue);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.permit-issue-severity.info {
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.permit-issue-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.permit-issue-category {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.permit-issue-description {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.permit-issue-code {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+.permit-issue-fix {
+  font-size: 0.82rem;
+  color: var(--color-blue);
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+/* ---------- Recommendations ---------- */
+
+.permit-recs-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.permit-recs-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.permit-recs-card ol {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.permit-recs-card li {
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+/* ---------- Disclaimer ---------- */
+
+.permit-disclaimer {
+  background: rgba(217, 119, 6, 0.06);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.permit-disclaimer svg {
+  flex-shrink: 0;
+  color: var(--color-amber);
+  margin-top: 2px;
+}
+
+/* ---------- Past reviews ---------- */
+
+.permit-history-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+
+.permit-history-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.permit-history-toggle h3 {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.permit-history-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.permit-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.permit-history-row:hover {
+  background: var(--surface);
+}
+
+.permit-history-row .history-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.permit-history-row .history-date {
+  font-size: 0.78rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* ---------- Summary text ---------- */
+
+.permit-summary {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border-radius: 10px;
+}
+
+/* ---------- No provider message ---------- */
+
+.permit-no-provider {
+  text-align: center;
+  padding: 60px 24px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.permit-no-provider svg {
+  width: 48px;
+  height: 48px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.permit-no-provider h2 {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.permit-no-provider p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+}

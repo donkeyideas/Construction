@@ -171,6 +171,7 @@ export const appNavigation: NavItem[] = [
       { label: "Smart Alerts", href: "/ai/alerts" },
       { label: "Report Generator", href: "/ai/reports" },
       { label: "Document AI", href: "/ai/documents" },
+      { label: "Permit Review", href: "/ai/permit-review" },
       { label: "Knowledge Base", href: "/ai/knowledge" },
       { label: "Cost Estimator", href: "/ai/estimator" },
       { label: "Translate", href: "/ai/translate" },
