@@ -171,7 +171,7 @@ export async function getProviderForTask(
 // ---------------------------------------------------------------------------
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildProviderConfig(row: any): ProviderConfig {
+export function buildProviderConfig(row: any): ProviderConfig {
   return {
     id: row.id,
     provider_name: row.provider_name as ProviderName,

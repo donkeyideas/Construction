@@ -12,14 +12,14 @@ export default async function PermitReviewPage() {
 
   const { companyId } = userCompany;
 
-  // Fetch provider status, projects, and past reviews in parallel
-  const [providerRes, projectsRes, reviewsRes] = await Promise.all([
+  // Fetch providers, projects, and past reviews in parallel
+  const [providersRes, projectsRes, reviewsRes] = await Promise.all([
     supabase
       .from("ai_provider_configs")
-      .select("id, provider_name, is_active")
+      .select("id, provider_name, model_id, is_active, task_type")
       .eq("company_id", companyId)
       .eq("is_active", true)
-      .limit(1),
+      .order("provider_name"),
     supabase
       .from("projects")
       .select("id, name, code")
@@ -33,7 +33,14 @@ export default async function PermitReviewPage() {
       .limit(20),
   ]);
 
-  const hasProvider = (providerRes.data?.length ?? 0) > 0;
+  const providers = (providersRes.data ?? []).map((p) => ({
+    id: p.id as string,
+    provider_name: p.provider_name as string,
+    model_id: (p.model_id ?? "") as string,
+    task_type: (p.task_type ?? "chat") as string,
+  }));
+
+  const hasProvider = providers.length > 0;
 
   const projects = (projectsRes.data ?? []).map((p) => ({
     id: p.id as string,
@@ -56,6 +63,7 @@ export default async function PermitReviewPage() {
     <PermitReviewClient
       companyId={companyId}
       hasProvider={hasProvider}
+      providers={providers}
       projects={projects}
       pastReviews={pastReviews}
     />

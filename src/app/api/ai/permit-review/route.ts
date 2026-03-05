@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { generateText } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
-import { getProviderForTask } from "@/lib/ai/provider-router";
+import { resolveProvider } from "@/lib/ai/provider-selector";
 import { logAIUsage } from "@/lib/queries/ai";
 
 // ---------------------------------------------------------------------------
@@ -16,6 +16,16 @@ interface RequestBody {
   buildingType?: string;
   projectId?: string;
   title?: string;
+  selectedProviderId?: string;
+  jurisdictionId?: string;
+  uploadedFiles?: { path: string; originalName: string; size: number; mimeType: string }[];
+}
+
+interface JurisdictionRule {
+  code: string;
+  section: string;
+  amendment: string;
+  category: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -25,12 +35,21 @@ interface RequestBody {
 function buildSystemPrompt(
   companyName: string,
   jurisdiction?: string,
-  buildingType?: string
+  buildingType?: string,
+  jurisdictionRules?: JurisdictionRule[]
 ): string {
+  const rulesBlock =
+    jurisdictionRules && jurisdictionRules.length > 0
+      ? `\n## LOCAL CODE AMENDMENTS\nThe following jurisdiction-specific rules MUST be evaluated in addition to the baseline codes:\n${jurisdictionRules
+          .map((r) => `- [${r.code}] ${r.section}: ${r.amendment} (${r.category})`)
+          .join("\n")}\n`
+      : "";
+
   return `You are an expert building code compliance analyst and permit reviewer for ${companyName}. You review building permit application documents against applicable building codes, zoning requirements, and safety standards.
 
 ${jurisdiction ? `Jurisdiction: ${jurisdiction}` : "Jurisdiction: Not specified (use IBC 2021 as baseline)"}
 ${buildingType ? `Building Type: ${buildingType}` : ""}
+${rulesBlock}
 
 ## YOUR ROLE
 You are NOT approving or rejecting permits. You are providing a preliminary compliance assessment to help identify potential issues BEFORE formal submission to the Authority Having Jurisdiction (AHJ). This is an advisory tool, not a legal determination.
@@ -165,7 +184,10 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json()) as RequestBody;
-  const { companyId, documentText, jurisdiction, buildingType, projectId, title } = body;
+  const {
+    companyId, documentText, jurisdiction, buildingType,
+    projectId, title, selectedProviderId, jurisdictionId, uploadedFiles,
+  } = body;
 
   // Validate required fields
   if (!companyId || !documentText) {
@@ -188,11 +210,10 @@ export async function POST(req: Request) {
     );
   }
 
-  // Get AI provider — try "documents" first, fall back to "chat"
-  let providerResult = await getProviderForTask(supabase, companyId, "documents");
-  if (!providerResult) {
-    providerResult = await getProviderForTask(supabase, companyId, "chat");
-  }
+  // Get AI provider — user-selected or default (documents → chat fallback)
+  const providerResult = await resolveProvider(
+    supabase, companyId, "documents", selectedProviderId
+  );
   if (!providerResult) {
     return NextResponse.json(
       { error: "No AI provider configured. Go to Administration > AI Providers to set one up." },
@@ -200,16 +221,55 @@ export async function POST(req: Request) {
     );
   }
 
+  // Load jurisdiction rules if a jurisdiction ruleset was selected
+  let jurisdictionRules: JurisdictionRule[] = [];
+  let jurisdictionName = jurisdiction;
+  if (jurisdictionId) {
+    const { data: jData } = await supabase
+      .from("jurisdiction_rulesets")
+      .select("jurisdiction_name, rules")
+      .eq("id", jurisdictionId)
+      .single();
+    if (jData) {
+      jurisdictionName = jData.jurisdiction_name || jurisdiction;
+      jurisdictionRules = (jData.rules as JurisdictionRule[]) || [];
+    }
+  }
+
+  // Load project context if linked
+  let projectContext = "";
+  if (projectId) {
+    const { data: proj } = await supabase
+      .from("projects")
+      .select("name, code, project_type, address_line1, city, state, zip, client_name, contract_amount, start_date, estimated_end_date, completion_pct")
+      .eq("id", projectId)
+      .eq("company_id", companyId)
+      .single();
+    if (proj) {
+      projectContext = `\n--- PROJECT CONTEXT ---
+Project: ${proj.name} (${proj.code || "N/A"})
+Type: ${proj.project_type || "N/A"}
+Location: ${[proj.address_line1, proj.city, proj.state, proj.zip].filter(Boolean).join(", ")}
+Client: ${proj.client_name || "N/A"}
+Contract: ${proj.contract_amount ? `$${Number(proj.contract_amount).toLocaleString()}` : "N/A"}
+Timeline: ${proj.start_date || "?"} to ${proj.estimated_end_date || "?"}
+Completion: ${proj.completion_pct ?? 0}%
+--- END PROJECT CONTEXT ---`;
+    }
+  }
+
   const systemPrompt = buildSystemPrompt(
     userCompany.companyName,
-    jurisdiction,
-    buildingType
+    jurisdictionName,
+    buildingType,
+    jurisdictionRules
   );
 
   const userPrompt = `Review the following building permit application documents for code compliance:
 
-${jurisdiction ? `Jurisdiction: ${jurisdiction}` : ""}
+${jurisdictionName ? `Jurisdiction: ${jurisdictionName}` : ""}
 ${buildingType ? `Building Type: ${buildingType}` : ""}
+${projectContext}
 
 --- DOCUMENT CONTENT ---
 ${documentText.substring(0, 80000)}
@@ -277,8 +337,10 @@ Analyze these documents against all 8 compliance areas and return the structured
       title: title || "Untitled Review",
       status: "completed",
       document_text: documentText.substring(0, 50000), // truncate for storage
-      jurisdiction: jurisdiction || null,
+      jurisdiction: jurisdictionName || null,
       building_type: buildingType || null,
+      uploaded_files: uploadedFiles || [],
+      selected_provider_id: selectedProviderId || null,
       overall_status: parsed.overall_status || "needs_review",
       overall_confidence: parsed.overall_confidence ?? 0,
       summary: parsed.summary || null,
