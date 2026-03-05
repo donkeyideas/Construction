@@ -43,7 +43,7 @@ const ReviewTrendChart = dynamic(
 );
 
 // ---------------------------------------------------------------------------
-// Types
+// Types & constants
 // ---------------------------------------------------------------------------
 
 type OverallStatus = "likely_compliant" | "needs_review" | "issues_found";
@@ -51,6 +51,17 @@ type SectionStatus = "pass" | "flag" | "fail";
 type IssueSeverity = "critical" | "major" | "minor" | "info";
 type ReviewPhase = "idle" | "analyzing" | "results";
 type ActiveTab = "review" | "analytics";
+
+const ANALYSIS_STEPS = [
+  { label: "Structural", icon: "🏗️", detail: "Load requirements, foundations, structural members" },
+  { label: "Fire Safety", icon: "🔥", detail: "Fire-resistance ratings, egress, sprinklers" },
+  { label: "Electrical", icon: "⚡", detail: "Service entrance, circuits, grounding" },
+  { label: "Plumbing", icon: "🚿", detail: "Fixture counts, water supply, drainage" },
+  { label: "Mechanical / HVAC", icon: "❄️", detail: "Ventilation rates, equipment sizing" },
+  { label: "Zoning", icon: "📐", detail: "Setbacks, height restrictions, parking" },
+  { label: "ADA / Accessibility", icon: "♿", detail: "Accessible routes, door widths, signage" },
+  { label: "Environmental", icon: "🌿", detail: "Stormwater, erosion control, energy efficiency" },
+];
 
 interface PermitSection {
   name: string;
@@ -196,6 +207,20 @@ export default function PermitReviewClient({
   // Tabs & phase
   const [activeTab, setActiveTab] = useState<ActiveTab>("review");
   const [phase, setPhase] = useState<ReviewPhase>("idle");
+  const [analysisStep, setAnalysisStep] = useState(0);
+  const [elapsedSec, setElapsedSec] = useState(0);
+
+  // Cycle through analysis steps while analyzing
+  useEffect(() => {
+    if (phase !== "analyzing") { setAnalysisStep(0); setElapsedSec(0); return; }
+    const stepTimer = setInterval(() => {
+      setAnalysisStep((s) => (s + 1) % ANALYSIS_STEPS.length);
+    }, 2400);
+    const clockTimer = setInterval(() => {
+      setElapsedSec((s) => s + 1);
+    }, 1000);
+    return () => { clearInterval(stepTimer); clearInterval(clockTimer); };
+  }, [phase]);
 
   // Form state
   const [documentText, setDocumentText] = useState("");
@@ -1014,9 +1039,43 @@ ${ahjHtml}
           {/* ===== ANALYZING ===== */}
           {phase === "analyzing" && (
             <div className="permit-analyzing">
-              <Loader2 size={64} className="analyzing-icon" />
-              <h2>Analyzing Permit Documents</h2>
-              <p>Reviewing against 8 code compliance areas — Structural, Fire Safety, Electrical, Plumbing, Mechanical, Zoning, ADA, Environmental...</p>
+              <div className="analyzing-header">
+                <Shield size={28} className="analyzing-shield" />
+                <h2>Analyzing Permit Documents</h2>
+                <p>AI is reviewing your documents against 8 code compliance areas</p>
+              </div>
+
+              {/* Progress bar */}
+              <div className="analyzing-progress-bar">
+                <div className="analyzing-progress-fill" />
+              </div>
+
+              {/* Step list */}
+              <div className="analyzing-steps">
+                {ANALYSIS_STEPS.map((step, i) => {
+                  const isPast = i < analysisStep;
+                  const isCurrent = i === analysisStep;
+                  return (
+                    <div
+                      key={step.label}
+                      className={`analyzing-step ${isPast ? "done" : ""} ${isCurrent ? "active" : ""}`}
+                    >
+                      <span className="analyzing-step-icon">{isPast ? "✓" : step.icon}</span>
+                      <div className="analyzing-step-text">
+                        <span className="analyzing-step-label">{step.label}</span>
+                        {isCurrent && <span className="analyzing-step-detail">{step.detail}</span>}
+                      </div>
+                      {isCurrent && <Loader2 size={16} className="analyzing-step-spinner" />}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Elapsed timer */}
+              <div className="analyzing-elapsed">
+                <Clock size={14} />
+                <span>{elapsedSec}s elapsed</span>
+              </div>
             </div>
           )}
 

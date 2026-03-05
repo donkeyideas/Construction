@@ -11,6 +11,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
   LineChart,
   Line,
 } from "recharts";
@@ -33,8 +34,8 @@ export function SectionFlagChart({ data }: { data: SectionData[] }) {
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-        <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-        <YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 12 }} />
+        <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} tick={{ fill: "var(--text)" }} />
+        <YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 12, fill: "var(--text)" }} />
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Tooltip
           formatter={(value: any, name: any) =>
@@ -63,17 +64,16 @@ export function StatusDonutChart({ data }: { data: StatusData[] }) {
   if (!total) return null;
 
   return (
-    <ResponsiveContainer width="100%" height={240}>
+    <ResponsiveContainer width="100%" height={280}>
       <PieChart>
         <Pie
           data={data}
           cx="50%"
-          cy="50%"
-          innerRadius={55}
-          outerRadius={90}
+          cy="45%"
+          innerRadius={50}
+          outerRadius={85}
           dataKey="value"
-          label={({ name, value }) => `${name}: ${value}`}
-          labelLine={false}
+          label={false}
         >
           {data.map((entry, i) => (
             <Cell key={i} fill={entry.color} />
@@ -81,6 +81,14 @@ export function StatusDonutChart({ data }: { data: StatusData[] }) {
         </Pie>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Tooltip formatter={(value: any) => [value, "Reviews"]} />
+        <Legend
+          verticalAlign="bottom"
+          formatter={(value: string, entry: { color?: string }) => (
+            <span style={{ color: entry.color, fontSize: "0.82rem", fontWeight: 600 }}>
+              {value}: {data.find((d) => d.name === value)?.value ?? 0}
+            </span>
+          )}
+        />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -102,8 +110,8 @@ export function ReviewTrendChart({ data }: { data: TimeData[] }) {
     <ResponsiveContainer width="100%" height={240}>
       <LineChart data={data} margin={{ left: 0, right: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-        <YAxis allowDecimals={false} />
+        <XAxis dataKey="month" tick={{ fontSize: 12, fill: "var(--text)" }} />
+        <YAxis allowDecimals={false} tick={{ fill: "var(--text)" }} />
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Tooltip formatter={(value: any) => [value, "Reviews"]} />
         <Line

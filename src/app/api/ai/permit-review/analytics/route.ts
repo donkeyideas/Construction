@@ -18,7 +18,6 @@ export async function GET(req: Request) {
       "id, overall_status, overall_confidence, sections, jurisdiction, building_type, processing_time_ms, created_at"
     )
     .eq("company_id", userCompany.companyId)
-    .eq("status", "completed")
     .order("created_at", { ascending: true });
 
   if (jurisdiction) query = query.eq("jurisdiction", jurisdiction);

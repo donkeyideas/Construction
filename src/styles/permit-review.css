@@ -426,33 +426,154 @@
 /* ---------- Analyzing animation ---------- */
 
 .permit-analyzing {
-  text-align: center;
-  padding: 80px 24px;
+  padding: 48px 24px;
+  max-width: 520px;
+  margin: 0 auto;
 }
 
-.permit-analyzing .analyzing-icon {
-  width: 64px;
-  height: 64px;
+.analyzing-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.analyzing-header .analyzing-shield {
   color: var(--color-blue);
-  margin: 0 auto 20px;
+  margin-bottom: 12px;
   animation: permitPulse 2s ease-in-out infinite;
+}
+
+.analyzing-header h2 {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.analyzing-header p {
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 @keyframes permitPulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.05); }
+  50% { opacity: 0.6; transform: scale(1.1); }
 }
 
-.permit-analyzing h2 {
-  font-family: var(--font-serif);
-  font-size: 1.3rem;
+/* Progress bar */
+.analyzing-progress-bar {
+  height: 4px;
+  background: var(--surface);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.analyzing-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-blue), #818cf8);
+  border-radius: 2px;
+  animation: analyzingSlide 2.4s ease-in-out infinite;
+}
+
+@keyframes analyzingSlide {
+  0% { width: 0%; margin-left: 0; }
+  50% { width: 60%; margin-left: 20%; }
+  100% { width: 0%; margin-left: 100%; }
+}
+
+/* Step list */
+.analyzing-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 20px;
+}
+
+.analyzing-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: background 0.3s, opacity 0.3s;
+  opacity: 0.4;
+}
+
+.analyzing-step.active {
+  background: rgba(59, 130, 246, 0.08);
+  opacity: 1;
+}
+
+.analyzing-step.done {
+  opacity: 0.65;
+}
+
+.analyzing-step-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+
+.analyzing-step.done .analyzing-step-icon {
+  color: var(--color-green);
   font-weight: 700;
-  margin-bottom: 8px;
+  font-size: 0.85rem;
 }
 
-.permit-analyzing p {
-  color: var(--muted);
+.analyzing-step-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.analyzing-step-label {
   font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.analyzing-step.done .analyzing-step-label {
+  color: var(--muted);
+}
+
+.analyzing-step-detail {
+  font-size: 0.75rem;
+  color: var(--muted);
+  animation: fadeSlideIn 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.analyzing-step-spinner {
+  color: var(--color-blue);
+  flex-shrink: 0;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Elapsed timer */
+.analyzing-elapsed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Results KPI row ---------- */
