@@ -7,18 +7,11 @@
 .sa-badge {
   display: inline-block;
   margin-top: 6px;
-  padding: 1px 8px;
-  border-radius: 4px;
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: var(--color-amber-light);
   color: var(--color-amber);
-}
-
-[data-theme="dark"] .sa-badge {
-  background: rgba(180, 83, 9, 0.15);
 }
 
 /* ===== KPI Grid ===== */
@@ -228,8 +221,6 @@
 .sa-plan-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: 10px;
   font-size: 0.72rem;
   font-weight: 600;
   white-space: nowrap;
@@ -237,25 +228,14 @@
 }
 
 .sa-plan-enterprise {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
-[data-theme="dark"] .sa-plan-enterprise {
-  background: rgba(29, 78, 216, 0.15);
-}
-
 .sa-plan-professional {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .sa-plan-professional {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .sa-plan-starter {
-  background: var(--surface);
   color: var(--muted);
 }
 
@@ -309,65 +289,40 @@
 /* ===== Generic Badge ===== */
 .sa-badge {
   display: inline-flex;
-  padding: 2px 9px;
-  border-radius: 10px;
   font-size: 0.7rem;
   font-weight: 600;
+  text-transform: capitalize;
 }
 
 .sa-badge-blue {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
-[data-theme="dark"] .sa-badge-blue {
-  background: rgba(29, 78, 216, 0.15);
-}
-
 .sa-badge-amber {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .sa-badge-amber {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .sa-badge-green {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .sa-badge-green {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .sa-badge-red {
-  background: var(--color-red-light);
   color: var(--color-red);
 }
 
-[data-theme="dark"] .sa-badge-red {
-  background: rgba(220, 38, 38, 0.15);
-}
-
 .sa-badge-purple {
-  background: rgba(147, 51, 234, 0.1);
   color: #7c3aed;
 }
 
 [data-theme="dark"] .sa-badge-purple {
-  background: rgba(147, 51, 234, 0.15);
   color: #a78bfa;
 }
 
 .sa-badge-gray {
-  background: var(--surface);
   color: var(--muted);
 }
 
 [data-theme="dark"] .sa-badge-gray {
-  background: rgba(107, 114, 128, 0.15);
   color: #9ca3af;
 }
 

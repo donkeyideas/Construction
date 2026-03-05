@@ -619,49 +619,17 @@
   gap: 8px;
 }
 
-/* ===== Badges ===== */
+/* ===== Badges (text-only, no pill background) ===== */
 .badge {
-  padding: 2px 9px;
-  border-radius: 10px;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
+  text-transform: capitalize;
 }
 
-.badge-blue {
-  background: var(--color-blue-light);
-  color: var(--color-blue);
-}
-
-[data-theme="dark"] .badge-blue {
-  background: rgba(29, 78, 216, 0.15);
-}
-
-.badge-amber {
-  background: var(--color-amber-light);
-  color: var(--color-amber);
-}
-
-[data-theme="dark"] .badge-amber {
-  background: rgba(180, 83, 9, 0.15);
-}
-
-.badge-red {
-  background: rgba(220, 38, 38, 0.08);
-  color: var(--color-red);
-}
-
-[data-theme="dark"] .badge-red {
-  background: rgba(220, 38, 38, 0.15);
-}
-
-.badge-green {
-  background: rgba(22, 163, 74, 0.08);
-  color: var(--color-green);
-}
-
-[data-theme="dark"] .badge-green {
-  background: rgba(22, 163, 74, 0.15);
-}
+.badge-blue { color: var(--color-blue); }
+.badge-amber { color: var(--color-amber); }
+.badge-red { color: var(--color-red); }
+.badge-green { color: var(--color-green); }
 
 /* ===== View All Link ===== */
 .view-all {

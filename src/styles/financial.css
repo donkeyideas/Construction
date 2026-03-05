@@ -352,73 +352,22 @@
   border-left: 3px solid var(--color-red);
 }
 
-/* Invoice status badges */
+/* Invoice status badges (text-only, no pill) */
 .inv-status {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 10px;
-  border-radius: 10px;
   font-size: 0.72rem;
   font-weight: 600;
   font-family: var(--font-sans);
   white-space: nowrap;
+  text-transform: capitalize;
 }
 
-.inv-status-draft {
-  background: var(--surface);
-  color: var(--muted);
-}
-
-.inv-status-pending {
-  background: var(--color-amber-light);
-  color: var(--color-amber);
-}
-
-[data-theme="dark"] .inv-status-pending {
-  background: rgba(180, 83, 9, 0.15);
-}
-
-.inv-status-approved {
-  background: var(--color-blue-light);
-  color: var(--color-blue);
-}
-
-[data-theme="dark"] .inv-status-approved {
-  background: rgba(29, 78, 216, 0.15);
-}
-
-.inv-status-paid {
-  background: var(--color-green-light);
-  color: var(--color-green);
-}
-
-[data-theme="dark"] .inv-status-paid {
-  background: rgba(22, 163, 74, 0.15);
-}
-
-.inv-status-overdue {
-  background: var(--color-red-light);
-  color: var(--color-red);
-}
-
-[data-theme="dark"] .inv-status-overdue {
-  background: rgba(220, 38, 38, 0.15);
-}
-
-.inv-status-posted {
-  background: var(--color-green-light);
-  color: var(--color-green);
-}
-
-[data-theme="dark"] .inv-status-posted {
-  background: rgba(22, 163, 74, 0.15);
-}
-
-.inv-status-voided {
-  background: var(--surface);
-  color: var(--muted);
-  text-decoration: line-through;
-}
+.inv-status-draft { color: var(--muted); }
+.inv-status-pending { color: var(--color-amber); }
+.inv-status-approved { color: var(--color-blue); }
+.inv-status-paid { color: var(--color-green); }
+.inv-status-overdue { color: var(--color-red); }
+.inv-status-posted { color: var(--color-green); }
+.inv-status-voided { color: var(--muted); text-decoration: line-through; }
 
 /* Invoice type badges */
 .inv-type {

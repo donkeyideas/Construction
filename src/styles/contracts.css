@@ -288,63 +288,36 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
-  border-radius: 10px;
   font-size: 0.75rem;
   font-weight: 600;
   font-family: var(--font-sans);
   white-space: nowrap;
+  text-transform: capitalize;
 }
 
 .contracts-status-badge.status-draft {
-  background: var(--surface);
   color: var(--muted);
 }
 
 .contracts-status-badge.status-pending_approval {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .contracts-status-badge.status-pending_approval {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .contracts-status-badge.status-active {
-  background: rgba(22, 163, 74, 0.08);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .contracts-status-badge.status-active {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .contracts-status-badge.status-expired {
-  background: rgba(220, 38, 38, 0.08);
   color: var(--color-red);
 }
 
-[data-theme="dark"] .contracts-status-badge.status-expired {
-  background: rgba(220, 38, 38, 0.15);
-}
-
 .contracts-status-badge.status-terminated {
-  background: rgba(220, 38, 38, 0.08);
   color: var(--color-red);
   font-weight: 700;
 }
 
-[data-theme="dark"] .contracts-status-badge.status-terminated {
-  background: rgba(220, 38, 38, 0.15);
-}
-
 .contracts-status-badge.status-completed {
-  background: var(--color-blue-light);
   color: var(--color-blue);
-}
-
-[data-theme="dark"] .contracts-status-badge.status-completed {
-  background: rgba(29, 78, 216, 0.15);
 }
 
 /* ===== Type Badge ===== */

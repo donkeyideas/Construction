@@ -363,8 +363,6 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: 10px;
   font-size: 0.72rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -372,43 +370,22 @@
 }
 
 .badge-blue {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
-[data-theme="dark"] .badge-blue {
-  background: rgba(29, 78, 216, 0.15);
-}
-
 .badge-amber {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .badge-amber {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .badge-green {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .badge-green {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .badge-red {
-  background: var(--color-red-light);
   color: var(--color-red);
 }
 
-[data-theme="dark"] .badge-red {
-  background: rgba(220, 38, 38, 0.15);
-}
-
 .badge-gray {
-  background: var(--surface);
   color: var(--muted);
 }
 

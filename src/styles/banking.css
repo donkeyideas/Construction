@@ -375,21 +375,11 @@
 }
 
 .banking-recon-status-badge.status-completed {
-  background: rgba(22, 163, 74, 0.08);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .banking-recon-status-badge.status-completed {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .banking-recon-status-badge.status-in_progress {
-  background: var(--color-amber-light);
   color: var(--color-amber);
-}
-
-[data-theme="dark"] .banking-recon-status-badge.status-in_progress {
-  background: rgba(180, 83, 9, 0.15);
 }
 
 /* ===== Filters ===== */

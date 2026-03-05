@@ -346,126 +346,94 @@
 
 /* ===== Status Badges ===== */
 .badge-pre_construction {
-  background: var(--color-amber-light);
   color: var(--color-amber);
-}
-
-[data-theme="dark"] .badge-pre_construction {
-  background: rgba(180, 83, 9, 0.15);
+  text-transform: capitalize;
 }
 
 .badge-active {
-  background: var(--color-blue-light);
   color: var(--color-blue);
-}
-
-[data-theme="dark"] .badge-active {
-  background: rgba(29, 78, 216, 0.15);
+  text-transform: capitalize;
 }
 
 .badge-on_hold {
-  background: rgba(220, 38, 38, 0.08);
   color: var(--color-red);
+  text-transform: capitalize;
 }
 
 .badge-completed {
-  background: rgba(22, 163, 74, 0.08);
   color: var(--color-green);
+  text-transform: capitalize;
 }
 
 .badge-closed {
-  background: var(--surface);
   color: var(--muted);
+  text-transform: capitalize;
 }
 
 .badge-draft {
-  background: var(--surface);
   color: var(--muted);
+  text-transform: capitalize;
 }
 
 .badge-open {
-  background: var(--color-blue-light);
   color: var(--color-blue);
-}
-
-[data-theme="dark"] .badge-open {
-  background: rgba(29, 78, 216, 0.15);
+  text-transform: capitalize;
 }
 
 .badge-submitted {
-  background: var(--color-amber-light);
   color: var(--color-amber);
-}
-
-[data-theme="dark"] .badge-submitted {
-  background: rgba(180, 83, 9, 0.15);
+  text-transform: capitalize;
 }
 
 .badge-answered {
-  background: rgba(22, 163, 74, 0.08);
   color: var(--color-green);
+  text-transform: capitalize;
 }
 
 .badge-approved {
-  background: rgba(22, 163, 74, 0.08);
   color: var(--color-green);
+  text-transform: capitalize;
 }
 
 .badge-rejected {
-  background: rgba(220, 38, 38, 0.08);
   color: var(--color-red);
+  text-transform: capitalize;
 }
 
 .badge-pending {
-  background: var(--color-amber-light);
   color: var(--color-amber);
-}
-
-[data-theme="dark"] .badge-pending {
-  background: rgba(180, 83, 9, 0.15);
+  text-transform: capitalize;
 }
 
 .badge-high {
-  background: rgba(220, 38, 38, 0.08);
   color: var(--color-red);
+  text-transform: capitalize;
 }
 
 .badge-medium {
-  background: var(--color-amber-light);
   color: var(--color-amber);
-}
-
-[data-theme="dark"] .badge-medium {
-  background: rgba(180, 83, 9, 0.15);
+  text-transform: capitalize;
 }
 
 .badge-low {
-  background: var(--color-blue-light);
   color: var(--color-blue);
-}
-
-[data-theme="dark"] .badge-low {
-  background: rgba(29, 78, 216, 0.15);
+  text-transform: capitalize;
 }
 
 .badge-urgent {
-  background: rgba(220, 38, 38, 0.12);
   color: var(--color-red);
   font-weight: 700;
+  text-transform: capitalize;
 }
 
 .badge-not_started {
-  background: var(--surface);
   color: var(--muted);
+  text-transform: capitalize;
 }
 
 .badge-in_progress {
-  background: var(--color-blue-light);
   color: var(--color-blue);
-}
-
-[data-theme="dark"] .badge-in_progress {
-  background: rgba(29, 78, 216, 0.15);
+  text-transform: capitalize;
 }
 
 /* ===== Bulk-Assign Toolbar ===== */
