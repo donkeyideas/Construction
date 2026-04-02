@@ -135,6 +135,8 @@ export async function middleware(request: NextRequest) {
     "/forgot-password",
     "/maintenance",
     "/beta",
+    "/delete-account",
+    "/privacy-policy",
   ];
   const isPublicRoute =
     publicRoutes.some((route) => pathname === route) ||
