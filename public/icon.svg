@@ -1,42 +1,63 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e3a5f"/>
-      <stop offset="100%" stop-color="#0a0a1a"/>
+    <linearGradient id="bgDark" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#60a5fa"/>
-      <stop offset="100%" stop-color="#3b82f6"/>
+    <linearGradient id="bgAmber" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
     </linearGradient>
+    <clipPath id="roundedRect">
+      <rect width="512" height="512" rx="108"/>
+    </clipPath>
+    <clipPath id="topHalf">
+      <polygon points="0,0 512,0 512,280 0,232"/>
+    </clipPath>
+    <clipPath id="bottomHalf">
+      <polygon points="0,232 512,280 512,512 0,512"/>
+    </clipPath>
   </defs>
 
-  <!-- Background rounded rectangle -->
-  <rect x="0" y="0" width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+  <g clip-path="url(#roundedRect)">
+    <rect width="512" height="512" fill="url(#bgAmber)"/>
+    <g clip-path="url(#topHalf)">
+      <rect width="512" height="512" fill="url(#bgAmber)"/>
+    </g>
 
-  <!-- Subtle border -->
-  <rect x="4" y="4" width="504" height="504" rx="92" ry="92" fill="none" stroke="#3b82f6" stroke-width="2" opacity="0.3"/>
+    <g clip-path="url(#bottomHalf)">
+      <rect width="512" height="512" fill="url(#bgDark)"/>
+    </g>
 
-  <!-- Hard hat (construction helmet) -->
-  <g transform="translate(256, 120)">
-    <!-- Hat brim -->
-    <ellipse cx="0" cy="24" rx="72" ry="14" fill="url(#accent)"/>
-    <!-- Hat dome -->
-    <path d="M-56,24 Q-56,-30 0,-38 Q56,-30 56,24 Z" fill="url(#accent)"/>
-    <!-- Hat ridge line -->
-    <path d="M0,-38 L0,24" stroke="white" stroke-width="3" opacity="0.3"/>
-    <!-- Hat front detail -->
-    <rect x="-20" y="6" width="40" height="8" rx="4" fill="white" opacity="0.25"/>
+    <line x1="0" y1="232" x2="512" y2="280" stroke="white" stroke-width="2" opacity="0.15"/>
+
+    <path fill-rule="evenodd" fill="white" d="
+      M 148 88 L 308 88 C 366 88 404 126 404 174
+      C 404 214 384 244 352 258 C 390 272 418 306 418 354
+      C 418 414 376 448 318 448 L 148 448 Z
+
+      M 216 154 L 216 226 L 290 226
+      C 324 226 342 208 342 190 C 342 172 324 154 290 154 Z
+
+      M 216 290 L 216 384 L 304 384
+      C 342 384 362 362 362 337 C 362 312 342 290 304 290 Z
+    "/>
+
+    <g clip-path="url(#bottomHalf)">
+      <path fill-rule="evenodd" fill="white" opacity="0.85" d="
+        M 148 88 L 308 88 C 366 88 404 126 404 174
+        C 404 214 384 244 352 258 C 390 272 418 306 418 354
+        C 418 414 376 448 318 448 L 148 448 Z
+
+        M 216 154 L 216 226 L 290 226
+        C 324 226 342 208 342 190 C 342 172 324 154 290 154 Z
+
+        M 216 290 L 216 384 L 304 384
+        C 342 384 362 362 362 337 C 362 312 342 290 304 290 Z
+      "/>
+    </g>
+
+    <polygon points="440,40 470,40 470,70" fill="white" opacity="0.08"/>
+    <polygon points="42,472 72,472 42,442" fill="white" opacity="0.08"/>
   </g>
-
-  <!-- Letter B -->
-  <g transform="translate(256, 330)">
-    <!-- B letter - clean geometric construction -->
-    <text x="0" y="0" text-anchor="middle" dominant-baseline="central"
-          font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
-          font-size="240" font-weight="800" fill="white"
-          letter-spacing="-8">B</text>
-  </g>
-
-  <!-- Small accent line at bottom -->
-  <rect x="176" y="468" width="160" height="4" rx="2" fill="#3b82f6" opacity="0.6"/>
 </svg>
