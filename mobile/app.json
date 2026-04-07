@@ -1,0 +1,73 @@
+{
+  "expo": {
+    "name": "Buildwrk",
+    "slug": "buildwrk",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "buildwrk",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1d4ed8"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.buildwrk.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Take photos for daily logs and safety reports",
+        "NSLocationWhenInUseUsageDescription": "Record GPS location for clock in/out and daily logs",
+        "NSPhotoLibraryUsageDescription": "Attach photos from gallery to daily logs",
+        "NSFaceIDUsageDescription": "Use Face ID to quickly sign in"
+      }
+    },
+    "android": {
+      "package": "com.buildwrk.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1d4ed8",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        { "cameraPermission": "Allow Buildwrk to access your camera for daily log photos." }
+      ],
+      [
+        "expo-location",
+        { "locationWhenInUsePermission": "Allow Buildwrk to access your location for clock in/out." }
+      ],
+      [
+        "expo-image-picker",
+        { "photosPermission": "Allow Buildwrk to access your photos for daily logs." }
+      ],
+      "expo-local-authentication",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#1d4ed8"
+        }
+      ]
+    ]
+  }
+}

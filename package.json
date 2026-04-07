@@ -13,6 +13,7 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "firebase-admin": "^13.7.0",
     "@ai-sdk/amazon-bedrock": "^4.0.58",
     "@ai-sdk/anthropic": "^3.0.42",
     "@ai-sdk/cohere": "^3.0.20",
