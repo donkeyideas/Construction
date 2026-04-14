@@ -1,0 +1,61 @@
+account_number,name,account_type,sub_type,description
+1000,Cash & Equivalents,asset,Current Asset,Operating cash and money market funds
+1010,Accounts Receivable - Power Sales,asset,Current Asset,ERCOT settlement receivables and bilateral contract AR
+1020,Fuel Inventory - Natural Gas,asset,Current Asset,Natural gas in pipeline and storage
+1030,Emissions Allowances,asset,Current Asset,CO2 and NOx allowances purchased
+1040,Spare Parts Inventory,asset,Current Asset,Critical spare parts and consumables on hand
+1050,Prepaid Expenses,asset,Current Asset,Prepaid insurance maintenance contracts and deposits
+1060,Margin Deposits - ERCOT,asset,Current Asset,Performance bonds and financial assurance posted to ERCOT
+1070,Restricted Cash - Debt Service Reserve,asset,Current Asset,Six-month DSRA required by project finance lenders
+1500,Power Plant - Land,asset,Fixed Asset,18.4 acres in Harris County TX
+1510,Power Plant - Civil & Structural,asset,Fixed Asset,Plant civil foundations cooling towers and buildings
+1520,Power Plant - Gas Turbines (2x GE 7HA.02),asset,Fixed Asset,Two General Electric 7HA.02 gas turbine generator sets
+1530,Power Plant - Steam Turbine (1x),asset,Fixed Asset,One Siemens SST-900 steam turbine generator
+1540,Power Plant - HRSGs (2x),asset,Fixed Asset,Two heat recovery steam generators
+1550,Power Plant - Electrical & Controls,asset,Fixed Asset,Step-up transformers switchyard SCADA and DCS
+1560,Power Plant - Balance of Plant,asset,Fixed Asset,Cooling water BOP piping and auxiliary systems
+1570,Natural Gas Interconnect,asset,Fixed Asset,Gas pipeline lateral and metering station
+1580,Transmission Interconnect,asset,Fixed Asset,345 kV transmission line and substation
+1590,Accumulated Depreciation,asset,Fixed Asset,Accumulated depreciation on all plant assets
+2000,Accounts Payable - Fuel,liability,Current Liability,Natural gas supplier payables
+2010,Accounts Payable - O&M,liability,Current Liability,Operations and maintenance vendor payables
+2020,Accrued Liabilities,liability,Current Liability,Accrued wages benefits and property taxes
+2030,ERCOT Settlements Payable,liability,Current Liability,Net ERCOT energy charges payable
+2040,Emissions Liability,liability,Current Liability,NOx and CO2 compliance obligations
+2050,Current Portion - Project Finance Debt,liability,Current Liability,Current year principal on project finance loans
+2060,Interest Payable,liability,Current Liability,Accrued interest on project finance debt
+2500,Project Finance Debt - Term Loan A,liability,Long-Term Liability,Senior secured term loan - 18-year amortization
+2510,Project Finance Debt - Term Loan B,liability,Long-Term Liability,Senior secured term loan B - institutional
+2520,Revenue Bonds,liability,Long-Term Liability,Tax-exempt revenue bonds via Harris County
+3000,Member Equity,equity,Equity,LP and GP capital contributions
+3010,Retained Earnings,equity,Equity,Accumulated net income
+4000,Energy Revenue - ERCOT Real-Time,revenue,Revenue,Real-time market energy sales in ERCOT
+4010,Energy Revenue - Day-Ahead Market,revenue,Revenue,ERCOT day-ahead market cleared energy
+4020,Capacity Revenue - PPA,revenue,Revenue,Power purchase agreement capacity payments
+4030,Ancillary Services Revenue,revenue,Revenue,ERCOT ancillary services - reg up down RRS
+4040,Heat Rate Call Option Revenue,revenue,Revenue,Heat rate call option premium income
+4050,Carbon Credits & RECs,revenue,Revenue,Voluntary carbon and renewable energy certificate sales
+5000,Fuel Cost - Natural Gas,expense,COGS,Natural gas commodity purchases
+5010,Fuel Transportation - Pipeline,expense,COGS,CenterPoint Energy pipeline transportation charges
+5020,Fuel Management Fees,expense,COGS,Gas scheduler and fuel manager fees
+5100,Operations Labor - Plant Staff,expense,Operating,Plant operators technicians and supervisors wages
+5110,Operations Labor Burden,expense,Operating,Payroll taxes benefits and workers comp
+5200,Planned Maintenance - Major,expense,Operating,Combustion inspections hot gas path and major overhauls
+5210,Planned Maintenance - Routine,expense,Operating,Scheduled preventive maintenance and inspections
+5220,Unplanned Maintenance,expense,Operating,Forced outage repairs and emergency maintenance
+5300,Water - Cooling Tower Makeup,expense,Operating,Water purchases for cooling tower evaporation
+5310,Chemicals - Water Treatment,expense,Operating,Cooling tower and HRSG water treatment chemicals
+5400,Property Tax - Harris County,expense,Operating,Ad valorem property tax on plant and equipment
+5410,Insurance - All Risk,expense,Operating,Property all-risk and machinery breakdown insurance
+5420,Insurance - General Liability,expense,Operating,General liability and pollution legal liability
+5500,Emissions Compliance - NOx,expense,Operating,NOx allowance purchases and TCEQ compliance
+5510,Emissions Compliance - CO2,expense,Operating,Voluntary and compliance carbon allowances
+5600,ERCOT Fees & Transmission,expense,Operating,ERCOT admin fees and transmission congestion costs
+5610,Interconnection Costs,expense,Operating,Transmission owner interconnection charges
+5700,Administrative & General,expense,Operating,Corporate overhead allocated to plant
+5710,Legal & Regulatory,expense,Operating,FERC PUCT TCEQ compliance legal fees
+5720,IT & SCADA Systems,expense,Operating,Control systems cybersecurity and IT
+5800,Depreciation - Plant Assets,expense,Operating,Straight-line depreciation on all plant assets
+6000,Interest Expense - Project Finance,expense,Other,Interest on term loans and revenue bonds
+6010,Amortization of Financing Costs,expense,Other,Deferred financing cost amortization
+6020,Interest Income,revenue,Other,Interest earned on cash and DSRA

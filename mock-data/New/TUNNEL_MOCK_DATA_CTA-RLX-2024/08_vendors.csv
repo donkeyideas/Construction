@@ -1,0 +1,14 @@
+company_name,contact_name,contact_email,contact_phone,vendor_type,specialty
+Herrenknecht AG,Hector Munoz,h.munoz@herrenknecht.com,312-555-1103,equipment_supplier,TBM OEM - EPB TBM parts and field service
+Midwest Segmental Lining Corp,Patricia Tran,p.tran@midwestsegmental.com,312-555-1106,subcontractor,Precast concrete tunnel lining segments
+Chicago Precise Grouting LLC,Omar Abdul,o.abdul@chicagoprecisegrouting.com,312-555-1105,subcontractor,Annular backfill grouting and contact grouting
+Layne Christensen Dewatering,Valeria Strauss,v.strauss@laynechristensen.com,312-555-1104,subcontractor,Deep dewatering wells and groundwater control
+Subway Electrical Contractors LLC,Dennis Koby,d.koby@subwayelectrical.com,312-555-1107,subcontractor,Tunnel electrical temporary power and permanent systems
+TunnelVision Inspection Services,Renee Hayward,r.hayward@tunnelvision-inspect.com,312-555-1108,vendor,Third-party tunnel lining and convergence inspection
+Moretrench Ground Engineering,Bill Caruso,b.caruso@moretrench.com,312-555-1109,subcontractor,Ground improvement jet grouting for cross passages
+Illinois Industrial Concrete,Dave Pawlik,d.pawlik@ilconcrete.com,312-555-1110,vendor,Shotcrete and station cavern concrete supply
+Midwest Structural Steel,Tony Rybak,t.rybak@mwstructuralsteel.com,312-555-1111,subcontractor,Tunnel support steel and station structure steel
+HNTB Corporation,Sandra Obi,s.obi@hntb.com,312-555-0905,consultant,Owner's engineer and geotechnical engineer of record
+ComEd (Exelon),Utility Coordination,,312-555-1112,utility,138kV transmission relocation coordination
+NICOR Gas,Utility Coordination,,312-555-1113,utility,8-inch gas main relocation coordination
+CDOT Water & Sewer,Utility Coordination,,312-555-1114,utility,48-inch water main relocation coordination

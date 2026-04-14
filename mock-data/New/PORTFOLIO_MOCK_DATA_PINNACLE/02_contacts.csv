@@ -1,0 +1,34 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Robert,Stafford,employee,r.stafford@pinnaclebuilds.com,305-555-0101,,CEO & Principal
+Claudia,Reyes,employee,c.reyes@pinnaclebuilds.com,305-555-0102,,CFO
+Marcus,Holloway,employee,m.holloway@pinnaclebuilds.com,305-555-0103,,VP of Construction
+Jennifer,Tam,employee,j.tam@pinnaclebuilds.com,305-555-0104,,Senior Project Manager - MRN Chicago
+Darius,Knight,employee,d.knight@pinnaclebuilds.com,305-555-0105,,Project Manager - SDM Austin
+Alicia,Fontaine,employee,a.fontaine@pinnaclebuilds.com,305-555-0106,,Senior Estimator - PRC Las Vegas
+Tony,Esposito,employee,t.esposito@pinnaclebuilds.com,305-555-0107,,Superintendent - MRN Chicago
+Yolanda,Marsh,employee,y.marsh@pinnaclebuilds.com,305-555-0108,,Project Engineer - SDM Austin
+Carlos,Vega,employee,c.vega@pinnaclebuilds.com,305-555-0109,,Corporate Safety Manager
+Priya,Patel,employee,p.patel@pinnaclebuilds.com,305-555-0110,,Project Controller
+Ramon,Gutierrez,employee,r.gutierrez@pinnaclebuilds.com,305-555-0111,,Project Manager - MSL Memphis
+Leah,Okonkwo,employee,l.okonkwo@pinnaclebuilds.com,305-555-0112,,Project Manager - DSR Denver
+Nathan,Briggs,employee,n.briggs@pinnaclebuilds.com,305-555-0113,,Superintendent - MSL Memphis
+Isabel,Cruz,employee,i.cruz@pinnaclebuilds.com,305-555-0114,,Preconstruction Manager - PRC Las Vegas
+Scott,Lichtman,client,s.lichtman@glupartners.com,312-555-0401,Great Lakes Urban Partners,Managing Director - Development
+Patricia,Huang,client,p.huang@glupartners.com,312-555-0402,Great Lakes Urban Partners,VP Construction
+Beatrice,Oyelaran,client,b.oyelaran@stdominichealth.org,512-555-0501,St. Dominic Health System,VP Facilities & Capital Projects
+Frank,Moreno,client,f.moreno@stdominichealth.org,512-555-0502,St. Dominic Health System,Director of Construction
+Diego,Castellano,client,d.castellano@westerngaming.com,702-555-0601,Western Pacific Gaming LLC,President & CEO
+Rachel,Fong,client,r.fong@westerngaming.com,702-555-0602,Western Pacific Gaming LLC,VP Development
+Kevin,Worthington,client,k.worthington@centerpoint.com,901-555-0701,CenterPoint Properties,Senior VP Development
+Maria,Adeyemi,client,m.adeyemi@denvergov.org,720-555-0801,City and County of Denver,Capital Projects Manager
+Trevor,Washington,vendor,t.washington@midwestconcrete.com,312-555-1001,Midwest Concrete Contractors,VP Operations
+Anna,Sobczak,vendor,a.sobczak@steelcityfab.com,312-555-1002,Steel City Fabricators & Erectors,Project Manager
+Luis,Espinoza,vendor,l.espinoza@texasmechanical.com,512-555-1003,Texas Mechanical Group,Division Manager
+Grace,Tanner,vendor,g.tanner@austinelectric.com,512-555-1004,Austin Electrical Services,VP Projects
+Patricia,Owens,vendor,p.owens@medhvacspecialists.com,512-555-1005,Medical HVAC Specialists Inc,Principal
+Omar,Johnson,vendor,o.johnson@desertfoundation.com,702-555-1006,Desert Foundation Systems,President
+Sandra,Nakamura,vendor,s.nakamura@peregrinecasino.com,702-555-1007,Peregrine Casino Interiors LLC,Director of Projects
+Harold,Tanner,vendor,h.tanner@southernroofing.com,901-555-1008,Southern Roofing & Waterproofing,Operations Manager
+Janice,Powell,vendor,j.powell@midsouthtiltup.com,901-555-1009,Mid-South Tilt-Up Concrete,President
+Victor,Ruiz,vendor,v.ruiz@denveraquatics.com,720-555-1010,Denver Aquatics & Pool Systems,Project Manager
+Renee,Blackwood,vendor,r.blackwood@coloradomep.com,720-555-1011,Colorado MEP Solutions,Principal

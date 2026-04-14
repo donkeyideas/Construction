@@ -1,0 +1,6 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+General Operating,Truist Bank,checking,3301,6610,5240000.00
+Payroll Account,Truist Bank,checking,3302,6610,1180000.00
+FF&E Procurement Account,Truist Bank,checking,3303,6610,3850000.00
+Retainage Reserve,Wells Fargo,savings,8820,0150,4620000.00
+Equipment Line of Credit,Truist Bank,line_of_credit,3304,6610,-850000.00

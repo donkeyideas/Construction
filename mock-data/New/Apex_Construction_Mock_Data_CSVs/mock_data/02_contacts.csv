@@ -1,0 +1,26 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Marcus,Rivera,employee,m.rivera@apexconstructiongrp.com,512-555-0101,,CEO & Founder
+Sandra,Holloway,employee,s.holloway@apexconstructiongrp.com,512-555-0102,,CFO
+Derek,Nguyen,employee,d.nguyen@apexconstructiongrp.com,512-555-0103,,VP of Operations
+Theresa,Blackwell,employee,t.blackwell@apexconstructiongrp.com,512-555-0104,,Director of Finance
+James,Okonkwo,employee,j.okonkwo@apexconstructiongrp.com,512-555-0105,,Project Executive - Texas
+Patricia,Garza,employee,p.garza@apexconstructiongrp.com,512-555-0106,,Project Executive - Southeast
+Kevin,Schuster,employee,k.schuster@apexconstructiongrp.com,512-555-0107,,Project Executive - Mountain/Midwest
+Angela,Moreno,employee,a.moreno@apexconstructiongrp.com,512-555-0108,,Controller
+Brent,Ellis,employee,b.ellis@apexconstructiongrp.com,512-555-0109,,Safety Director
+Lena,Park,employee,l.park@apexconstructiongrp.com,512-555-0110,,Preconstruction Manager
+Colin,Watters,employee,c.watters@apexconstructiongrp.com,512-555-0111,,Project Manager - Austin
+Yvonne,Tremblay,employee,y.tremblay@apexconstructiongrp.com,214-555-0112,,Project Manager - Dallas
+Isaiah,Freeman,employee,i.freeman@apexconstructiongrp.com,305-555-0113,,Project Manager - Miami
+Ryan,Kozlowski,employee,r.kozlowski@apexconstructiongrp.com,720-555-0114,,Project Manager - Denver
+Dana,Whitfield,employee,d.whitfield@apexconstructiongrp.com,312-555-0115,,Project Manager - Chicago
+Nathan,Patel,client,n.patel@urbanedge-dev.com,512-555-0201,UrbanEdge Development,VP of Development
+Carolyn,Hughes,client,c.hughes@dallascornerstonere.com,214-555-0202,Dallas Cornerstone Real Estate,President
+Eduardo,Medina,client,e.medina@palmcoasthospitality.com,305-555-0203,Palm Coast Hospitality Group,CFO
+Brittany,Weston,client,b.weston@frontrangeindustrial.com,720-555-0204,Front Range Industrial Partners,Director of Construction
+Harold,Sung,client,h.sung@midwestmedical.com,312-555-0205,Midwest Medical Properties,Chief Development Officer
+Greg,Harmon,vendor,g.harmon@texassteelworks.com,512-555-0301,Texas Steelworks,Sales Manager
+Darlene,Fox,vendor,d.fox@southwest-concrete.com,512-555-0302,Southwest Concrete Supply,Account Manager
+Mike,Tanaka,vendor,m.tanaka@flglass-glazing.com,305-555-0303,FL Glass & Glazing Inc,Project Manager
+Sophia,Laurent,vendor,s.laurent@rockymtn-mep.com,720-555-0304,Rocky Mountain MEP Solutions,Estimator
+William,Bauer,vendor,w.bauer@greatlakes-electrical.com,312-555-0305,Great Lakes Electrical Corp,VP of Sales

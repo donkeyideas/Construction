@@ -1,0 +1,17 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Finalize contract with Morgan Stanley,Contract Execution,high,2025-01-01,2025-01-10,100,false,true,Annual Catering - Morgan Stanley
+Set up delivery schedule and menu,Contract Execution,medium,2025-01-10,2025-01-15,100,false,false,Annual Catering - Morgan Stanley
+Execute January catering delivery,Active Service,high,2025-01-21,2025-01-21,100,true,true,Annual Catering - Morgan Stanley
+Execute February catering delivery,Active Service,high,2025-02-18,2025-02-18,100,true,true,Annual Catering - Morgan Stanley
+Renewal discussion with client contact,Renewal Negotiation,medium,2025-11-15,2025-12-15,100,false,false,Annual Catering - Morgan Stanley
+Sign 2026 renewal contract,Renewal Negotiation,high,2025-12-31,2025-12-31,100,true,true,Annual Catering - Morgan Stanley
+Finalize WeWork contract,Contract Execution,high,2025-01-15,2025-01-31,100,false,true,Annual Catering - WeWork 42nd
+WeWork February event delivery,Active Service,high,2025-02-28,2025-02-28,100,true,true,Annual Catering - WeWork 42nd
+WeWork April event delivery,Active Service,high,2025-04-30,2025-04-30,100,true,true,Annual Catering - WeWork 42nd
+Source and order replacement equipment,Planning & Procurement,critical,2025-03-01,2025-03-10,100,false,true,Renovation - New Equipment Upgrade
+Schedule TurboChef certified installer,Planning & Procurement,high,2025-03-10,2025-03-15,100,false,false,Renovation - New Equipment Upgrade
+Install new prep table and oven,Installation,critical,2025-03-20,2025-04-05,100,false,true,Renovation - New Equipment Upgrade
+POS software upgrade and testing,Installation,high,2025-04-06,2025-04-15,100,false,false,Renovation - New Equipment Upgrade
+Ice machine installation,Installation,high,2025-04-10,2025-04-18,100,false,false,Renovation - New Equipment Upgrade
+Staff training on new equipment,Commissioning & Close,medium,2025-04-21,2025-04-25,100,false,false,Renovation - New Equipment Upgrade
+Final sign-off and project close,Commissioning & Close,high,2025-04-30,2025-04-30,100,true,true,Renovation - New Equipment Upgrade

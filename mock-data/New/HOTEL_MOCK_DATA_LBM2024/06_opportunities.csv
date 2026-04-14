@@ -1,0 +1,7 @@
+name,client_name,stage,estimated_value,probability_pct,expected_close_date,source
+Hyatt Place Airport Terminal Hotel,Atlantic Gateway Hospitality,proposal,58000000,70,2026-04-30,rfp_response
+Curio Collection by Hilton - Wynwood Arts District,Wynwood Hotel Partners LLC,negotiation,72000000,88,2026-03-15,existing_client
+Residence Inn Extended Stay - Doral,Doral Lodging Group,proposal,34500000,60,2026-07-01,referral
+Hard Rock Hotel Renovation - Hollywood,Seminole Gaming,qualification,48000000,50,2026-09-01,rfp_response
+Margaritaville Resort - Key West Expansion,Island Time Resorts,negotiation,38000000,82,2026-05-15,existing_client
+Boutique Luxury Hotel - South Beach,Ocean Drive Ventures,proposal,28500000,55,2026-08-01,referral

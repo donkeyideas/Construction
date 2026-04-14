@@ -1,0 +1,5 @@
+tenant_name,property_name,tenant_email,tenant_phone,monthly_rent,security_deposit,lease_start,lease_end
+Lone Star Power Generation LLC (Owner),Lone Star Power Generation Plant Site,w.hargrove@lonestarpwr.com,713-555-0101,0,0,2022-06-01,2072-06-01
+Kinder Morgan (Gas Lateral ROW),Lone Star Power Generation Plant Site,r.flores@kinder-morgan.com,713-555-0203,4500,0,2022-04-01,2042-04-01
+CenterPoint Energy (Gas Distribution Easement),Lone Star Power Generation Plant Site,e.vasquez@centerpoint.com,713-555-0206,1200,0,2022-04-01,2052-04-01
+Oncor / CenterPoint (345kV Transmission Easement),Lone Star Power Generation Plant Site,w.stover@ercot.com,512-555-0301,0,0,2022-05-01,2052-05-01

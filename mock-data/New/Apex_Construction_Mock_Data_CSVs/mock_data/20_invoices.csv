@@ -1,0 +1,71 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2025-03-15,2000000,0,2025-04-14,Progress Payment #1 - AUS-2024 Site Work & Foundation,paid,,UrbanEdge Development,Second Street Mixed-Use Tower
+receivable,2025-05-01,2500000,0,2025-05-31,Progress Payment #2 - AUS-2024 Structural Steel Floors 1-6,paid,,UrbanEdge Development,Second Street Mixed-Use Tower
+receivable,2025-07-01,3000000,0,2025-07-31,Progress Payment #3 - AUS-2024 Structural Steel Floors 7-12,paid,,UrbanEdge Development,Second Street Mixed-Use Tower
+receivable,2025-08-15,2500000,0,2025-09-14,Progress Payment #4 - AUS-2024 Exterior Envelope Start & MEP Floors 1-5,paid,,UrbanEdge Development,Second Street Mixed-Use Tower
+receivable,2025-09-15,3000000,0,2025-10-15,Progress Payment #5 - AUS-2024 Concrete Deck Floors 13-16 & MEP Floors 6-9,paid,,UrbanEdge Development,Second Street Mixed-Use Tower
+receivable,2025-10-15,3000000,0,2025-11-14,Progress Payment #6 - AUS-2024 Curtain Wall Floors 1-5 & Interior Framing Floors 1-6,paid,,UrbanEdge Development,Second Street Mixed-Use Tower
+receivable,2025-11-15,3500000,0,2025-12-15,Progress Payment #7 - AUS-2024 Interior Build-Out Floors 1-6 & MEP Floors 10-14,paid,,UrbanEdge Development,Second Street Mixed-Use Tower
+receivable,2025-12-15,3500000,0,2026-01-14,Progress Payment #8 - AUS-2024 Curtain Wall Floors 6-12 & Framing Floors 10-14,paid,,UrbanEdge Development,Second Street Mixed-Use Tower
+receivable,2026-01-15,2800000,0,2026-02-14,Progress Payment #9 - AUS-2024 MEP Rough-In Floors 10-14 & Concrete Floors 15-16,pending,,UrbanEdge Development,Second Street Mixed-Use Tower
+receivable,2023-06-01,2800000,0,2023-07-01,Progress Payment #1 - DFW-2023 Foundation & Site Work,paid,,Dallas Cornerstone Real Estate,Uptown Dallas Financial Center
+receivable,2023-09-01,3200000,0,2023-10-01,Progress Payment #2 - DFW-2023 Structural Steel Floors 1-7,paid,,Dallas Cornerstone Real Estate,Uptown Dallas Financial Center
+receivable,2023-12-01,3500000,0,2024-01-01,Progress Payment #3 - DFW-2023 Structural Steel Floors 8-14 & Enclosure,paid,,Dallas Cornerstone Real Estate,Uptown Dallas Financial Center
+receivable,2024-03-01,3800000,0,2024-04-01,Progress Payment #4 - DFW-2023 MEP Rough-In Floors 1-7 & Curtain Wall,paid,,Dallas Cornerstone Real Estate,Uptown Dallas Financial Center
+receivable,2024-05-01,4200000,0,2024-06-01,Progress Payment #5 - DFW-2023 MEP Rough-In Floors 8-14 & Finishes Start,paid,,Dallas Cornerstone Real Estate,Uptown Dallas Financial Center
+receivable,2024-07-01,4000000,0,2024-08-01,Progress Payment #6 - DFW-2023 Interior Finishes & MEP Completion,paid,,Dallas Cornerstone Real Estate,Uptown Dallas Financial Center
+receivable,2024-08-01,3800000,0,2024-09-01,Progress Payment #7 - DFW-2023 Punch List & Closeout,paid,,Dallas Cornerstone Real Estate,Uptown Dallas Financial Center
+receivable,2024-09-30,3600000,0,2024-10-30,Final Payment - DFW-2023 Retainage Release,paid,,Dallas Cornerstone Real Estate,Uptown Dallas Financial Center
+receivable,2025-06-01,3500000,0,2025-07-01,Progress Payment #1 - MIA-2025 Mobilization & Foundation,paid,,Palm Coast Hospitality Group,Brickell Bay Luxury Hotel
+receivable,2025-09-01,3500000,0,2025-10-01,Progress Payment #2 - MIA-2025 Caisson Drilling & Mat Foundation,paid,,Palm Coast Hospitality Group,Brickell Bay Luxury Hotel
+receivable,2025-12-01,3000000,0,2026-01-01,Progress Payment #3 - MIA-2025 Tower Core Floors 1-5 & Podium,paid,,Palm Coast Hospitality Group,Brickell Bay Luxury Hotel
+receivable,2026-01-30,2280000,0,2026-02-28,Progress Payment #4 - MIA-2025 Tower Core Floors 6-10 & MEP Below Grade,pending,,Palm Coast Hospitality Group,Brickell Bay Luxury Hotel
+receivable,2024-07-01,2500000,0,2024-08-01,Progress Payment #1 - DEN-2024 Site Work Grading & Foundation,paid,,Front Range Industrial Partners,Aurora Commerce Park - Building A
+receivable,2024-09-01,2800000,0,2024-10-01,Progress Payment #2 - DEN-2024 Steel Erection & Precast Panels,paid,,Front Range Industrial Partners,Aurora Commerce Park - Building A
+receivable,2024-11-01,3000000,0,2024-12-01,Progress Payment #3 - DEN-2024 Tilt-Up Panels & Roof,paid,,Front Range Industrial Partners,Aurora Commerce Park - Building A
+receivable,2025-01-15,2400000,0,2025-02-14,Progress Payment #4 - DEN-2024 MEP Rough-In & Dock Framing,paid,,Front Range Industrial Partners,Aurora Commerce Park - Building A
+receivable,2025-04-01,2100000,0,2025-05-01,Progress Payment #5 - DEN-2024 MEP Systems & Interiors Start,paid,,Front Range Industrial Partners,Aurora Commerce Park - Building A
+receivable,2025-07-01,1200000,0,2025-08-01,Progress Payment #6 - DEN-2024 Interior Finish & Systems Testing,paid,,Front Range Industrial Partners,Aurora Commerce Park - Building A
+receivable,2026-01-15,1400000,0,2026-02-14,Progress Payment #7 - DEN-2024 Completion & Punch List,pending,,Front Range Industrial Partners,Aurora Commerce Park - Building A
+receivable,2025-10-15,1500000,0,2025-11-14,Progress Payment #1 - CHI-2025 Preconstruction & Mobilization,paid,,Midwest Medical Properties,Northside Medical Arts Campus
+receivable,2025-12-15,1500000,0,2026-01-14,Progress Payment #2 - CHI-2025 Site Demolition & Abatement,paid,,Midwest Medical Properties,Northside Medical Arts Campus
+receivable,2026-01-30,840000,0,2026-02-28,Progress Payment #3 - CHI-2025 Site Utilities & Earthwork Start,pending,,Midwest Medical Properties,Northside Medical Arts Campus
+payable,2025-03-20,800000,0,2025-04-19,Subcontractor Draw #1 - AUS-2024 Texas Steelworks Foundation Prep,paid,Texas Steelworks,,Second Street Mixed-Use Tower
+payable,2025-06-01,1200000,0,2025-07-01,Subcontractor Draw #2 - AUS-2024 Texas Steelworks Steel Erection Floors 1-8,paid,Texas Steelworks,,Second Street Mixed-Use Tower
+payable,2025-09-01,1400000,0,2025-10-01,Subcontractor Draw #3 - AUS-2024 Texas Steelworks Steel Erection Floors 9-18,paid,Texas Steelworks,,Second Street Mixed-Use Tower
+payable,2025-05-15,1200000,0,2025-06-14,Subcontractor Draw #1 - AUS-2024 Lone Star MEP Underground Rough-In,paid,Lone Star MEP Group,,Second Street Mixed-Use Tower
+payable,2025-08-01,1600000,0,2025-09-01,Subcontractor Draw #2 - AUS-2024 Lone Star MEP Floors 1-9,paid,Lone Star MEP Group,,Second Street Mixed-Use Tower
+payable,2025-11-01,1800000,0,2025-12-01,Subcontractor Draw #3 - AUS-2024 Lone Star MEP Floors 10-14,paid,Lone Star MEP Group,,Second Street Mixed-Use Tower
+payable,2026-01-20,950000,0,2026-02-19,Subcontractor Draw #4 - AUS-2024 Lone Star MEP Floors 10-14 Completion,pending,Lone Star MEP Group,,Second Street Mixed-Use Tower
+payable,2025-09-10,700000,0,2025-10-10,Subcontractor Draw #1 - AUS-2024 Precision Glass & Glazing Floors 1-5,paid,Precision Glass & Glazing - TX,,Second Street Mixed-Use Tower
+payable,2025-12-01,850000,0,2025-12-31,Subcontractor Draw #2 - AUS-2024 Precision Glass & Glazing Floors 6-12,paid,Precision Glass & Glazing - TX,,Second Street Mixed-Use Tower
+payable,2025-10-01,1000000,0,2025-10-31,Subcontractor Draw #1 - AUS-2024 Hillcrest Drywall Floors 1-6,paid,Hillcrest Drywall & Framing,,Second Street Mixed-Use Tower
+payable,2025-12-15,1200000,0,2026-01-14,Subcontractor Draw #2 - AUS-2024 Hillcrest Drywall Floors 7-12,paid,Hillcrest Drywall & Framing,,Second Street Mixed-Use Tower
+payable,2026-01-20,800000,0,2026-02-19,Subcontractor Draw #1 - AUS-2024 Austin Electrical Floors 1-10,pending,Austin Electrical Contractors,,Second Street Mixed-Use Tower
+payable,2023-03-15,620000,0,2023-04-14,Subcontractor Draw #1 - DFW-2023 Southwest Concrete Foundation,paid,Southwest Concrete Supply,,Uptown Dallas Financial Center
+payable,2023-06-01,1200000,0,2023-07-01,Subcontractor Draw #2 - DFW-2023 Southwest Concrete Floors 1-7,paid,Southwest Concrete Supply,,Uptown Dallas Financial Center
+payable,2023-10-01,1280000,0,2023-11-01,Subcontractor Draw #3 - DFW-2023 Southwest Concrete Floors 8-14,paid,Southwest Concrete Supply,,Uptown Dallas Financial Center
+payable,2023-02-15,700000,0,2023-03-17,Subcontractor Draw #1 - DFW-2023 Texas Steelworks Mobilization,paid,Texas Steelworks,,Uptown Dallas Financial Center
+payable,2023-06-01,1800000,0,2023-07-01,Subcontractor Draw #2 - DFW-2023 Texas Steelworks Steel Erection,paid,Texas Steelworks,,Uptown Dallas Financial Center
+payable,2023-10-01,1300000,0,2023-11-01,Subcontractor Draw #3 - DFW-2023 Texas Steelworks Completion,paid,Texas Steelworks,,Uptown Dallas Financial Center
+payable,2024-06-01,1900000,0,2024-07-01,Subcontractor Draw Final - DFW-2023 Lone Star MEP Completion & Closeout,paid,Lone Star MEP Group,,Uptown Dallas Financial Center
+payable,2025-04-01,2000000,0,2025-05-01,Subcontractor Draw #1 - MIA-2025 Sunshine MEP Foundation Piles,paid,Sunshine MEP - South Florida,,Brickell Bay Luxury Hotel
+payable,2025-08-01,3200000,0,2025-09-01,Subcontractor Draw #2 - MIA-2025 Sunshine MEP Foundation Completion,paid,Sunshine MEP - South Florida,,Brickell Bay Luxury Hotel
+payable,2025-06-01,2500000,0,2025-07-01,Subcontractor Draw #1 - MIA-2025 Chicago Concrete Podium Slab,paid,Chicago Concrete Specialists,,Brickell Bay Luxury Hotel
+payable,2025-10-01,2200000,0,2025-11-01,Subcontractor Draw #2 - MIA-2025 Chicago Concrete Tower Floors 1-5,paid,Chicago Concrete Specialists,,Brickell Bay Luxury Hotel
+payable,2026-01-20,1800000,0,2026-02-19,Subcontractor Draw #3 - MIA-2025 Chicago Concrete Tower Floors 6-10,pending,Chicago Concrete Specialists,,Brickell Bay Luxury Hotel
+payable,2025-05-15,450000,0,2025-06-14,Subcontractor Draw #1 - MIA-2025 Sunshine MEP Underground Utilities,paid,Sunshine MEP - South Florida,,Brickell Bay Luxury Hotel
+payable,2024-06-01,500000,0,2024-07-01,Subcontractor Draw #1 - DEN-2024 Frontier Site Services Earthwork,paid,Frontier Site Services,,Aurora Commerce Park - Building A
+payable,2024-08-01,900000,0,2024-09-01,Subcontractor Draw #2 - DEN-2024 Frontier Site Services Grading & Utilities,paid,Frontier Site Services,,Aurora Commerce Park - Building A
+payable,2024-08-01,1200000,0,2024-09-01,Subcontractor Draw #1 - DEN-2024 High Plains Steel Erection Phase 1,paid,High Plains Structural Steel,,Aurora Commerce Park - Building A
+payable,2024-10-01,2000000,0,2024-11-01,Subcontractor Draw #2 - DEN-2024 High Plains Steel Erection Phase 2,paid,High Plains Structural Steel,,Aurora Commerce Park - Building A
+payable,2024-12-01,1800000,0,2025-01-01,Subcontractor Draw #3 - DEN-2024 High Plains Steel Completion,paid,High Plains Structural Steel,,Aurora Commerce Park - Building A
+payable,2024-09-01,1200000,0,2024-10-01,Subcontractor Draw #1 - DEN-2024 Colorado Concrete Tilt-Up Panels,paid,Colorado Concrete Inc,,Aurora Commerce Park - Building A
+payable,2024-12-01,1200000,0,2025-01-01,Subcontractor Draw #2 - DEN-2024 Colorado Concrete Completion,paid,Colorado Concrete Inc,,Aurora Commerce Park - Building A
+payable,2024-10-01,1000000,0,2024-11-01,Subcontractor Draw #1 - DEN-2024 Rocky Mountain MEP Rough-In,paid,Rocky Mountain MEP Solutions,,Aurora Commerce Park - Building A
+payable,2025-03-01,1400000,0,2025-04-01,Subcontractor Draw #2 - DEN-2024 Rocky Mountain MEP Systems,paid,Rocky Mountain MEP Solutions,,Aurora Commerce Park - Building A
+payable,2025-08-01,900000,0,2025-09-01,Subcontractor Draw #3 - DEN-2024 Rocky Mountain MEP Completion,paid,Rocky Mountain MEP Solutions,,Aurora Commerce Park - Building A
+payable,2025-10-20,600000,0,2025-11-19,Subcontractor Draw #1 - CHI-2025 Midwest Mechanical Design-Assist,paid,Midwest Mechanical LLC,,Northside Medical Arts Campus
+payable,2026-01-15,600000,0,2026-02-14,Subcontractor Draw #2 - CHI-2025 Midwest Mechanical Preconstruction,pending,Midwest Mechanical LLC,,Northside Medical Arts Campus
+payable,2025-10-20,500000,0,2025-11-19,Subcontractor Draw #1 - CHI-2025 Great Lakes Electrical Design-Assist,paid,Great Lakes Electrical Corp,,Northside Medical Arts Campus
+payable,2026-01-15,500000,0,2026-02-14,Subcontractor Draw #2 - CHI-2025 Great Lakes Electrical Preconstruction,pending,Great Lakes Electrical Corp,,Northside Medical Arts Campus

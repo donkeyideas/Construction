@@ -1,0 +1,27 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Diana,Orosco,employee,d.orosco@sonoranresidential.com,480-555-0101,,General Manager
+Brandon,Taft,employee,b.taft@sonoranresidential.com,480-555-0102,,Director of Operations
+Kristen,Ybarra,employee,k.ybarra@sonoranresidential.com,480-555-0103,,Property Manager - Mesa & Chandler
+Marcus,Bell,employee,m.bell@sonoranresidential.com,480-555-0104,,Property Manager - Gilbert & Tempe & Scottsdale
+Alyssa,Kim,employee,a.kim@sonoranresidential.com,480-555-0105,,Leasing Specialist
+Javier,Reyes,employee,j.reyes@sonoranresidential.com,480-555-0106,,Leasing Specialist
+Tom,Whitaker,employee,t.whitaker@sonoranresidential.com,480-555-0107,,Maintenance Coordinator
+Priya,Shah,employee,p.shah@sonoranresidential.com,480-555-0108,,Maintenance Coordinator
+Lisa,Nguyen,employee,l.nguyen@sonoranresidential.com,480-555-0109,,Bookkeeper & Accountant
+Carla,Dominguez,employee,c.dominguez@sonoranresidential.com,480-555-0110,,Administrative Assistant
+Robert,Orosco,owner,r.orosco@rmoroscocap.com,602-555-0001,,Managing Member
+Patricia,Orosco,owner,p.orosco@rmoroscocap.com,602-555-0002,,Member
+James,Whitfield,owner,j.whitfield@whitfieldcap.com,602-555-0003,,Passive Member (20% interest)
+Kevin,Luu,vendor,k.luu@deserthandyman.com,480-555-0201,Desert Handyman Services,Owner
+Ana,Torres,vendor,a.torres@phoenixclean.com,480-555-0202,Phoenix Turn & Clean LLC,Operations Manager
+Steve,Burnham,vendor,s.burnham@azlandscapepros.com,480-555-0203,AZ Landscape Professionals,Account Manager
+Donna,Herrera,vendor,d.herrera@coolcomfortac.com,480-555-0204,Cool Comfort AC & Heating,Service Manager
+Mike,Patel,vendor,m.patel@valleyplumbing.com,480-555-0205,Valley Plumbing Solutions,Owner
+Carlos,Mendez,vendor,c.mendez@sunstatepest.com,480-555-0206,Sunstate Pest Control,Route Manager
+Rachel,Gee,vendor,r.gee@maricopa.gov,602-555-0301,Maricopa County Assessor,Property Tax Division
+Frank,DiNapoli,vendor,f.dinapoli@firstinterstatebank.com,602-555-0401,First Interstate Bank AZ,VP Commercial Real Estate
+Sandra,Okafor,vendor,s.okafor@wellsfargo.com,602-555-0402,Wells Fargo Home Lending,Portfolio Lending Manager
+Trish,Novak,vendor,t.novak@appfolio.com,800-555-0501,AppFolio,Customer Success Manager
+Wendy,Cross,vendor,w.cross@azbrokerage.com,480-555-0601,AZ Insurance Brokerage,Commercial Account Executive
+David,Sanchez,vendor,d.sanchez@suncpafirm.com,602-555-0701,Sun CPA Firm,Partner
+Heather,Rowe,vendor,h.rowe@azrta.org,602-555-0801,Arizona Residential Tenancy Act Legal,Real Estate Attorney

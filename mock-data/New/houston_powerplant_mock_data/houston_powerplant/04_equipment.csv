@@ -1,0 +1,21 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+GE 7HA.02 Gas Turbine Generator - Unit 1,gas turbine,General Electric,7HA.02,GE7HA-HOU-001,185000000,0.00,2021-08-15
+GE 7HA.02 Gas Turbine Generator - Unit 2,gas turbine,General Electric,7HA.02,GE7HA-HOU-002,185000000,0.00,2021-08-15
+Siemens SST-900 Steam Turbine Generator,steam turbine,Siemens Energy,SST-900,SIE-SST900-HOU-001,95000000,0.00,2021-11-20
+HRSG Unit 1 - Heat Recovery Steam Generator,heat recovery,Nooter/Eriksen,3-pressure reheat,NE-HRSG-HOU-001,42000000,0.00,2021-07-10
+HRSG Unit 2 - Heat Recovery Steam Generator,heat recovery,Nooter/Eriksen,3-pressure reheat,NE-HRSG-HOU-002,42000000,0.00,2021-07-10
+345kV Step-Up Transformer - GT1,transformer,ABB,OFAF 345kV,ABB-XFMR-HOU-001,8500000,0.00,2021-06-01
+345kV Step-Up Transformer - GT2,transformer,ABB,OFAF 345kV,ABB-XFMR-HOU-002,8500000,0.00,2021-06-01
+345kV Step-Up Transformer - ST,transformer,ABB,OFAF 345kV,ABB-XFMR-HOU-003,7200000,0.00,2021-06-01
+GE Mark VIe DCS Control System,control system,General Electric,Mark VIe,GE-MKVI-HOU-001,12000000,0.00,2021-10-01
+Cooling Tower - Cell 1,cooling tower,SPX Cooling Technologies,Marley NC,SPX-CT-HOU-001,4800000,0.00,2021-09-01
+Cooling Tower - Cell 2,cooling tower,SPX Cooling Technologies,Marley NC,SPX-CT-HOU-002,4800000,0.00,2021-09-01
+Air-Cooled Condenser Array,condenser,GEA Heat Exchangers,ACC-900MW,GEA-ACC-HOU-001,18500000,0.00,2021-09-15
+Boiler Feed Pump - HP Train 1,pump,Flowserve,CHTA 10x14-14.5,FLO-BFP-HOU-001,1200000,0.00,2021-10-15
+Boiler Feed Pump - HP Train 2,pump,Flowserve,CHTA 10x14-14.5,FLO-BFP-HOU-002,1200000,0.00,2021-10-15
+Inlet Air Chiller System - GT1,chiller,Stellar Energy,IAC-250,STL-IAC-HOU-001,3800000,0.00,2022-01-10
+Inlet Air Chiller System - GT2,chiller,Stellar Energy,IAC-250,STL-IAC-HOU-002,3800000,0.00,2022-01-10
+SCR NOx Control System - GT1,emissions control,Ceco Environmental,SCR-7HA,CECO-SCR-HOU-001,5200000,0.00,2021-11-01
+SCR NOx Control System - GT2,emissions control,Ceco Environmental,SCR-7HA,CECO-SCR-HOU-002,5200000,0.00,2021-11-01
+Emergency Diesel Generator - 2MW,emergency generator,Caterpillar,C175-16,CAT-EDG-HOU-001,850000,0.00,2022-02-01
+Demineralized Water Treatment System,water treatment,Veolia Water,EDI-100,VWS-DEMIN-HOU-001,2800000,0.00,2021-08-01

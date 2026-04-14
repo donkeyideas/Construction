@@ -252,43 +252,22 @@
 
 /* Contact type badge colors */
 .contact-type-employee {
-  background: var(--color-blue-light);
   color: var(--color-blue);
-}
-
-[data-theme="dark"] .contact-type-employee {
-  background: rgba(29, 78, 216, 0.15);
 }
 
 .contact-type-subcontractor {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .contact-type-subcontractor {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .contact-type-vendor {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .contact-type-vendor {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .contact-type-client {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
-[data-theme="dark"] .contact-type-client {
-  background: rgba(29, 78, 216, 0.15);
-}
-
 .contact-type-tenant {
-  background: var(--surface);
   color: var(--muted);
 }
 
@@ -459,8 +438,6 @@
 .time-status {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: 10px;
   font-size: 0.72rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -468,30 +445,15 @@
 }
 
 .time-status-pending {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .time-status-pending {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .time-status-approved {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .time-status-approved {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .time-status-rejected {
-  background: var(--color-red-light);
   color: var(--color-red);
-}
-
-[data-theme="dark"] .time-status-rejected {
-  background: rgba(220, 38, 38, 0.15);
 }
 
 /* ===== Timesheet Summary Row ===== */

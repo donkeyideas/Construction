@@ -1,0 +1,13 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+CAT 349 Hydraulic Excavator,excavator,Caterpillar,349 GC,CAT349GC-55301,395000,235.00,2020-03-10
+CAT 320 Excavator,excavator,Caterpillar,320 GC,CAT320GC-61042,268000,175.00,2021-08-15
+Komatsu WA470 Wheel Loader,wheel_loader,Komatsu,WA470-8,KOM470-39811,310000,195.00,2019-11-20
+Manitowoc 2250 Crawler Crane,crane,Manitowoc,2250,MAN2250-10047,1850000,485.00,2018-06-05
+Grove RT880E Rough Terrain Crane,crane,Grove,RT880E,GRV880E-22148,580000,310.00,2022-01-18
+CAT D6T Dozer,dozer,Caterpillar,D6T XL,CATD6T-44209,320000,215.00,2020-07-22
+Wirtgen W 210 Milling Machine,milling_machine,Wirtgen,W 210i,WRT210-88002,780000,355.00,2021-04-30
+Dynapac CA6000D Compactor,compactor,Dynapac,CA6000D,DYN6000-19944,148000,115.00,2022-06-11
+Volvo A40G Articulated Hauler,hauler,Volvo,A40G,VLV40G-77321,425000,220.00,2019-09-08
+JLG 1350SJP Boom Lift,aerial_lift,JLG,1350SJP,JLG1350-30928,195000,145.00,2023-02-14
+Skyjack SJ80 Scissor Lift,aerial_lift,Skyjack,SJ80T,SKY80T-55643,62000,85.00,2022-10-05
+CAT 140 Motor Grader,grader,Caterpillar,140 AWD,CAT140-29847,310000,200.00,2021-03-19

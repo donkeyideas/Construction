@@ -1,0 +1,32 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-001,2024-01-20,Southeast Foundation - Mobilization Advance,AP-SEF-001,5010,420000,,Subcontractor advance - foundation mobilization
+JE-001,2024-01-20,Southeast Foundation - Mobilization Advance,AP-SEF-001,2010,,420000,Accounts payable - Southeast Foundation
+JE-004,2025-06-01,FF&E Long-Lead Item Deposits - Case Goods,FFEA-DEP-001,1060,2200000,,Deposits paid for guest room case goods
+JE-004,2025-06-01,FF&E Long-Lead Item Deposits - Case Goods,FFEA-DEP-001,1000,,2200000,Cash paid for FF&E deposits
+JE-005,2025-09-01,FF&E Long-Lead Item Deposits - Soft Goods,FFEA-DEP-002,1060,1650000,,Deposits paid for soft goods and window treatments
+JE-005,2025-09-01,FF&E Long-Lead Item Deposits - Soft Goods,FFEA-DEP-002,1000,,1650000,Cash paid for soft goods deposits
+JE-006,2025-12-31,Year-end direct labor accrual,ACCRUAL-YE25,5000,4800000,,Direct labor YTD through December 2025
+JE-006,2025-12-31,Year-end direct labor accrual,ACCRUAL-YE25,2040,,4800000,Accrued wages and benefits payable
+JE-007,2025-12-31,Year-end materials cost accrual,ACCRUAL-YE25,5020,2150000,,Materials costs YTD through December 2025
+JE-007,2025-12-31,Year-end materials cost accrual,ACCRUAL-YE25,2000,,2150000,Accounts payable - materials suppliers
+JE-008,2025-12-31,Year-end equipment cost accrual,ACCRUAL-YE25,5030,685000,,Equipment costs on LBM-2024
+JE-008,2025-12-31,Year-end equipment cost accrual,ACCRUAL-YE25,1100,,685000,Equipment accumulated costs
+JE-009,2025-12-31,Year-end hospitality specialty costs,ACCRUAL-YE25,5060,1840000,,Pool spa AV kitchen specialty systems costs
+JE-009,2025-12-31,Year-end hospitality specialty costs,ACCRUAL-YE25,2010,,1840000,Subcontractor payable - specialty systems
+JE-010,2025-12-31,Record costs in excess of billings - underbilling,WIP-ADJ-YE25,1030,1884800,,CIE underbilling - earned revenue exceeds billings
+JE-010,2025-12-31,Record costs in excess of billings - underbilling,WIP-ADJ-YE25,4000,,1884800,Revenue adjustment for underbilling
+JE-011,2025-12-31,Retainage payable to subcontractors - year end,RET-YE25,2020,5292000,,Retainage payable to all subcontractors
+JE-011,2025-12-31,Retainage payable to subcontractors - year end,RET-YE25,5010,,5292000,Subcontractor cost - retainage offset
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6000,291667,,PM salaries January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6010,125000,,G&A overhead January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6020,91667,,Insurance January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6030,78750,,Bond premiums January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6040,47917,,Depreciation January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6050,28333,,Professional fees January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6060,12500,,Marketing January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6070,22917,,Office and facilities January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6080,9583,,Vehicle and travel January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,6090,8333,,IT and software January 2026
+JE-012,2026-01-31,Monthly G&A allocation January 2026,GA-2026-01,2040,,716667,Accrued G&A expenses payable
+JE-013,2026-01-31,Interest expense January 2026,INT-2026-01,7000,44000,,Interest on equipment notes and LOC
+JE-013,2026-01-31,Interest expense January 2026,INT-2026-01,2080,,44000,Notes payable and LOC interest accrued

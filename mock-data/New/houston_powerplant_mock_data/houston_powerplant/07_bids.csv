@@ -1,0 +1,4 @@
+project_name,client_name,bid_amount,due_date,bid_type,notes
+10-Year PPA Renewal - NextDecade,NextDecade Corporation,680000000,2026-06-30,Long-Term PPA,Renewal of existing 200MW 10-year PPA at $42.50/MWh fixed escalating 2% annually. NextDecade expanding LNG operations requires firm power. Negotiating force majeure and curtailment provisions. Finance team lead Sandra Okafor.
+ERCOT Ancillary Services Expansion,ERCOT,8500000,2026-02-28,ERCOT Registration,Expanding FFR (Fast Frequency Response) registration from 50MW to 150MW. Requires controls upgrade to GE Mark VIe and governor tuning. GE scope $2.1M. Net ancillary revenue uplift estimated $4.2M/year.
+Demand Response Aggregation,CPS Energy San Antonio,12000000,2026-03-31,Annual Contract,1-year demand response agreement for 80MW curtailment capacity during ERCOT emergencies. Plant commits to 15-minute response ramp from minimum load. Requires PUCT notification.

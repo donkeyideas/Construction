@@ -5,11 +5,16 @@ import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { HardHat, MapPin, DollarSign, Percent, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { ReportWizard } from "@/components/reports/ReportWizard";
 import { ReportToolbar } from "@/components/reports/ReportToolbar";
 import { ReportPreview } from "@/components/reports/ReportPreview";
 import { NarrativeEditor } from "@/components/reports/NarrativeEditor";
-import { CostVarianceChart } from "@/components/reports/charts/CostVarianceChart";
+
+const CostVarianceChart = dynamic(
+  () => import("@/components/reports/charts/CostVarianceChart").then(mod => mod.CostVarianceChart),
+  { ssr: false }
+);
 import {
   BASIS_OF_DESIGN_SECTIONS,
   REPORT_THEMES,

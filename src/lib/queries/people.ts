@@ -112,13 +112,15 @@ export interface TimeEntryFilters {
 export async function getContacts(
   supabase: SupabaseClient,
   companyId: string,
-  filters?: ContactFilters
+  filters?: ContactFilters,
+  limit = 500
 ): Promise<Contact[]> {
   let query = supabase
     .from("contacts")
-    .select("*")
+    .select("id, company_id, contact_type, first_name, last_name, email, phone, company_name, job_title, address, city, state, zip, notes, is_active, user_id, created_at, updated_at")
     .eq("company_id", companyId)
-    .order("last_name", { ascending: true });
+    .order("last_name", { ascending: true })
+    .limit(limit);
 
   if (filters?.type) {
     query = query.eq("contact_type", filters.type);
@@ -198,13 +200,15 @@ export async function createContact(
 export async function getTimeEntries(
   supabase: SupabaseClient,
   companyId: string,
-  filters?: TimeEntryFilters
+  filters?: TimeEntryFilters,
+  limit = 500
 ): Promise<TimeEntry[]> {
   let query = supabase
     .from("time_entries")
-    .select("*")
+    .select("id, company_id, user_id, project_id, entry_date, clock_in, clock_out, hours, break_minutes, work_type, cost_code, notes, gps_lat, gps_lng, status, approved_by, created_at")
     .eq("company_id", companyId)
-    .order("entry_date", { ascending: false });
+    .order("entry_date", { ascending: false })
+    .limit(limit);
 
   if (filters?.userId) {
     query = query.eq("user_id", filters.userId);
@@ -450,13 +454,15 @@ export async function createTimeEntry(
 
 export async function getEquipment(
   supabase: SupabaseClient,
-  companyId: string
+  companyId: string,
+  limit = 500
 ): Promise<Equipment[]> {
   const { data, error } = await supabase
     .from("equipment")
-    .select("*")
+    .select("id, company_id, name, equipment_type, make, model, serial_number, status, current_project_id, assigned_to, purchase_date, purchase_cost, hourly_rate, total_hours, created_at")
     .eq("company_id", companyId)
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .limit(limit);
 
   if (error) {
     console.error("getEquipment error:", error);

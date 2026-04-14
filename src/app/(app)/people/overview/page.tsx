@@ -5,9 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPeopleOverview } from "@/lib/queries/people";
 import { formatLocalDate } from "@/lib/utils/date";
-import PeopleTypeChart from "@/components/charts/PeopleTypeChart";
-import HoursByProjectChart from "@/components/charts/HoursByProjectChart";
+import dynamic from "next/dynamic";
 import { getTranslations } from "next-intl/server";
+
+const PeopleTypeChart = dynamic(() => import("@/components/charts/PeopleTypeChart"), { loading: () => <div style={{ height: 260 }} /> });
+const HoursByProjectChart = dynamic(() => import("@/components/charts/HoursByProjectChart"), { loading: () => <div style={{ height: 260 }} /> });
 
 
 export const metadata = {

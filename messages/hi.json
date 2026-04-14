@@ -200,6 +200,11 @@
       "fullName": "पूरा नाम",
       "phone": "फ़ोन",
       "saveChanges": "परिवर्तन सहेजें"
+    },
+    "portalLabel": {
+      "tenant": "किरायेदार पोर्टल",
+      "vendor": "विक्रेता पोर्टल",
+      "employee": "कर्मचारी पोर्टल"
     }
   },
   "mobile": {

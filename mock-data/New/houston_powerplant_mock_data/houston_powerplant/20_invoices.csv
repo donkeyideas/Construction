@@ -1,0 +1,50 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2025-01-31,26735000,0,2026-03-02,ERCOT Energy Settlement January 2025 - DA RT and Ancillary,paid,,ERCOT,GT1 Combustion Inspection 2025
+receivable,2025-02-28,22180000,0,2025-03-30,ERCOT Energy Settlement February 2025,paid,,ERCOT,GT1 Combustion Inspection 2025
+receivable,2025-03-31,18950000,0,2025-04-30,ERCOT Energy Settlement March 2025 - GT1 CI Outage Impact,paid,,ERCOT,GT1 Combustion Inspection 2025
+receivable,2025-04-30,24680000,0,2025-05-30,ERCOT Energy Settlement April 2025,paid,,ERCOT,GT1 Combustion Inspection 2025
+receivable,2025-05-31,27450000,0,2025-06-30,ERCOT Energy Settlement May 2025 - Seasonal demand ramp,paid,,ERCOT,GT1 Combustion Inspection 2025
+receivable,2025-06-30,32100000,0,2025-07-30,ERCOT Energy Settlement June 2025 - Summer peak begins,paid,,ERCOT,GT2 Hot Gas Path Inspection 2025
+receivable,2025-07-31,38800000,0,2025-08-30,ERCOT Energy Settlement July 2025 - Scarcity events high RT prices,paid,,ERCOT,GT2 Hot Gas Path Inspection 2025
+receivable,2025-08-31,36500000,0,2025-09-30,ERCOT Energy Settlement August 2025 - Peak summer season,paid,,ERCOT,GT2 Hot Gas Path Inspection 2025
+receivable,2025-09-30,16200000,0,2025-10-30,ERCOT Energy Settlement September 2025 - GT2 HGP Outage 28 days,paid,,ERCOT,GT2 Hot Gas Path Inspection 2025
+receivable,2025-10-31,22400000,0,2025-11-30,ERCOT Energy Settlement October 2025 - GT2 return to service,paid,,ERCOT,GT2 Hot Gas Path Inspection 2025
+receivable,2025-11-30,26900000,0,2025-12-30,ERCOT Energy Settlement November 2025,paid,,ERCOT,Cooling Tower Basin Recoating
+receivable,2025-12-31,28578797,0,2026-01-30,ERCOT Energy Settlement December 2025 - Cold weather demand,pending,,ERCOT,Cooling Tower Basin Recoating
+receivable,2025-01-31,5000000,0,2025-03-02,NextDecade PPA Capacity Payment January 2025,paid,,NextDecade Corporation,GT1 Combustion Inspection 2025
+receivable,2025-02-28,5000000,0,2025-03-30,NextDecade PPA Capacity Payment February 2025,paid,,NextDecade Corporation,GT1 Combustion Inspection 2025
+receivable,2025-03-31,5000000,0,2025-04-30,NextDecade PPA Capacity Payment March 2025,paid,,NextDecade Corporation,GT1 Combustion Inspection 2025
+receivable,2025-04-30,5000000,0,2025-05-30,NextDecade PPA Capacity Payment April 2025,paid,,NextDecade Corporation,GT1 Combustion Inspection 2025
+receivable,2025-05-31,5000000,0,2025-06-30,NextDecade PPA Capacity Payment May 2025,paid,,NextDecade Corporation,GT2 Hot Gas Path Inspection 2025
+receivable,2025-06-30,5000000,0,2025-07-30,NextDecade PPA Capacity Payment June 2025,paid,,NextDecade Corporation,GT2 Hot Gas Path Inspection 2025
+receivable,2025-07-31,5000000,0,2025-08-30,NextDecade PPA Capacity Payment July 2025,paid,,NextDecade Corporation,GT2 Hot Gas Path Inspection 2025
+receivable,2025-08-31,5000000,0,2025-09-30,NextDecade PPA Capacity Payment August 2025,paid,,NextDecade Corporation,GT2 Hot Gas Path Inspection 2025
+receivable,2025-09-30,5000000,0,2025-10-30,NextDecade PPA Capacity Payment September 2025,paid,,NextDecade Corporation,GT2 Hot Gas Path Inspection 2025
+receivable,2025-10-31,5000000,0,2025-11-30,NextDecade PPA Capacity Payment October 2025,paid,,NextDecade Corporation,Cooling Tower Basin Recoating
+receivable,2025-11-30,5000000,0,2025-12-30,NextDecade PPA Capacity Payment November 2025,paid,,NextDecade Corporation,Cooling Tower Basin Recoating
+receivable,2025-12-31,5000000,0,2026-01-30,NextDecade PPA Capacity Payment December 2025,pending,,NextDecade Corporation,Cooling Tower Basin Recoating
+payable,2025-01-31,13450000,0,2025-03-02,Shell Energy Natural Gas Supply - January 2025,paid,Shell Energy North America,,GT1 Combustion Inspection 2025
+payable,2025-02-28,11200000,0,2025-03-30,Shell Energy Natural Gas Supply - February 2025,paid,Shell Energy North America,,GT1 Combustion Inspection 2025
+payable,2025-03-31,8850000,0,2025-04-30,Shell Energy Natural Gas Supply - March 2025 (GT1 CI partial month),paid,Shell Energy North America,,GT1 Combustion Inspection 2025
+payable,2025-04-30,12800000,0,2025-05-30,Shell Energy Natural Gas Supply - April 2025,paid,Shell Energy North America,,GT1 Combustion Inspection 2025
+payable,2025-05-31,14200000,0,2025-06-30,Shell Energy Natural Gas Supply - May 2025,paid,Shell Energy North America,,GT2 Hot Gas Path Inspection 2025
+payable,2025-06-30,15800000,0,2025-07-30,Shell Energy + BP Natural Gas Supply - June 2025,paid,Shell Energy North America,,GT2 Hot Gas Path Inspection 2025
+payable,2025-07-31,18400000,0,2025-08-30,Shell Energy + BP Natural Gas Supply - July 2025 Peak,paid,BP Energy Company,,GT2 Hot Gas Path Inspection 2025
+payable,2025-08-31,17200000,0,2025-09-30,Shell Energy + BP Natural Gas Supply - August 2025 Peak,paid,BP Energy Company,,GT2 Hot Gas Path Inspection 2025
+payable,2025-09-30,7800000,0,2025-10-30,Shell Energy Natural Gas - September 2025 (GT2 HGP outage),paid,Shell Energy North America,,GT2 Hot Gas Path Inspection 2025
+payable,2025-10-31,11800000,0,2025-11-30,Shell Energy Natural Gas - October 2025,paid,Shell Energy North America,,Cooling Tower Basin Recoating
+payable,2025-11-30,13200000,0,2025-12-30,Shell Energy Natural Gas - November 2025,paid,Shell Energy North America,,Cooling Tower Basin Recoating
+payable,2025-12-31,14203599,0,2026-01-30,Shell Energy Natural Gas - December 2025,pending,Shell Energy North America,,Cooling Tower Basin Recoating
+payable,2025-03-21,3980000,0,2025-04-21,GE Power Services - GT1 Combustion Inspection Final Invoice,paid,GE Power Services,,GT1 Combustion Inspection 2025
+payable,2025-10-15,18130000,0,2025-11-15,GE Power Services - GT2 Hot Gas Path Inspection Final Invoice,paid,GE Power Services,,GT2 Hot Gas Path Inspection 2025
+payable,2025-06-30,2437500,0,2025-07-30,Prudential Capital - Semi-Annual Debt Service Term Loan A,paid,Prudential Capital Group,,GT2 Hot Gas Path Inspection 2025
+payable,2025-12-31,2437500,0,2026-01-31,Prudential Capital - Semi-Annual Debt Service Term Loan A,pending,Prudential Capital Group,,Cooling Tower Basin Recoating
+payable,2025-03-31,1875000,0,2025-04-30,Apollo Global - Quarterly Debt Service Term Loan B,paid,Apollo Global Management,,GT1 Combustion Inspection 2025
+payable,2025-06-30,1875000,0,2025-07-30,Apollo Global - Quarterly Debt Service Term Loan B,paid,Apollo Global Management,,GT2 Hot Gas Path Inspection 2025
+payable,2025-09-30,1875000,0,2025-10-30,Apollo Global - Quarterly Debt Service Term Loan B,paid,Apollo Global Management,,GT2 Hot Gas Path Inspection 2025
+payable,2025-12-31,1875000,0,2026-01-30,Apollo Global - Quarterly Debt Service Term Loan B,pending,Apollo Global Management,,Cooling Tower Basin Recoating
+payable,2025-01-31,1066667,0,2025-02-28,Harris County Ad Valorem Property Tax Q1 2025,paid,Harris County Appraisal District,,GT1 Combustion Inspection 2025
+payable,2025-04-30,1066667,0,2025-05-31,Harris County Ad Valorem Property Tax Q2 2025,paid,Harris County Appraisal District,,GT1 Combustion Inspection 2025
+payable,2025-07-31,1066667,0,2025-08-31,Harris County Ad Valorem Property Tax Q3 2025,paid,Harris County Appraisal District,,GT2 Hot Gas Path Inspection 2025
+payable,2025-10-31,1066667,0,2025-11-30,Harris County Ad Valorem Property Tax Q4 2025,paid,Harris County Appraisal District,,Cooling Tower Basin Recoating
+payable,2025-01-01,6200000,0,2025-02-01,Travelers Insurance - Annual All-Risk Property Premium 2025,paid,Travelers Insurance,,GT1 Combustion Inspection 2025

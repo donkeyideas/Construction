@@ -4,12 +4,20 @@ import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Building2, MapPin, Users, DollarSign, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { ReportWizard } from "@/components/reports/ReportWizard";
 import { ReportToolbar } from "@/components/reports/ReportToolbar";
 import { ReportPreview } from "@/components/reports/ReportPreview";
 import { NarrativeEditor } from "@/components/reports/NarrativeEditor";
-import { RentCompChart } from "@/components/reports/charts/RentCompChart";
-import { CashFlowProjectionChart } from "@/components/reports/charts/CashFlowProjectionChart";
+
+const RentCompChart = dynamic(
+  () => import("@/components/reports/charts/RentCompChart").then(mod => mod.RentCompChart),
+  { ssr: false }
+);
+const CashFlowProjectionChart = dynamic(
+  () => import("@/components/reports/charts/CashFlowProjectionChart").then(mod => mod.CashFlowProjectionChart),
+  { ssr: false }
+);
 import {
   MARKET_FEASIBILITY_SECTIONS,
   REPORT_THEMES,

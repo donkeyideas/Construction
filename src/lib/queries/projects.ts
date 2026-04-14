@@ -190,13 +190,15 @@ export async function getCurrentUserCompany(supabase: SupabaseClient) {
 export async function getProjects(
   supabase: SupabaseClient,
   companyId: string,
-  filters?: ProjectFilters
+  filters?: ProjectFilters,
+  limit = 500
 ) {
   let query = supabase
     .from("projects")
-    .select("*")
+    .select("id, company_id, name, code, description, status, project_type, address_line1, city, state, zip, client_name, contract_amount, estimated_cost, actual_cost, start_date, estimated_end_date, actual_end_date, completion_pct, project_manager_id, superintendent_id, metadata, created_at, updated_at")
     .eq("company_id", companyId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (filters?.status) {
     query = query.eq("status", filters.status);
@@ -345,100 +347,64 @@ export async function getProjectById(
   (project as ProjectRow).project_manager = project.project_manager_id ? projProfileMap.get(project.project_manager_id) ?? null : null;
   (project as ProjectRow).superintendent = project.superintendent_id ? projProfileMap.get(project.superintendent_id) ?? null : null;
 
-  // Fetch phases
-  const { data: phases } = await supabase
-    .from("project_phases")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("sort_order", { ascending: true });
+  // Fetch phases, tasks, daily logs, RFIs, and change orders in parallel
+  const [{ data: phases }, { data: rawTasks }, { data: rawDailyLogs }, { data: rawRfis }, { data: changeOrders }] = await Promise.all([
+    supabase
+      .from("project_phases")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("project_tasks")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("daily_logs")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("log_date", { ascending: false }),
+    supabase
+      .from("rfis")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("change_orders")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false }),
+  ]);
 
-  // Fetch tasks
-  const { data: rawTasks } = await supabase
-    .from("project_tasks")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("sort_order", { ascending: true });
+  // Collect all user IDs from tasks, daily logs, and RFIs in one batch
+  const allProfileIds = new Set<string>();
+  for (const t of rawTasks ?? []) { if (t.assigned_to) allProfileIds.add(t.assigned_to); }
+  for (const l of rawDailyLogs ?? []) { if (l.created_by) allProfileIds.add(l.created_by); }
+  for (const r of rawRfis ?? []) { if (r.assigned_to) allProfileIds.add(r.assigned_to); }
 
-  // Batch-fetch assignee profiles for tasks
-  const taskAssigneeIds = new Set<string>();
-  for (const t of rawTasks ?? []) {
-    if (t.assigned_to) taskAssigneeIds.add(t.assigned_to);
-  }
-  let taskProfileMap = new Map<string, { id: string; full_name: string }>();
-  if (taskAssigneeIds.size > 0) {
-    const { data: tp } = await supabase
+  let profileMap = new Map<string, { id: string; full_name: string }>();
+  if (allProfileIds.size > 0) {
+    const { data: profiles } = await supabase
       .from("user_profiles")
       .select("id, full_name")
-      .in("id", [...taskAssigneeIds]);
-    taskProfileMap = new Map(
-      (tp ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
+      .in("id", [...allProfileIds]);
+    profileMap = new Map(
+      (profiles ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
     );
   }
+
   const tasks = (rawTasks ?? []).map((t) => ({
     ...t,
-    assignee: t.assigned_to ? taskProfileMap.get(t.assigned_to) ?? null : null,
+    assignee: t.assigned_to ? profileMap.get(t.assigned_to) ?? null : null,
   }));
-
-  // Fetch daily logs
-  const { data: rawDailyLogs } = await supabase
-    .from("daily_logs")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("log_date", { ascending: false });
-
-  // Batch-fetch creator profiles for daily logs
-  const logCreatorIds = new Set<string>();
-  for (const l of rawDailyLogs ?? []) {
-    if (l.created_by) logCreatorIds.add(l.created_by);
-  }
-  let logProfileMap = new Map<string, { id: string; full_name: string }>();
-  if (logCreatorIds.size > 0) {
-    const { data: lp } = await supabase
-      .from("user_profiles")
-      .select("id, full_name")
-      .in("id", [...logCreatorIds]);
-    logProfileMap = new Map(
-      (lp ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
-    );
-  }
   const dailyLogs = (rawDailyLogs ?? []).map((l) => ({
     ...l,
-    creator: l.created_by ? logProfileMap.get(l.created_by) ?? null : null,
+    creator: l.created_by ? profileMap.get(l.created_by) ?? null : null,
   }));
-
-  // Fetch RFIs
-  const { data: rawRfis } = await supabase
-    .from("rfis")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("created_at", { ascending: false });
-
-  // Batch-fetch assignee profiles for RFIs
-  const rfiAssigneeIds = new Set<string>();
-  for (const r of rawRfis ?? []) {
-    if (r.assigned_to) rfiAssigneeIds.add(r.assigned_to);
-  }
-  let rfiProfileMap = new Map<string, { id: string; full_name: string }>();
-  if (rfiAssigneeIds.size > 0) {
-    const { data: rp } = await supabase
-      .from("user_profiles")
-      .select("id, full_name")
-      .in("id", [...rfiAssigneeIds]);
-    rfiProfileMap = new Map(
-      (rp ?? []).map((p: { id: string; full_name: string }) => [p.id, p])
-    );
-  }
   const rfis = (rawRfis ?? []).map((r) => ({
     ...r,
-    assignee: r.assigned_to ? rfiProfileMap.get(r.assigned_to) ?? null : null,
+    assignee: r.assigned_to ? profileMap.get(r.assigned_to) ?? null : null,
   }));
-
-  // Fetch Change Orders
-  const { data: changeOrders } = await supabase
-    .from("change_orders")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("created_at", { ascending: false });
 
   // ---------------------------------------------------------------------------
   // Compute missing financial data and completion % from real sources.
@@ -447,36 +413,29 @@ export async function getProjectById(
   const proj = project as ProjectRow;
   const taskList = (tasks ?? []) as ProjectTask[];
 
-  // Actual cost from linked invoices
-  if (!proj.actual_cost || proj.actual_cost === 0) {
-    const { data: invTotals } = await supabase
-      .from("invoices")
-      .select("total_amount")
-      .eq("project_id", projectId);
-    if (invTotals && invTotals.length > 0) {
-      proj.actual_cost = invTotals.reduce(
-        (sum: number, inv: { total_amount: number | null }) =>
-          sum + (inv.total_amount ?? 0),
-        0
-      );
-    }
+  // Fetch missing financial data in parallel
+  const needActualCost = !proj.actual_cost || proj.actual_cost === 0;
+  const needContractOrCompletion = !proj.contract_amount || proj.contract_amount === 0 || !proj.completion_pct;
+
+  const [invResult, propResult] = await Promise.all([
+    needActualCost
+      ? supabase.from("invoices").select("total_amount").eq("project_id", projectId)
+      : Promise.resolve({ data: null }),
+    needContractOrCompletion
+      ? supabase.from("properties").select("current_value, purchase_price, occupancy_rate").eq("company_id", proj.company_id).ilike("name", proj.name).limit(1).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  if (needActualCost && invResult.data && invResult.data.length > 0) {
+    proj.actual_cost = invResult.data.reduce(
+      (sum: number, inv: { total_amount: number | null }) => sum + (inv.total_amount ?? 0),
+      0
+    );
   }
 
-  // Contract amount from matching property
-  let matchProp: { current_value: number | null; purchase_price: number | null; occupancy_rate: number | null } | null = null;
-  if (!proj.contract_amount || proj.contract_amount === 0 || !proj.completion_pct) {
-    const { data: mp } = await supabase
-      .from("properties")
-      .select("current_value, purchase_price, occupancy_rate")
-      .eq("company_id", proj.company_id)
-      .ilike("name", proj.name)
-      .limit(1)
-      .maybeSingle();
-    matchProp = mp;
-    if (matchProp && (!proj.contract_amount || proj.contract_amount === 0)) {
-      proj.contract_amount =
-        matchProp.current_value ?? matchProp.purchase_price ?? null;
-    }
+  const matchProp = propResult.data as { current_value: number | null; purchase_price: number | null; occupancy_rate: number | null } | null;
+  if (matchProp && (!proj.contract_amount || proj.contract_amount === 0)) {
+    proj.contract_amount = matchProp.current_value ?? matchProp.purchase_price ?? null;
   }
 
   // Completion %: use property occupancy, task average, or leave as-is

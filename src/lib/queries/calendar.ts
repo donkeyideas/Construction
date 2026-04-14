@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { paginatedQuery } from "@/lib/utils/paginated-query";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -44,6 +45,16 @@ async function safeQuery<T>(
     const { data, error } = await promise;
     if (error || !data) return [];
     return data;
+  } catch {
+    return [];
+  }
+}
+
+async function safePaginatedQuery<T>(
+  queryFn: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>
+): Promise<T[]> {
+  try {
+    return await paginatedQuery<T>(queryFn);
   } catch {
     return [];
   }
@@ -224,24 +235,26 @@ export async function getCalendarEvents(
     // FINANCIAL MODULE (amber)
     // -----------------------------------------------------------------------
 
-    // 13. invoices: due_date
-    safeQuery(
+    // 13. invoices: due_date (paginated to avoid 1000-row limit)
+    safePaginatedQuery<{ id: string; invoice_number: string; due_date: string; total_amount: number; status: string }>((from, to) =>
       supabase
         .from("invoices")
         .select("id, invoice_number, due_date, total_amount, status")
         .eq("company_id", companyId)
         .gte("due_date", startDate)
         .lte("due_date", endDate)
+        .range(from, to)
     ),
 
-    // 14. payments: payment_date
-    safeQuery(
+    // 14. payments: payment_date (paginated to avoid 1000-row limit)
+    safePaginatedQuery<{ id: string; description: string; payment_date: string; amount: number; payment_method: string }>((from, to) =>
       supabase
         .from("payments")
         .select("id, description, payment_date, amount, payment_method")
         .eq("company_id", companyId)
         .gte("payment_date", startDate)
         .lte("payment_date", endDate)
+        .range(from, to)
     ),
 
     // -----------------------------------------------------------------------

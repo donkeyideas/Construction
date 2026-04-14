@@ -1,0 +1,11 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms,project_name
+CTA-RLX Prime Contract - CM at Risk GMP,owner,Chicago Transit Authority,d.washington@transitchicago.com,127500000,2024-03-01,2027-12-31,net_30,CTA Red Line Extension Utility Relocation Tunnel
+CTA-RLX Segmental Lining - Supply and Install,subcontractor,Midwest Segmental Lining Corp,p.tran@midwestsegmental.com,24800000,2024-04-01,2027-09-30,net_30,CTA Red Line Extension Utility Relocation Tunnel
+CTA-RLX Annular Grouting and Contact Grouting,subcontractor,Chicago Precise Grouting LLC,o.abdul@chicagoprecisegrouting.com,6400000,2024-05-01,2027-09-30,net_30,CTA Red Line Extension Utility Relocation Tunnel
+CTA-RLX Deep Dewatering and Groundwater Control,subcontractor,Layne Christensen Dewatering,v.strauss@laynechristensen.com,8200000,2024-03-01,2027-12-31,net_30,CTA Red Line Extension Utility Relocation Tunnel
+CTA-RLX Station Cavern Shotcrete and Concrete,subcontractor,Illinois Industrial Concrete,d.pawlik@ilconcrete.com,9600000,2025-06-01,2027-10-31,net_30,CTA Red Line Extension Utility Relocation Tunnel
+CTA-RLX Ground Improvement - Cross Passages,subcontractor,Moretrench Ground Engineering,b.caruso@moretrench.com,7800000,2025-09-01,2027-08-31,net_30,CTA Red Line Extension Utility Relocation Tunnel
+CTA-RLX Tunnel Electrical - Temp and Permanent,subcontractor,Subway Electrical Contractors LLC,d.koby@subwayelectrical.com,11400000,2024-06-01,2027-11-30,net_30,CTA Red Line Extension Utility Relocation Tunnel
+CTA-RLX Structural Steel - Stations and Support,subcontractor,Midwest Structural Steel,t.rybak@mwstructuralsteel.com,8900000,2025-04-01,2027-10-31,net_30,CTA Red Line Extension Utility Relocation Tunnel
+CTA-RLX TBM OEM Service and Parts Contract,vendor,Herrenknecht AG,h.munoz@herrenknecht.com,4200000,2024-03-01,2027-06-30,net_45,CTA Red Line Extension Utility Relocation Tunnel
+CTA-RLX Third-Party Inspection and Monitoring,vendor,TunnelVision Inspection Services,r.hayward@tunnelvision-inspect.com,2800000,2024-04-01,2027-12-31,net_30,CTA Red Line Extension Utility Relocation Tunnel

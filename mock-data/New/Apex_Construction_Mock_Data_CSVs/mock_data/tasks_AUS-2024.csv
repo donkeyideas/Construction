@@ -1,0 +1,22 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design development and value engineering,Preconstruction & Permitting,high,2023-09-01,2023-11-30,100,false,true,Second Street Mixed-Use Tower
+Building permit application and approval,Preconstruction & Permitting,critical,2023-12-01,2024-01-31,100,true,true,Second Street Mixed-Use Tower
+Site demolition and clearing,Site Work & Foundation,high,2024-02-01,2024-02-28,100,false,true,Second Street Mixed-Use Tower
+Shoring and excavation,Site Work & Foundation,critical,2024-02-15,2024-03-31,100,false,true,Second Street Mixed-Use Tower
+Drilled pier and mat foundation,Site Work & Foundation,critical,2024-03-15,2024-05-15,100,false,true,Second Street Mixed-Use Tower
+Underground MEP and site utilities,Site Work & Foundation,high,2024-04-01,2024-05-31,100,false,false,Second Street Mixed-Use Tower
+Steel erection floors 1-9,Structural Frame & Core,critical,2024-06-01,2024-09-30,100,false,true,Second Street Mixed-Use Tower
+Steel erection floors 10-18,Structural Frame & Core,critical,2024-10-01,2025-01-15,100,false,true,Second Street Mixed-Use Tower
+Concrete deck pours floors 1-14,Structural Frame & Core,critical,2024-06-15,2024-12-31,100,false,true,Second Street Mixed-Use Tower
+Concrete deck pours floors 15-18,Structural Frame & Core,critical,2025-01-01,2025-01-31,100,false,true,Second Street Mixed-Use Tower
+Curtain wall installation floors 1-5,Exterior Envelope,high,2025-02-01,2025-04-30,100,false,true,Second Street Mixed-Use Tower
+Curtain wall installation floors 6-12,Exterior Envelope,high,2025-05-01,2025-07-31,100,false,true,Second Street Mixed-Use Tower
+Curtain wall installation floors 13-18,Exterior Envelope,high,2025-08-01,2025-09-30,65,false,true,Second Street Mixed-Use Tower
+MEP rough-in floors 1-5,MEP Rough-In,high,2024-09-01,2024-12-31,100,false,false,Second Street Mixed-Use Tower
+MEP rough-in floors 6-9,MEP Rough-In,high,2025-01-01,2025-04-30,100,false,false,Second Street Mixed-Use Tower
+MEP rough-in floors 10-14,MEP Rough-In,high,2025-05-01,2025-09-30,75,false,false,Second Street Mixed-Use Tower
+MEP rough-in floors 15-18,MEP Rough-In,medium,2025-09-01,2025-10-31,10,false,false,Second Street Mixed-Use Tower
+Drywall and framing floors 1-6,Interior Finishes,high,2025-07-01,2025-09-30,100,false,false,Second Street Mixed-Use Tower
+Drywall and framing floors 7-14,Interior Finishes,high,2025-09-01,2025-10-31,55,false,false,Second Street Mixed-Use Tower
+Interior finishes and millwork floors 1-6,Interior Finishes,medium,2025-10-01,2025-11-15,25,false,false,Second Street Mixed-Use Tower
+Temporary CO and occupancy,Closeout & Commissioning,critical,2025-10-15,2025-11-30,0,true,true,Second Street Mixed-Use Tower

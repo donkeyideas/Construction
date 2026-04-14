@@ -1595,18 +1595,28 @@ export async function getBalanceSheet(
 
   // Fallback: use live data if no journal entries
   if (trialBalance.length === 0) {
-    const [bankRes, arRes, apRes, allRevenueRes, allExpenseRes] = await Promise.all([
-      supabase.from("bank_accounts").select("current_balance").eq("company_id", companyId),
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId).eq("invoice_type", "receivable").not("status", "eq", "voided").not("status", "eq", "paid"),
-      supabase.from("invoices").select("balance_due").eq("company_id", companyId).eq("invoice_type", "payable").not("status", "eq", "voided").not("status", "eq", "paid"),
+    const [bankRows, arRows, apRows, allRevenueRows, allExpenseRows] = await Promise.all([
+      paginatedQuery<{ current_balance: number }>((from, to) =>
+        supabase.from("bank_accounts").select("current_balance").eq("company_id", companyId).range(from, to)
+      ),
+      paginatedQuery<{ balance_due: number }>((from, to) =>
+        supabase.from("invoices").select("balance_due").eq("company_id", companyId).eq("invoice_type", "receivable").not("status", "eq", "voided").not("status", "eq", "paid").range(from, to)
+      ),
+      paginatedQuery<{ balance_due: number }>((from, to) =>
+        supabase.from("invoices").select("balance_due").eq("company_id", companyId).eq("invoice_type", "payable").not("status", "eq", "voided").not("status", "eq", "paid").range(from, to)
+      ),
       // All-time revenue and expenses for Retained Earnings
-      supabase.from("invoices").select("total_amount").eq("company_id", companyId).eq("invoice_type", "receivable").not("status", "eq", "voided"),
-      supabase.from("invoices").select("total_amount").eq("company_id", companyId).eq("invoice_type", "payable").not("status", "eq", "voided"),
+      paginatedQuery<{ total_amount: number }>((from, to) =>
+        supabase.from("invoices").select("total_amount").eq("company_id", companyId).eq("invoice_type", "receivable").not("status", "eq", "voided").range(from, to)
+      ),
+      paginatedQuery<{ total_amount: number }>((from, to) =>
+        supabase.from("invoices").select("total_amount").eq("company_id", companyId).eq("invoice_type", "payable").not("status", "eq", "voided").range(from, to)
+      ),
     ]);
 
-    const cashTotal = (bankRes.data ?? []).reduce((s, r) => s + (r.current_balance ?? 0), 0);
-    const arTotal = (arRes.data ?? []).reduce((s, r) => s + (r.balance_due ?? 0), 0);
-    const apTotal = (apRes.data ?? []).reduce((s, r) => s + (r.balance_due ?? 0), 0);
+    const cashTotal = bankRows.reduce((s, r) => s + (r.current_balance ?? 0), 0);
+    const arTotal = arRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
+    const apTotal = apRows.reduce((s, r) => s + (r.balance_due ?? 0), 0);
 
     // Assets
     if (cashTotal > 0) assets.push({ account_number: "1000", name: "Cash & Equivalents", amount: cashTotal });
@@ -1616,8 +1626,8 @@ export async function getBalanceSheet(
     if (apTotal > 0) liabilities.push({ account_number: "2000", name: "Accounts Payable", amount: apTotal });
 
     // Equity: Retained Earnings = All-time Revenue - All-time Expenses
-    const allTimeRevenue = (allRevenueRes.data ?? []).reduce((s: number, r: { total_amount: number }) => s + (r.total_amount ?? 0), 0);
-    const allTimeExpenses = (allExpenseRes.data ?? []).reduce((s: number, r: { total_amount: number }) => s + (r.total_amount ?? 0), 0);
+    const allTimeRevenue = allRevenueRows.reduce((s, r) => s + (r.total_amount ?? 0), 0);
+    const allTimeExpenses = allExpenseRows.reduce((s, r) => s + (r.total_amount ?? 0), 0);
     const retainedEarnings = allTimeRevenue - allTimeExpenses;
 
     if (retainedEarnings !== 0) {

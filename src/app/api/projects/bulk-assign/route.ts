@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUserCompany } from "@/lib/queries/projects";
+import { getCurrentUserCompany } from "@/lib/queries/user";
 
 // ---------------------------------------------------------------------------
 // PATCH /api/projects/bulk-assign

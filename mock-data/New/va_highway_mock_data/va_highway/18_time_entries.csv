@@ -1,0 +1,16 @@
+entry_date,hours,overtime_hours,description,cost_code
+2026-01-05,10,2,I-81 SVA MM 278-281 Earthwork - Kyle Brennan Superintendent. Embankment placement and compaction oversight. 4200 CY.,I81-EARTH-001
+2026-01-05,10,2,I-81 SVA - Grading crew (8 operators). Grader dozer and compactor operations MM 274-281.,I81-EARTH-002
+2026-01-05,8,0,I-81 SVA - Marcus Deleon PM. Progress schedule update coordination with Appalachian Paving and VDOT RE.,I81-PM-001
+2026-01-05,8,0,I-81 SVA - Luis Espinoza Field Engineer. Density testing layout survey and grade verification.,I81-QA-001
+2026-01-05,8,0,I-81 SVA - Carla Simmons Safety Manager. Site inspection documentation toolbox talk facilitation.,I81-SAFE-001
+2026-01-05,10,2,US-11 Overlay - Milling crew (6 operators and laborers). MP 14.2-16.8 milling operations.,US11-MILL-001
+2026-01-05,8,0,US-11 - Donna Hartley PM. ADA ramp forming supervision and VDOT inspection coordination.,US11-PM-001
+2026-01-06,10,2,I-81 SVA - Grading crew. MM 281-283 cut section and drainage installation.,I81-EARTH-002
+2026-01-06,10,2,I-81 SVA - Guardrail crew (4). MM 270-273 SB installation 1840 LF.,I81-GR-001
+2026-01-06,8,0,I-81 SVA - Derek Okafor Equipment Manager. Fleet inspection fuel delivery coordination.,I81-EQUIP-001
+2026-01-06,8,0,VA-259 - Luis Espinoza QA. Micro-pile inspection and density testing FDR.,VA259-QA-001
+2026-01-07,10,2,I-81 SVA - Base course crew. 2400 tons 21-A aggregate placement MM 276-278.,I81-BASE-001
+2026-01-07,10,2,I-81 SVA - Tanya Roberson Paving Superintendent. Asphalt QC standby and mat inspection.,I81-PAV-001
+2026-01-08,10,2,I-81 SVA - Paving crew (12 Appalachian Paving). 2420 tons 9.5mm intermediate course.,I81-PAV-002
+2026-01-08,8,0,I-81 SVA - Drainage crew (4). CMP culvert delivery staging MM 283-290.,I81-DRAIN-001

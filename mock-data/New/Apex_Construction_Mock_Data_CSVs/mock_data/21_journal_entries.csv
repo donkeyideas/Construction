@@ -1,0 +1,50 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-001,2026-01-31,AUS-2024 Revenue Recognition - January 2026,REV-AUS-2601,4000,1150000,,Contract revenue - Second Street Mixed-Use Tower
+JE-001,2026-01-31,AUS-2024 Revenue Recognition - January 2026,REV-AUS-2601,1020,,1150000,Contract asset - overbilling offset Second Street
+JE-002,2026-01-31,MIA-2025 Revenue Recognition - January 2026,REV-MIA-2601,4000,2100000,,Contract revenue - Brickell Bay Luxury Hotel
+JE-002,2026-01-31,MIA-2025 Revenue Recognition - January 2026,REV-MIA-2601,1020,,2100000,Contract asset - Brickell Bay
+JE-003,2026-01-31,DEN-2024 Revenue Recognition - January 2026,REV-DEN-2601,4000,1400000,,Contract revenue - Aurora Commerce Park
+JE-003,2026-01-31,DEN-2024 Revenue Recognition - January 2026,REV-DEN-2601,1020,,1400000,Contract asset - Aurora Commerce Park
+JE-004,2026-01-31,CHI-2025 Revenue Recognition - January 2026,REV-CHI-2601,4000,840000,,Contract revenue - Northside Medical Arts Campus
+JE-004,2026-01-31,CHI-2025 Revenue Recognition - January 2026,REV-CHI-2601,1020,,840000,Contract asset - Northside Medical
+JE-005,2026-01-31,AUS-2024 Progress Billing #9 - January 2026,BILL-AUS-2601,1010,2800000,,Accounts receivable - UrbanEdge Development
+JE-005,2026-01-31,AUS-2024 Progress Billing #9 - January 2026,BILL-AUS-2601,1020,,2520000,Contract asset - billing applied
+JE-005,2026-01-31,AUS-2024 Progress Billing #9 - January 2026,BILL-AUS-2601,1030,,280000,Retainage receivable (10%)
+JE-006,2026-01-31,MIA-2025 Progress Billing #4 - January 2026,BILL-MIA-2601,1010,2280000,,Accounts receivable - Palm Coast Hospitality
+JE-006,2026-01-31,MIA-2025 Progress Billing #4 - January 2026,BILL-MIA-2601,1020,,2052000,Contract asset - billing applied
+JE-006,2026-01-31,MIA-2025 Progress Billing #4 - January 2026,BILL-MIA-2601,1030,,228000,Retainage receivable (10%)
+JE-007,2026-01-31,DEN-2024 Progress Billing #7 - January 2026,BILL-DEN-2601,1010,1400000,,Accounts receivable - Front Range Industrial
+JE-007,2026-01-31,DEN-2024 Progress Billing #7 - January 2026,BILL-DEN-2601,1020,,1260000,Contract asset - billing applied
+JE-007,2026-01-31,DEN-2024 Progress Billing #7 - January 2026,BILL-DEN-2601,1030,,140000,Retainage receivable (10%)
+JE-008,2026-01-31,CHI-2025 Progress Billing #3 - January 2026,BILL-CHI-2601,1010,840000,,Accounts receivable - Midwest Medical Properties
+JE-008,2026-01-31,CHI-2025 Progress Billing #3 - January 2026,BILL-CHI-2601,1020,,756000,Contract asset - billing applied
+JE-008,2026-01-31,CHI-2025 Progress Billing #3 - January 2026,BILL-CHI-2601,1030,,84000,Retainage receivable (10%)
+JE-009,2026-01-31,G&A Payroll - January 2026,PR-2601,6000,420000,,Officer salaries - January
+JE-009,2026-01-31,G&A Payroll - January 2026,PR-2601,6010,285000,,Administrative staff salaries - January
+JE-009,2026-01-31,G&A Payroll - January 2026,PR-2601,6020,120000,,Payroll taxes and benefits G&A - January
+JE-009,2026-01-31,G&A Payroll - January 2026,PR-2601,1000,,825000,Cash paid - payroll January
+JE-010,2026-01-31,Insurance Expense - January 2026,INS-2601,6040,62000,,General liability insurance - January
+JE-010,2026-01-31,Insurance Expense - January 2026,INS-2601,6050,48000,,Workers compensation - January
+JE-010,2026-01-31,Insurance Expense - January 2026,INS-2601,1050,,110000,Prepaid insurance reduction - January
+JE-011,2026-01-31,Equipment Depreciation - January 2026,DEP-2601,5030,98000,,Equipment depreciation - January
+JE-011,2026-01-31,Equipment Depreciation - January 2026,DEP-2601,6070,18000,,G&A depreciation vehicles/FF&E - January
+JE-011,2026-01-31,Equipment Depreciation - January 2026,DEP-2601,1100,,98000,Accumulated depreciation equipment
+JE-011,2026-01-31,Equipment Depreciation - January 2026,DEP-2601,1120,,18000,Accumulated depreciation admin assets
+JE-012,2026-01-31,G&A Overhead - January 2026,OVH-2601,6030,38000,,Office rent - Austin and regional offices January
+JE-012,2026-01-31,G&A Overhead - January 2026,OVH-2601,6080,55000,,Professional fees legal and accounting - January
+JE-012,2026-01-31,G&A Overhead - January 2026,OVH-2601,6090,14000,,Telephone and communications - January
+JE-012,2026-01-31,G&A Overhead - January 2026,OVH-2601,6100,6000,,Office supplies and postage - January
+JE-012,2026-01-31,G&A Overhead - January 2026,OVH-2601,6110,22000,,Travel and entertainment - January
+JE-012,2026-01-31,G&A Overhead - January 2026,OVH-2601,6120,18000,,Marketing and business development - January
+JE-012,2026-01-31,G&A Overhead - January 2026,OVH-2601,6130,12000,,Technology and software - January
+JE-012,2026-01-31,G&A Overhead - January 2026,OVH-2601,2010,,165000,Accrued liabilities - overhead
+JE-013,2026-01-31,Interest Expense - January 2026,INT-2601,7000,32000,,Interest on equipment loans and credit facility
+JE-013,2026-01-31,Interest Expense - January 2026,INT-2601,2010,,32000,Accrued interest payable
+JE-014,2026-01-31,Subcontractor Payables - January 2026,AP-2601,5010,4050000,,Subcontractor costs recognized January
+JE-014,2026-01-31,Subcontractor Payables - January 2026,AP-2601,2000,,3650000,Accounts payable subcontractors
+JE-014,2026-01-31,Subcontractor Payables - January 2026,AP-2601,2030,,400000,Retainage payable to subs
+JE-015,2026-01-31,Materials and Direct Costs - January 2026,DIR-2601,5020,680000,,Direct materials - all active projects January
+JE-015,2026-01-31,Materials and Direct Costs - January 2026,DIR-2601,5000,420000,,Direct field labor - all projects January
+JE-015,2026-01-31,Materials and Direct Costs - January 2026,DIR-2601,5040,28000,,Permits and fees - CHI-2025 and MIA-2025
+JE-015,2026-01-31,Materials and Direct Costs - January 2026,DIR-2601,5050,85000,,Other direct costs - all projects January
+JE-015,2026-01-31,Materials and Direct Costs - January 2026,DIR-2601,2010,,1213000,Accrued job costs payable

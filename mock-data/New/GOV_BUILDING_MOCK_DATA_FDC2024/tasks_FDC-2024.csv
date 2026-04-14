@@ -1,0 +1,32 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design development and permitting,Preconstruction & Permitting,critical,2024-01-01,2024-01-31,100,false,true,Federal District Courthouse & Public Safety Complex
+GSA building permit issued,Preconstruction & Permitting,critical,2024-01-31,2024-01-31,100,true,true,Federal District Courthouse & Public Safety Complex
+Site fencing and temporary facilities,Site Preparation & Mobilization,high,2024-02-01,2024-02-28,100,false,true,Federal District Courthouse & Public Safety Complex
+Tower crane foundation and erection,Site Preparation & Mobilization,critical,2024-02-15,2024-03-31,100,false,true,Federal District Courthouse & Public Safety Complex
+Mass excavation - 45000 CY,Earthwork & Underground Utilities,critical,2024-03-01,2024-06-30,100,false,true,Federal District Courthouse & Public Safety Complex
+Underground plumbing and electrical,Earthwork & Underground Utilities,high,2024-05-01,2024-08-30,100,false,true,Federal District Courthouse & Public Safety Complex
+Storm drainage and site utilities,Earthwork & Underground Utilities,high,2024-06-01,2024-09-30,100,false,true,Federal District Courthouse & Public Safety Complex
+Caisson drilling - 86 caissons,Foundation & Substructure,critical,2024-06-01,2024-09-30,100,false,true,Federal District Courthouse & Public Safety Complex
+Grade beams and pile caps,Foundation & Substructure,critical,2024-08-01,2024-10-31,100,false,true,Federal District Courthouse & Public Safety Complex
+Level B1 slab on grade,Foundation & Substructure,high,2024-09-01,2024-12-31,100,false,false,Federal District Courthouse & Public Safety Complex
+Level 1-5 structural concrete,Structural Concrete & Steel,critical,2024-10-01,2025-04-30,100,false,true,Federal District Courthouse & Public Safety Complex
+Structural steel Level 1-8,Structural Concrete & Steel,critical,2025-01-01,2025-07-31,100,false,true,Federal District Courthouse & Public Safety Complex
+Level 6-12 structural concrete,Structural Concrete & Steel,critical,2025-03-01,2025-09-30,100,false,true,Federal District Courthouse & Public Safety Complex
+Structural steel Level 9-12,Structural Concrete & Steel,critical,2025-06-01,2025-09-30,100,false,true,Federal District Courthouse & Public Safety Complex
+Structure complete milestone,Structural Concrete & Steel,critical,2025-09-30,2025-09-30,100,true,true,Federal District Courthouse & Public Safety Complex
+Curtain wall installation,Enclosure & Facade,critical,2025-04-01,2026-03-31,60,false,true,Federal District Courthouse & Public Safety Complex
+Masonry exterior walls,Enclosure & Facade,high,2025-03-01,2025-12-31,85,false,false,Federal District Courthouse & Public Safety Complex
+Roofing and waterproofing,Enclosure & Facade,high,2025-06-01,2025-12-31,90,false,false,Federal District Courthouse & Public Safety Complex
+Exterior granite veneer,Enclosure & Facade,medium,2025-09-01,2026-03-31,25,false,false,Federal District Courthouse & Public Safety Complex
+MEP rough-in Level B1 and Level 1,MEP Rough-In,critical,2024-08-01,2025-06-30,100,false,true,Federal District Courthouse & Public Safety Complex
+MEP rough-in Level 2-6,MEP Rough-In,critical,2025-04-01,2025-11-30,95,false,true,Federal District Courthouse & Public Safety Complex
+MEP rough-in Level 7-12,MEP Rough-In,high,2025-09-01,2026-05-31,40,false,false,Federal District Courthouse & Public Safety Complex
+Fire protection rough-in,MEP Rough-In,high,2025-05-01,2026-05-31,35,false,false,Federal District Courthouse & Public Safety Complex
+Security and access control rough-in,MEP Rough-In,high,2025-09-01,2026-06-30,20,false,false,Federal District Courthouse & Public Safety Complex
+Interior framing and drywall,Interior Finishes,high,2025-10-01,2026-07-31,25,false,false,Federal District Courthouse & Public Safety Complex
+Courtroom millwork and finishes,Interior Finishes,high,2026-01-01,2026-07-31,10,false,false,Federal District Courthouse & Public Safety Complex
+Lobby stone tile and finishes,Interior Finishes,medium,2026-01-01,2026-06-30,5,false,false,Federal District Courthouse & Public Safety Complex
+Elevator installation - 8 cabs,Interior Finishes,critical,2025-10-01,2026-07-31,30,false,true,Federal District Courthouse & Public Safety Complex
+Building commissioning,Commissioning & Closeout,critical,2026-06-01,2026-09-30,0,false,true,Federal District Courthouse & Public Safety Complex
+LEED Gold certification documentation,Commissioning & Closeout,high,2026-06-01,2026-09-30,0,false,false,Federal District Courthouse & Public Safety Complex
+Substantial completion,Commissioning & Closeout,critical,2026-09-30,2026-09-30,0,true,true,Federal District Courthouse & Public Safety Complex

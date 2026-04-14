@@ -5,6 +5,7 @@ import { getInvoices, createInvoice, syncBudgetActualsFromInvoices } from "@/lib
 import type { InvoiceFilters, InvoiceCreateData } from "@/lib/queries/financial";
 import { buildCompanyAccountMap, generateInvoiceJournalEntry, generateInvoiceDeferralSchedule } from "@/lib/utils/invoice-accounting";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { parseJsonBody, isErrorResponse } from "@/lib/utils/api-response";
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,7 +64,9 @@ export async function POST(request: NextRequest) {
     const subBlock = await checkSubscriptionAccess(userCompany.companyId, "POST");
     if (subBlock) return subBlock;
 
-    const body = await request.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = await parseJsonBody<Record<string, any>>(request);
+    if (isErrorResponse(body)) return body;
 
     // Validate required fields
     if (!body.invoice_number || !body.invoice_type || !body.invoice_date || !body.due_date) {

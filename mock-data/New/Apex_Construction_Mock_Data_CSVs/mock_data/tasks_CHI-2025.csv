@@ -1,0 +1,22 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Owner contract execution and NTP,Preconstruction & Design,critical,2025-09-01,2025-09-01,100,true,true,Northside Medical Arts Campus
+Schematic design and design-assist kickoff,Preconstruction & Design,critical,2025-09-01,2025-11-30,100,false,true,Northside Medical Arts Campus
+Construction documents and permitting,Preconstruction & Design,critical,2025-12-01,2026-06-30,15,false,true,Northside Medical Arts Campus
+FGI compliance review and approval,Preconstruction & Design,critical,2026-03-01,2026-06-30,0,false,true,Northside Medical Arts Campus
+City of Chicago permit issuance,Preconstruction & Design,critical,2026-06-30,2026-06-30,0,true,true,Northside Medical Arts Campus
+Asbestos and hazardous material abatement,Site Work & Demolition,high,2026-01-01,2026-04-30,5,false,true,Northside Medical Arts Campus
+Existing building demolition - 3 structures,Site Work & Demolition,critical,2026-03-01,2026-07-31,0,false,true,Northside Medical Arts Campus
+Mass earthwork and grading,Site Work & Demolition,critical,2026-06-01,2026-09-30,0,false,true,Northside Medical Arts Campus
+Site utilities - 5-building campus infrastructure,Site Work & Demolition,high,2026-07-01,2026-09-30,0,false,false,Northside Medical Arts Campus
+Hospital building drilled piers and mat foundation,Foundation & Structure - Hospital,critical,2026-07-01,2026-12-31,0,false,true,Northside Medical Arts Campus
+Hospital superstructure - seismic steel frame,Foundation & Structure - Hospital,critical,2026-10-01,2027-06-30,0,false,true,Northside Medical Arts Campus
+MOB and outpatient building foundation,Foundation & Structure - MOB & Outpatient,high,2026-10-01,2027-02-28,0,false,false,Northside Medical Arts Campus
+MOB and outpatient building structure,Foundation & Structure - MOB & Outpatient,high,2027-01-01,2027-08-31,0,false,false,Northside Medical Arts Campus
+Hospital MEP rough-in - clinical areas,MEP Rough-In & Enclosure,critical,2027-03-01,2027-10-31,0,false,true,Northside Medical Arts Campus
+Hospital exterior envelope and roofing,MEP Rough-In & Enclosure,high,2027-03-01,2027-09-30,0,false,false,Northside Medical Arts Campus
+Medical gas systems and vacuum,MEP Rough-In & Enclosure,critical,2027-04-01,2027-12-31,0,false,true,Northside Medical Arts Campus
+ICU and NICU critical environment construction,Interior Finishes - Clinical,critical,2027-09-01,2028-03-31,0,false,true,Northside Medical Arts Campus
+Operating rooms and surgical suites,Interior Finishes - Clinical,critical,2027-09-01,2028-03-31,0,false,true,Northside Medical Arts Campus
+General patient floors interior finishes,Interior Finishes - Clinical,high,2027-11-01,2028-04-30,0,false,false,Northside Medical Arts Campus
+Hospital commissioning and infection control,Commissioning & OSHPD Inspection,critical,2028-03-01,2028-05-31,0,false,true,Northside Medical Arts Campus
+IDPH inspection and hospital license,Commissioning & OSHPD Inspection,critical,2028-06-30,2028-06-30,0,true,true,Northside Medical Arts Campus

@@ -231,14 +231,7 @@
 .pipeline-card-prob {
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 8px;
-  background: var(--color-blue-light);
   color: var(--color-blue);
-}
-
-[data-theme="dark"] .pipeline-card-prob {
-  background: rgba(29, 78, 216, 0.15);
 }
 
 .pipeline-card-footer {
@@ -333,8 +326,6 @@
 .bid-status {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: 10px;
   font-size: 0.72rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -342,43 +333,22 @@
 }
 
 .bid-status-in_progress {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
-[data-theme="dark"] .bid-status-in_progress {
-  background: rgba(29, 78, 216, 0.15);
-}
-
 .bid-status-submitted {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .bid-status-submitted {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .bid-status-won {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .bid-status-won {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .bid-status-lost {
-  background: var(--color-red-light);
   color: var(--color-red);
 }
 
-[data-theme="dark"] .bid-status-lost {
-  background: rgba(220, 38, 38, 0.15);
-}
-
 .bid-status-no_bid {
-  background: var(--surface);
   color: var(--muted);
 }
 

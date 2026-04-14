@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgA" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="100%" stop-color="#0a1628"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glowStrong">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="108" fill="url(#bgA)"/>
+
+  <g stroke="#06b6d4" opacity="0.07" stroke-width="1">
+    <line x1="64" y1="0" x2="64" y2="512"/><line x1="128" y1="0" x2="128" y2="512"/>
+    <line x1="192" y1="0" x2="192" y2="512"/><line x1="256" y1="0" x2="256" y2="512"/>
+    <line x1="320" y1="0" x2="320" y2="512"/><line x1="384" y1="0" x2="384" y2="512"/>
+    <line x1="448" y1="0" x2="448" y2="512"/>
+    <line x1="0" y1="64" x2="512" y2="64"/><line x1="0" y1="128" x2="512" y2="128"/>
+    <line x1="0" y1="192" x2="512" y2="192"/><line x1="0" y1="256" x2="512" y2="256"/>
+    <line x1="0" y1="320" x2="512" y2="320"/><line x1="0" y1="384" x2="512" y2="384"/>
+    <line x1="0" y1="448" x2="512" y2="448"/>
+  </g>
+
+  <path fill="none" stroke="#06b6d4" stroke-width="18" opacity="0.15" filter="url(#glowStrong)" d="
+    M 156 96 L 300 96 C 360 96 396 136 396 180 C 396 218 376 244 346 258
+    C 382 272 412 304 412 348 C 412 408 370 440 314 440 L 156 440 Z
+  "/>
+
+  <path fill="none" stroke="#06b6d4" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" filter="url(#glow)" d="
+    M 156 96 L 300 96 C 360 96 396 136 396 180 C 396 218 376 244 346 258
+    C 382 272 412 304 412 348 C 412 408 370 440 314 440 L 156 440 Z
+  "/>
+
+  <path fill="none" stroke="#06b6d4" stroke-width="4" opacity="0.7" filter="url(#glow)" d="
+    M 220 160 L 284 160 C 318 160 336 178 336 196 C 336 214 318 232 284 232 L 220 232 Z
+  "/>
+  <path fill="none" stroke="#06b6d4" stroke-width="4" opacity="0.7" filter="url(#glow)" d="
+    M 220 296 L 298 296 C 338 296 356 318 356 340 C 356 362 338 384 298 384 L 220 384 Z
+  "/>
+
+  <g stroke="#06b6d4" stroke-width="1.5" opacity="0.3">
+    <line x1="120" y1="96" x2="120" y2="440"/>
+    <line x1="112" y1="96" x2="128" y2="96"/>
+    <line x1="112" y1="440" x2="128" y2="440"/>
+    <line x1="156" y1="64" x2="396" y2="64"/>
+    <line x1="156" y1="56" x2="156" y2="72"/>
+    <line x1="396" y1="56" x2="396" y2="72"/>
+  </g>
+
+  <text x="120" y="274" text-anchor="middle" font-family="monospace" font-size="16" fill="#06b6d4" opacity="0.4" transform="rotate(-90, 120, 274)">344</text>
+  <text x="276" y="58" text-anchor="middle" font-family="monospace" font-size="16" fill="#06b6d4" opacity="0.4">240</text>
+
+  <g stroke="#06b6d4" stroke-width="1" opacity="0.2">
+    <circle cx="156" cy="96" r="8" fill="none"/>
+    <line x1="148" y1="96" x2="164" y2="96"/>
+    <line x1="156" y1="88" x2="156" y2="104"/>
+    <circle cx="412" cy="348" r="8" fill="none"/>
+    <line x1="404" y1="348" x2="420" y2="348"/>
+    <line x1="412" y1="340" x2="412" y2="356"/>
+  </g>
+</svg>

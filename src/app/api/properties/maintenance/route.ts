@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Create maintenance request error:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     // Auto-generate maintenance JE if estimated_cost > 0 — non-blocking

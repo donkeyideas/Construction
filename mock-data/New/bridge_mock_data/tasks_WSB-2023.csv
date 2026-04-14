@@ -1,0 +1,25 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design review and value engineering,Preconstruction & Design Coordination,high,2022-09-01,2022-12-31,100,false,true,West Seattle High-Rise Bridge Replacement
+Environmental permits and agency coordination,Preconstruction & Design Coordination,critical,2022-10-01,2023-02-28,100,false,true,West Seattle High-Rise Bridge Replacement
+USCG bridge permit issued,Preconstruction & Design Coordination,critical,2023-02-28,2023-02-28,100,true,true,West Seattle High-Rise Bridge Replacement
+Marine plant mobilization – barge and crane,Site Mobilization & Marine Setup,critical,2023-03-01,2023-04-30,100,false,true,West Seattle High-Rise Bridge Replacement
+Temporary marine access road and fender system,Site Mobilization & Marine Setup,high,2023-03-01,2023-06-30,100,false,false,West Seattle High-Rise Bridge Replacement
+Drilled shafts – Pier W1 and W2,Foundation & Drilled Shafts,critical,2023-04-01,2023-09-30,100,false,true,West Seattle High-Rise Bridge Replacement
+Drilled shafts – Pier W3 and W4 (Duwamish piers),Foundation & Drilled Shafts,critical,2023-08-01,2024-02-28,100,false,true,West Seattle High-Rise Bridge Replacement
+Drilled shafts – East pylon tower pier,Foundation & Drilled Shafts,critical,2023-06-01,2023-11-30,100,false,true,West Seattle High-Rise Bridge Replacement
+Pier W1-W2 caps and columns,Substructure – Piers and Caps,high,2023-10-01,2024-04-30,100,false,false,West Seattle High-Rise Bridge Replacement
+Pier W3-W4 caps – marine piers,Substructure – Piers and Caps,critical,2024-01-01,2024-07-31,100,false,true,West Seattle High-Rise Bridge Replacement
+Tower T1 west pylon – levels 1-10,Pylon Construction,critical,2024-06-01,2024-12-31,100,false,true,West Seattle High-Rise Bridge Replacement
+Tower T1 west pylon – levels 11-20,Pylon Construction,critical,2025-01-01,2025-08-31,100,false,true,West Seattle High-Rise Bridge Replacement
+Tower T2 east pylon – levels 1-10,Pylon Construction,critical,2024-09-01,2025-03-31,100,false,true,West Seattle High-Rise Bridge Replacement
+Tower T2 east pylon – levels 11-18 (active),Pylon Construction,critical,2025-04-01,2026-08-31,41,false,true,West Seattle High-Rise Bridge Replacement
+Approach span girder erection – Spans 1-2,Approach Span Girder Erection,high,2025-01-01,2025-09-30,100,false,false,West Seattle High-Rise Bridge Replacement
+Approach span girder erection – Spans 3-4 (active),Approach Span Girder Erection,high,2025-09-01,2026-06-30,45,false,false,West Seattle High-Rise Bridge Replacement
+Approach span girder erection – Spans 5-6,Approach Span Girder Erection,high,2026-04-01,2026-10-31,0,false,false,West Seattle High-Rise Bridge Replacement
+Stay cables C-01 through C-10 – west tower (active),Stay Cable Installation,critical,2025-06-01,2026-03-31,60,false,true,West Seattle High-Rise Bridge Replacement
+Stay cables C-11 through C-24 – west tower,Stay Cable Installation,critical,2026-02-01,2026-09-30,0,false,true,West Seattle High-Rise Bridge Replacement
+Stay cables – east tower all,Stay Cable Installation,critical,2026-06-01,2027-01-31,0,false,true,West Seattle High-Rise Bridge Replacement
+Main span deck forming and concrete – west half,Deck Construction,critical,2025-08-01,2026-08-31,25,false,true,West Seattle High-Rise Bridge Replacement
+Approach deck concrete – Spans 1-2,Deck Construction,high,2025-10-01,2026-04-30,55,false,false,West Seattle High-Rise Bridge Replacement
+Bridge LED lighting system,Electrical & Lighting,medium,2026-06-01,2027-07-31,0,false,false,West Seattle High-Rise Bridge Replacement
+Final striping barrier and inspections,Finishes & Commissioning,critical,2027-06-01,2027-09-30,0,true,true,West Seattle High-Rise Bridge Replacement

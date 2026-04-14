@@ -1,0 +1,5 @@
+name,property_type,address_line1,city,state,zip,year_built,total_sqft,total_units,purchase_price,current_value
+Lone Star Power Generation Plant Site,industrial,8400 Greens Bayou Rd,Houston,TX,77015,2022,800640,1,12500000,18000000
+Plant Administration Building,commercial,8400 Greens Bayou Rd Bldg A,Houston,TX,77015,2022,8400,1,0,0
+Control Room and Operations Center,commercial,8400 Greens Bayou Rd Bldg B,Houston,TX,77015,2022,6200,1,0,0
+Maintenance Workshop and Warehouse,industrial,8400 Greens Bayou Rd Bldg C,Houston,TX,77015,2022,22000,1,0,0

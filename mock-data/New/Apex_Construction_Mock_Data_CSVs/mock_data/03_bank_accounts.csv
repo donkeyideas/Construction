@@ -1,0 +1,10 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+General Operating,Wells Fargo Bank,checking,4412,1210,3125000.00
+Payroll Account,Wells Fargo Bank,checking,4413,1210,875000.00
+Project Trust - Austin,Bank of America,checking,7701,0560,1450000.00
+Project Trust - Dallas,Bank of America,checking,7702,0560,620000.00
+Project Trust - Miami,Bank of America,checking,7703,0560,2800000.00
+Project Trust - Denver,Bank of America,checking,7704,0560,340000.00
+Project Trust - Chicago,Bank of America,checking,7705,0560,500000.00
+Equipment Reserve,Wells Fargo Bank,savings,4420,1210,650000.00
+Money Market - Reserves,JPMorgan Chase,money_market,9901,0021,1200000.00

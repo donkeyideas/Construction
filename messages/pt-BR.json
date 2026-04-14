@@ -200,6 +200,11 @@
       "fullName": "Nome Completo",
       "phone": "Telefone",
       "saveChanges": "Salvar Alteracoes"
+    },
+    "portalLabel": {
+      "tenant": "Portal do Inquilino",
+      "vendor": "Portal do Fornecedor",
+      "employee": "Portal do Funcionario"
     }
   },
   "mobile": {

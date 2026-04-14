@@ -1,0 +1,510 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-0002,2025-01-31,Revenue Recognition January 2025 - Hard Rock Legacy Stadium,REV-2025-01,1010,17800000.00,,Accounts receivable billed to UM
+JE-0002,2025-01-31,Revenue Recognition January 2025 - Hard Rock Legacy Stadium,REV-2025-01,4000,,17800000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0003,2025-01-31,Retainage Withheld January 2025 - Hard Rock Legacy Stadium,RET-2025-01,1020,890000.00,,Retainage receivable 5%
+JE-0003,2025-01-31,Retainage Withheld January 2025 - Hard Rock Legacy Stadium,RET-2025-01,1010,,890000.00,Reduce AR for retainage
+JE-0004,2025-01-31,Revenue Recognition January 2025 - Hurricane Football Performance Center,REV-2025-01,1010,5200000.00,,Accounts receivable billed to UM
+JE-0004,2025-01-31,Revenue Recognition January 2025 - Hurricane Football Performance Center,REV-2025-01,4010,,5200000.00,Contract revenue - Hurricane Football Performance Center
+JE-0005,2025-01-31,Retainage Withheld January 2025 - Hurricane Football Performance Center,RET-2025-01,1020,260000.00,,Retainage receivable 5%
+JE-0005,2025-01-31,Retainage Withheld January 2025 - Hurricane Football Performance Center,RET-2025-01,1010,,260000.00,Reduce AR for retainage
+JE-0006,2025-01-31,Revenue Recognition January 2025 - Coral Gables Athlete Village,REV-2025-01,1010,2200000.00,,Accounts receivable billed to UM
+JE-0006,2025-01-31,Revenue Recognition January 2025 - Coral Gables Athlete Village,REV-2025-01,4020,,2200000.00,Contract revenue - Coral Gables Athlete Village
+JE-0007,2025-01-31,Retainage Withheld January 2025 - Coral Gables Athlete Village,RET-2025-01,1020,110000.00,,Retainage receivable 5%
+JE-0007,2025-01-31,Retainage Withheld January 2025 - Coral Gables Athlete Village,RET-2025-01,1010,,110000.00,Reduce AR for retainage
+JE-0008,2025-01-31,Revenue Recognition January 2025 - Hurricane Athletic Administration Tower,REV-2025-01,1010,1100000.00,,Accounts receivable billed to UM
+JE-0008,2025-01-31,Revenue Recognition January 2025 - Hurricane Athletic Administration Tower,REV-2025-01,4030,,1100000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0009,2025-01-31,Retainage Withheld January 2025 - Hurricane Athletic Administration Tower,RET-2025-01,1020,55000.00,,Retainage receivable 5%
+JE-0009,2025-01-31,Retainage Withheld January 2025 - Hurricane Athletic Administration Tower,RET-2025-01,1010,,55000.00,Reduce AR for retainage
+JE-0010,2025-01-31,Revenue Recognition January 2025 - Stadium District Site & Infrastructure,REV-2025-01,1010,3800000.00,,Accounts receivable billed to UM
+JE-0010,2025-01-31,Revenue Recognition January 2025 - Stadium District Site & Infrastructure,REV-2025-01,4040,,3800000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0011,2025-01-31,Retainage Withheld January 2025 - Stadium District Site & Infrastructure,RET-2025-01,1020,190000.00,,Retainage receivable 5%
+JE-0011,2025-01-31,Retainage Withheld January 2025 - Stadium District Site & Infrastructure,RET-2025-01,1010,,190000.00,Reduce AR for retainage
+JE-0012,2025-01-31,Cash Receipt January 2025 - UM Progress Payments,CASH-2025-01,1000,37509839.45,,Cash received from UM
+JE-0012,2025-01-31,Cash Receipt January 2025 - UM Progress Payments,CASH-2025-01,1010,,37509839.45,Clear accounts receivable
+JE-0013,2025-01-31,Construction Costs January 2025 - All Projects,COST-2025-01,5000,19829370.92,,Direct cost 5000
+JE-0013,2025-01-31,Construction Costs January 2025 - All Projects,COST-2025-01,5010,2202918.53,,Direct cost 5010
+JE-0013,2025-01-31,Construction Costs January 2025 - All Projects,COST-2025-01,5120,1927683.05,,Direct cost 5120
+JE-0013,2025-01-31,Construction Costs January 2025 - All Projects,COST-2025-01,5130,1377212.10,,Direct cost 5130
+JE-0013,2025-01-31,Construction Costs January 2025 - All Projects,COST-2025-01,5200,1101976.62,,Direct cost 5200
+JE-0013,2025-01-31,Construction Costs January 2025 - All Projects,COST-2025-01,5230,384915.78,,Direct cost 5230
+JE-0013,2025-01-31,Construction Costs January 2025 - All Projects,COST-2025-01,5300,551505.67,,Direct cost 5300
+JE-0013,2025-01-31,Construction Costs January 2025 - All Projects,COST-2025-01,2000,,26006803.54,Accounts payable net of retainage
+JE-0013,2025-01-31,Construction Costs January 2025 - All Projects,COST-2025-01,2010,,1368779.13,Retainage payable to subs
+JE-0014,2025-01-31,Subcontractor & Vendor Payments January 2025,PAY-2025-01,2000,28011057.69,,Pay subcontractors and vendors
+JE-0014,2025-01-31,Subcontractor & Vendor Payments January 2025,PAY-2025-01,1000,,28011057.69,Cash paid
+JE-0015,2025-01-31,Overhead & Indirect Costs January 2025,OH-2025-01,5310,436333.33,,Overhead 5310
+JE-0015,2025-01-31,Overhead & Indirect Costs January 2025,OH-2025-01,5320,193916.67,,Overhead 5320
+JE-0015,2025-01-31,Overhead & Indirect Costs January 2025,OH-2025-01,5330,145416.67,,Overhead 5330
+JE-0015,2025-01-31,Overhead & Indirect Costs January 2025,OH-2025-01,5360,266666.67,,Overhead 5360
+JE-0015,2025-01-31,Overhead & Indirect Costs January 2025,OH-2025-01,5410,73000.00,,Overhead 5410
+JE-0015,2025-01-31,Overhead & Indirect Costs January 2025,OH-2025-01,5420,97000.00,,Overhead 5420
+JE-0015,2025-01-31,Overhead & Indirect Costs January 2025,OH-2025-01,5440,72750.00,,Overhead 5440
+JE-0015,2025-01-31,Overhead & Indirect Costs January 2025,OH-2025-01,2000,,1285083.34,AP - overhead costs
+JE-0016,2025-02-28,Revenue Recognition February 2025 - Hard Rock Legacy Stadium,REV-2025-02,1010,18100000.00,,Accounts receivable billed to UM
+JE-0016,2025-02-28,Revenue Recognition February 2025 - Hard Rock Legacy Stadium,REV-2025-02,4000,,18100000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0017,2025-02-28,Retainage Withheld February 2025 - Hard Rock Legacy Stadium,RET-2025-02,1020,905000.00,,Retainage receivable 5%
+JE-0017,2025-02-28,Retainage Withheld February 2025 - Hard Rock Legacy Stadium,RET-2025-02,1010,,905000.00,Reduce AR for retainage
+JE-0018,2025-02-28,Revenue Recognition February 2025 - Hurricane Football Performance Center,REV-2025-02,1010,5100000.00,,Accounts receivable billed to UM
+JE-0018,2025-02-28,Revenue Recognition February 2025 - Hurricane Football Performance Center,REV-2025-02,4010,,5100000.00,Contract revenue - Hurricane Football Performance Center
+JE-0019,2025-02-28,Retainage Withheld February 2025 - Hurricane Football Performance Center,RET-2025-02,1020,255000.00,,Retainage receivable 5%
+JE-0019,2025-02-28,Retainage Withheld February 2025 - Hurricane Football Performance Center,RET-2025-02,1010,,255000.00,Reduce AR for retainage
+JE-0020,2025-02-28,Revenue Recognition February 2025 - Coral Gables Athlete Village,REV-2025-02,1010,2100000.00,,Accounts receivable billed to UM
+JE-0020,2025-02-28,Revenue Recognition February 2025 - Coral Gables Athlete Village,REV-2025-02,4020,,2100000.00,Contract revenue - Coral Gables Athlete Village
+JE-0021,2025-02-28,Retainage Withheld February 2025 - Coral Gables Athlete Village,RET-2025-02,1020,105000.00,,Retainage receivable 5%
+JE-0021,2025-02-28,Retainage Withheld February 2025 - Coral Gables Athlete Village,RET-2025-02,1010,,105000.00,Reduce AR for retainage
+JE-0022,2025-02-28,Revenue Recognition February 2025 - Hurricane Athletic Administration Tower,REV-2025-02,1010,1050000.00,,Accounts receivable billed to UM
+JE-0022,2025-02-28,Revenue Recognition February 2025 - Hurricane Athletic Administration Tower,REV-2025-02,4030,,1050000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0023,2025-02-28,Retainage Withheld February 2025 - Hurricane Athletic Administration Tower,RET-2025-02,1020,52500.00,,Retainage receivable 5%
+JE-0023,2025-02-28,Retainage Withheld February 2025 - Hurricane Athletic Administration Tower,RET-2025-02,1010,,52500.00,Reduce AR for retainage
+JE-0024,2025-02-28,Revenue Recognition February 2025 - Stadium District Site & Infrastructure,REV-2025-02,1010,3500000.00,,Accounts receivable billed to UM
+JE-0024,2025-02-28,Revenue Recognition February 2025 - Stadium District Site & Infrastructure,REV-2025-02,4040,,3500000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0025,2025-02-28,Retainage Withheld February 2025 - Stadium District Site & Infrastructure,RET-2025-02,1020,175000.00,,Retainage receivable 5%
+JE-0025,2025-02-28,Retainage Withheld February 2025 - Stadium District Site & Infrastructure,RET-2025-02,1010,,175000.00,Reduce AR for retainage
+JE-0026,2025-02-28,Cash Receipt February 2025 - UM Progress Payments,CASH-2025-02,1000,32508527.52,,Cash received from UM
+JE-0026,2025-02-28,Cash Receipt February 2025 - UM Progress Payments,CASH-2025-02,1010,,32508527.52,Clear accounts receivable
+JE-0027,2025-02-28,Construction Costs February 2025 - All Projects,COST-2025-02,5000,19664675.15,,Direct cost 5000
+JE-0027,2025-02-28,Construction Costs February 2025 - All Projects,COST-2025-02,5010,2184621.86,,Direct cost 5010
+JE-0027,2025-02-28,Construction Costs February 2025 - All Projects,COST-2025-02,5120,1911672.40,,Direct cost 5120
+JE-0027,2025-02-28,Construction Costs February 2025 - All Projects,COST-2025-02,5130,1365773.46,,Direct cost 5130
+JE-0027,2025-02-28,Construction Costs February 2025 - All Projects,COST-2025-02,5200,1092823.99,,Direct cost 5200
+JE-0027,2025-02-28,Construction Costs February 2025 - All Projects,COST-2025-02,5230,381718.80,,Direct cost 5230
+JE-0027,2025-02-28,Construction Costs February 2025 - All Projects,COST-2025-02,5300,546925.06,,Direct cost 5300
+JE-0027,2025-02-28,Construction Costs February 2025 - All Projects,COST-2025-02,2000,,25790800.18,Accounts payable net of retainage
+JE-0027,2025-02-28,Construction Costs February 2025 - All Projects,COST-2025-02,2010,,1357410.54,Retainage payable to subs
+JE-0028,2025-02-28,Subcontractor & Vendor Payments February 2025,PAY-2025-02,2000,28011057.69,,Pay subcontractors and vendors
+JE-0028,2025-02-28,Subcontractor & Vendor Payments February 2025,PAY-2025-02,1000,,28011057.69,Cash paid
+JE-0029,2025-02-28,Overhead & Indirect Costs February 2025,OH-2025-02,5310,436333.33,,Overhead 5310
+JE-0029,2025-02-28,Overhead & Indirect Costs February 2025,OH-2025-02,5320,193916.67,,Overhead 5320
+JE-0029,2025-02-28,Overhead & Indirect Costs February 2025,OH-2025-02,5330,145416.67,,Overhead 5330
+JE-0029,2025-02-28,Overhead & Indirect Costs February 2025,OH-2025-02,5360,266666.67,,Overhead 5360
+JE-0029,2025-02-28,Overhead & Indirect Costs February 2025,OH-2025-02,5410,73000.00,,Overhead 5410
+JE-0029,2025-02-28,Overhead & Indirect Costs February 2025,OH-2025-02,5420,97000.00,,Overhead 5420
+JE-0029,2025-02-28,Overhead & Indirect Costs February 2025,OH-2025-02,5440,72750.00,,Overhead 5440
+JE-0029,2025-02-28,Overhead & Indirect Costs February 2025,OH-2025-02,2000,,1285083.34,AP - overhead costs
+JE-0030,2025-03-31,Revenue Recognition March 2025 - Hard Rock Legacy Stadium,REV-2025-03,1010,18500000.00,,Accounts receivable billed to UM
+JE-0030,2025-03-31,Revenue Recognition March 2025 - Hard Rock Legacy Stadium,REV-2025-03,4000,,18500000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0031,2025-03-31,Retainage Withheld March 2025 - Hard Rock Legacy Stadium,RET-2025-03,1020,925000.00,,Retainage receivable 5%
+JE-0031,2025-03-31,Retainage Withheld March 2025 - Hard Rock Legacy Stadium,RET-2025-03,1010,,925000.00,Reduce AR for retainage
+JE-0032,2025-03-31,Revenue Recognition March 2025 - Hurricane Football Performance Center,REV-2025-03,1010,4800000.00,,Accounts receivable billed to UM
+JE-0032,2025-03-31,Revenue Recognition March 2025 - Hurricane Football Performance Center,REV-2025-03,4010,,4800000.00,Contract revenue - Hurricane Football Performance Center
+JE-0033,2025-03-31,Retainage Withheld March 2025 - Hurricane Football Performance Center,RET-2025-03,1020,240000.00,,Retainage receivable 5%
+JE-0033,2025-03-31,Retainage Withheld March 2025 - Hurricane Football Performance Center,RET-2025-03,1010,,240000.00,Reduce AR for retainage
+JE-0034,2025-03-31,Revenue Recognition March 2025 - Coral Gables Athlete Village,REV-2025-03,1010,2000000.00,,Accounts receivable billed to UM
+JE-0034,2025-03-31,Revenue Recognition March 2025 - Coral Gables Athlete Village,REV-2025-03,4020,,2000000.00,Contract revenue - Coral Gables Athlete Village
+JE-0035,2025-03-31,Retainage Withheld March 2025 - Coral Gables Athlete Village,RET-2025-03,1020,100000.00,,Retainage receivable 5%
+JE-0035,2025-03-31,Retainage Withheld March 2025 - Coral Gables Athlete Village,RET-2025-03,1010,,100000.00,Reduce AR for retainage
+JE-0036,2025-03-31,Revenue Recognition March 2025 - Hurricane Athletic Administration Tower,REV-2025-03,1010,1000000.00,,Accounts receivable billed to UM
+JE-0036,2025-03-31,Revenue Recognition March 2025 - Hurricane Athletic Administration Tower,REV-2025-03,4030,,1000000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0037,2025-03-31,Retainage Withheld March 2025 - Hurricane Athletic Administration Tower,RET-2025-03,1020,50000.00,,Retainage receivable 5%
+JE-0037,2025-03-31,Retainage Withheld March 2025 - Hurricane Athletic Administration Tower,RET-2025-03,1010,,50000.00,Reduce AR for retainage
+JE-0038,2025-03-31,Revenue Recognition March 2025 - Stadium District Site & Infrastructure,REV-2025-03,1010,3200000.00,,Accounts receivable billed to UM
+JE-0038,2025-03-31,Revenue Recognition March 2025 - Stadium District Site & Infrastructure,REV-2025-03,4040,,3200000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0039,2025-03-31,Retainage Withheld March 2025 - Stadium District Site & Infrastructure,RET-2025-03,1020,160000.00,,Retainage receivable 5%
+JE-0039,2025-03-31,Retainage Withheld March 2025 - Stadium District Site & Infrastructure,RET-2025-03,1010,,160000.00,Reduce AR for retainage
+JE-0040,2025-03-31,Cash Receipt March 2025 - UM Progress Payments,CASH-2025-03,1000,30007871.56,,Cash received from UM
+JE-0040,2025-03-31,Cash Receipt March 2025 - UM Progress Payments,CASH-2025-03,1010,,30007871.56,Clear accounts receivable
+JE-0041,2025-03-31,Construction Costs March 2025 - All Projects,COST-2025-03,5000,19434101.07,,Direct cost 5000
+JE-0041,2025-03-31,Construction Costs March 2025 - All Projects,COST-2025-03,5010,2159006.53,,Direct cost 5010
+JE-0041,2025-03-31,Construction Costs March 2025 - All Projects,COST-2025-03,5120,1889257.48,,Direct cost 5120
+JE-0041,2025-03-31,Construction Costs March 2025 - All Projects,COST-2025-03,5130,1349759.37,,Direct cost 5130
+JE-0041,2025-03-31,Construction Costs March 2025 - All Projects,COST-2025-03,5200,1080010.31,,Direct cost 5200
+JE-0041,2025-03-31,Construction Costs March 2025 - All Projects,COST-2025-03,5230,377243.04,,Direct cost 5230
+JE-0041,2025-03-31,Construction Costs March 2025 - All Projects,COST-2025-03,5300,540512.20,,Direct cost 5300
+JE-0041,2025-03-31,Construction Costs March 2025 - All Projects,COST-2025-03,2000,,25488395.50,Accounts payable net of retainage
+JE-0041,2025-03-31,Construction Costs March 2025 - All Projects,COST-2025-03,2010,,1341494.50,Retainage payable to subs
+JE-0042,2025-03-31,Subcontractor & Vendor Payments March 2025,PAY-2025-03,2000,25676802.88,,Pay subcontractors and vendors
+JE-0042,2025-03-31,Subcontractor & Vendor Payments March 2025,PAY-2025-03,1000,,25676802.88,Cash paid
+JE-0043,2025-03-31,Overhead & Indirect Costs March 2025,OH-2025-03,5310,436333.33,,Overhead 5310
+JE-0043,2025-03-31,Overhead & Indirect Costs March 2025,OH-2025-03,5320,193916.67,,Overhead 5320
+JE-0043,2025-03-31,Overhead & Indirect Costs March 2025,OH-2025-03,5330,145416.67,,Overhead 5330
+JE-0043,2025-03-31,Overhead & Indirect Costs March 2025,OH-2025-03,5360,266666.67,,Overhead 5360
+JE-0043,2025-03-31,Overhead & Indirect Costs March 2025,OH-2025-03,5410,73000.00,,Overhead 5410
+JE-0043,2025-03-31,Overhead & Indirect Costs March 2025,OH-2025-03,5420,97000.00,,Overhead 5420
+JE-0043,2025-03-31,Overhead & Indirect Costs March 2025,OH-2025-03,5440,72750.00,,Overhead 5440
+JE-0043,2025-03-31,Overhead & Indirect Costs March 2025,OH-2025-03,2000,,1285083.34,AP - overhead costs
+JE-0044,2025-04-30,Revenue Recognition April 2025 - Hard Rock Legacy Stadium,REV-2025-04,1010,19200000.00,,Accounts receivable billed to UM
+JE-0044,2025-04-30,Revenue Recognition April 2025 - Hard Rock Legacy Stadium,REV-2025-04,4000,,19200000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0045,2025-04-30,Retainage Withheld April 2025 - Hard Rock Legacy Stadium,RET-2025-04,1020,960000.00,,Retainage receivable 5%
+JE-0045,2025-04-30,Retainage Withheld April 2025 - Hard Rock Legacy Stadium,RET-2025-04,1010,,960000.00,Reduce AR for retainage
+JE-0046,2025-04-30,Revenue Recognition April 2025 - Hurricane Football Performance Center,REV-2025-04,1010,4500000.00,,Accounts receivable billed to UM
+JE-0046,2025-04-30,Revenue Recognition April 2025 - Hurricane Football Performance Center,REV-2025-04,4010,,4500000.00,Contract revenue - Hurricane Football Performance Center
+JE-0047,2025-04-30,Retainage Withheld April 2025 - Hurricane Football Performance Center,RET-2025-04,1020,225000.00,,Retainage receivable 5%
+JE-0047,2025-04-30,Retainage Withheld April 2025 - Hurricane Football Performance Center,RET-2025-04,1010,,225000.00,Reduce AR for retainage
+JE-0048,2025-04-30,Revenue Recognition April 2025 - Coral Gables Athlete Village,REV-2025-04,1010,1900000.00,,Accounts receivable billed to UM
+JE-0048,2025-04-30,Revenue Recognition April 2025 - Coral Gables Athlete Village,REV-2025-04,4020,,1900000.00,Contract revenue - Coral Gables Athlete Village
+JE-0049,2025-04-30,Retainage Withheld April 2025 - Coral Gables Athlete Village,RET-2025-04,1020,95000.00,,Retainage receivable 5%
+JE-0049,2025-04-30,Retainage Withheld April 2025 - Coral Gables Athlete Village,RET-2025-04,1010,,95000.00,Reduce AR for retainage
+JE-0050,2025-04-30,Revenue Recognition April 2025 - Hurricane Athletic Administration Tower,REV-2025-04,1010,1000000.00,,Accounts receivable billed to UM
+JE-0050,2025-04-30,Revenue Recognition April 2025 - Hurricane Athletic Administration Tower,REV-2025-04,4030,,1000000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0051,2025-04-30,Retainage Withheld April 2025 - Hurricane Athletic Administration Tower,RET-2025-04,1020,50000.00,,Retainage receivable 5%
+JE-0051,2025-04-30,Retainage Withheld April 2025 - Hurricane Athletic Administration Tower,RET-2025-04,1010,,50000.00,Reduce AR for retainage
+JE-0052,2025-04-30,Revenue Recognition April 2025 - Stadium District Site & Infrastructure,REV-2025-04,1010,3000000.00,,Accounts receivable billed to UM
+JE-0052,2025-04-30,Revenue Recognition April 2025 - Stadium District Site & Infrastructure,REV-2025-04,4040,,3000000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0053,2025-04-30,Retainage Withheld April 2025 - Stadium District Site & Infrastructure,RET-2025-04,1020,150000.00,,Retainage receivable 5%
+JE-0053,2025-04-30,Retainage Withheld April 2025 - Stadium District Site & Infrastructure,RET-2025-04,1010,,150000.00,Reduce AR for retainage
+JE-0054,2025-04-30,Cash Receipt April 2025 - UM Progress Payments,CASH-2025-04,1000,30007871.56,,Cash received from UM
+JE-0054,2025-04-30,Cash Receipt April 2025 - UM Progress Payments,CASH-2025-04,1010,,30007871.56,Clear accounts receivable
+JE-0055,2025-04-30,Construction Costs April 2025 - All Projects,COST-2025-04,5000,19499979.37,,Direct cost 5000
+JE-0055,2025-04-30,Construction Costs April 2025 - All Projects,COST-2025-04,5010,2166325.20,,Direct cost 5010
+JE-0055,2025-04-30,Construction Costs April 2025 - All Projects,COST-2025-04,5120,1895661.74,,Direct cost 5120
+JE-0055,2025-04-30,Construction Costs April 2025 - All Projects,COST-2025-04,5130,1354334.82,,Direct cost 5130
+JE-0055,2025-04-30,Construction Costs April 2025 - All Projects,COST-2025-04,5200,1083671.36,,Direct cost 5200
+JE-0055,2025-04-30,Construction Costs April 2025 - All Projects,COST-2025-04,5230,378521.83,,Direct cost 5230
+JE-0055,2025-04-30,Construction Costs April 2025 - All Projects,COST-2025-04,5300,542344.45,,Direct cost 5300
+JE-0055,2025-04-30,Construction Costs April 2025 - All Projects,COST-2025-04,2000,,25574796.83,Accounts payable net of retainage
+JE-0055,2025-04-30,Construction Costs April 2025 - All Projects,COST-2025-04,2010,,1346041.94,Retainage payable to subs
+JE-0056,2025-04-30,Subcontractor & Vendor Payments April 2025,PAY-2025-04,2000,25676802.88,,Pay subcontractors and vendors
+JE-0056,2025-04-30,Subcontractor & Vendor Payments April 2025,PAY-2025-04,1000,,25676802.88,Cash paid
+JE-0057,2025-04-30,Overhead & Indirect Costs April 2025,OH-2025-04,5310,436333.33,,Overhead 5310
+JE-0057,2025-04-30,Overhead & Indirect Costs April 2025,OH-2025-04,5320,193916.67,,Overhead 5320
+JE-0057,2025-04-30,Overhead & Indirect Costs April 2025,OH-2025-04,5330,145416.67,,Overhead 5330
+JE-0057,2025-04-30,Overhead & Indirect Costs April 2025,OH-2025-04,5360,266666.67,,Overhead 5360
+JE-0057,2025-04-30,Overhead & Indirect Costs April 2025,OH-2025-04,5410,73000.00,,Overhead 5410
+JE-0057,2025-04-30,Overhead & Indirect Costs April 2025,OH-2025-04,5420,97000.00,,Overhead 5420
+JE-0057,2025-04-30,Overhead & Indirect Costs April 2025,OH-2025-04,5440,72750.00,,Overhead 5440
+JE-0057,2025-04-30,Overhead & Indirect Costs April 2025,OH-2025-04,2000,,1285083.34,AP - overhead costs
+JE-0058,2025-05-31,Revenue Recognition May 2025 - Hard Rock Legacy Stadium,REV-2025-05,1010,18800000.00,,Accounts receivable billed to UM
+JE-0058,2025-05-31,Revenue Recognition May 2025 - Hard Rock Legacy Stadium,REV-2025-05,4000,,18800000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0059,2025-05-31,Retainage Withheld May 2025 - Hard Rock Legacy Stadium,RET-2025-05,1020,940000.00,,Retainage receivable 5%
+JE-0059,2025-05-31,Retainage Withheld May 2025 - Hard Rock Legacy Stadium,RET-2025-05,1010,,940000.00,Reduce AR for retainage
+JE-0060,2025-05-31,Revenue Recognition May 2025 - Hurricane Football Performance Center,REV-2025-05,1010,2000000.00,,Accounts receivable billed to UM
+JE-0060,2025-05-31,Revenue Recognition May 2025 - Hurricane Football Performance Center,REV-2025-05,4010,,2000000.00,Contract revenue - Hurricane Football Performance Center
+JE-0061,2025-05-31,Retainage Withheld May 2025 - Hurricane Football Performance Center,RET-2025-05,1020,100000.00,,Retainage receivable 5%
+JE-0061,2025-05-31,Retainage Withheld May 2025 - Hurricane Football Performance Center,RET-2025-05,1010,,100000.00,Reduce AR for retainage
+JE-0062,2025-05-31,Revenue Recognition May 2025 - Coral Gables Athlete Village,REV-2025-05,1010,800000.00,,Accounts receivable billed to UM
+JE-0062,2025-05-31,Revenue Recognition May 2025 - Coral Gables Athlete Village,REV-2025-05,4020,,800000.00,Contract revenue - Coral Gables Athlete Village
+JE-0063,2025-05-31,Retainage Withheld May 2025 - Coral Gables Athlete Village,RET-2025-05,1020,40000.00,,Retainage receivable 5%
+JE-0063,2025-05-31,Retainage Withheld May 2025 - Coral Gables Athlete Village,RET-2025-05,1010,,40000.00,Reduce AR for retainage
+JE-0064,2025-05-31,Revenue Recognition May 2025 - Hurricane Athletic Administration Tower,REV-2025-05,1010,900000.00,,Accounts receivable billed to UM
+JE-0064,2025-05-31,Revenue Recognition May 2025 - Hurricane Athletic Administration Tower,REV-2025-05,4030,,900000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0065,2025-05-31,Retainage Withheld May 2025 - Hurricane Athletic Administration Tower,RET-2025-05,1020,45000.00,,Retainage receivable 5%
+JE-0065,2025-05-31,Retainage Withheld May 2025 - Hurricane Athletic Administration Tower,RET-2025-05,1010,,45000.00,Reduce AR for retainage
+JE-0066,2025-05-31,Revenue Recognition May 2025 - Stadium District Site & Infrastructure,REV-2025-05,1010,2800000.00,,Accounts receivable billed to UM
+JE-0066,2025-05-31,Revenue Recognition May 2025 - Stadium District Site & Infrastructure,REV-2025-05,4040,,2800000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0067,2025-05-31,Retainage Withheld May 2025 - Stadium District Site & Infrastructure,RET-2025-05,1020,140000.00,,Retainage receivable 5%
+JE-0067,2025-05-31,Retainage Withheld May 2025 - Stadium District Site & Infrastructure,RET-2025-05,1010,,140000.00,Reduce AR for retainage
+JE-0068,2025-05-31,Cash Receipt May 2025 - UM Progress Payments,CASH-2025-05,1000,27507215.60,,Cash received from UM
+JE-0068,2025-05-31,Cash Receipt May 2025 - UM Progress Payments,CASH-2025-05,1010,,27507215.60,Clear accounts receivable
+JE-0069,2025-05-31,Construction Costs May 2025 - All Projects,COST-2025-05,5000,16667212.10,,Direct cost 5000
+JE-0069,2025-05-31,Construction Costs May 2025 - All Projects,COST-2025-05,5010,1851622.55,,Direct cost 5010
+JE-0069,2025-05-31,Construction Costs May 2025 - All Projects,COST-2025-05,5120,1620278.45,,Direct cost 5120
+JE-0069,2025-05-31,Construction Costs May 2025 - All Projects,COST-2025-05,5130,1157590.24,,Direct cost 5130
+JE-0069,2025-05-31,Construction Costs May 2025 - All Projects,COST-2025-05,5200,926246.13,,Direct cost 5200
+JE-0069,2025-05-31,Construction Costs May 2025 - All Projects,COST-2025-05,5230,323533.86,,Direct cost 5230
+JE-0069,2025-05-31,Construction Costs May 2025 - All Projects,COST-2025-05,5300,463557.92,,Direct cost 5300
+JE-0069,2025-05-31,Construction Costs May 2025 - All Projects,COST-2025-05,2000,,21859539.19,Accounts payable net of retainage
+JE-0069,2025-05-31,Construction Costs May 2025 - All Projects,COST-2025-05,2010,,1150502.06,Retainage payable to subs
+JE-0070,2025-05-31,Subcontractor & Vendor Payments May 2025,PAY-2025-05,2000,23342548.08,,Pay subcontractors and vendors
+JE-0070,2025-05-31,Subcontractor & Vendor Payments May 2025,PAY-2025-05,1000,,23342548.08,Cash paid
+JE-0071,2025-05-31,Overhead & Indirect Costs May 2025,OH-2025-05,5310,436333.33,,Overhead 5310
+JE-0071,2025-05-31,Overhead & Indirect Costs May 2025,OH-2025-05,5320,193916.67,,Overhead 5320
+JE-0071,2025-05-31,Overhead & Indirect Costs May 2025,OH-2025-05,5330,145416.67,,Overhead 5330
+JE-0071,2025-05-31,Overhead & Indirect Costs May 2025,OH-2025-05,5360,266666.67,,Overhead 5360
+JE-0071,2025-05-31,Overhead & Indirect Costs May 2025,OH-2025-05,5410,73000.00,,Overhead 5410
+JE-0071,2025-05-31,Overhead & Indirect Costs May 2025,OH-2025-05,5420,97000.00,,Overhead 5420
+JE-0071,2025-05-31,Overhead & Indirect Costs May 2025,OH-2025-05,5440,72750.00,,Overhead 5440
+JE-0071,2025-05-31,Overhead & Indirect Costs May 2025,OH-2025-05,2000,,1285083.34,AP - overhead costs
+JE-0072,2025-06-30,Revenue Recognition June 2025 - Hard Rock Legacy Stadium,REV-2025-06,1010,17500000.00,,Accounts receivable billed to UM
+JE-0072,2025-06-30,Revenue Recognition June 2025 - Hard Rock Legacy Stadium,REV-2025-06,4000,,17500000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0073,2025-06-30,Retainage Withheld June 2025 - Hard Rock Legacy Stadium,RET-2025-06,1020,875000.00,,Retainage receivable 5%
+JE-0073,2025-06-30,Retainage Withheld June 2025 - Hard Rock Legacy Stadium,RET-2025-06,1010,,875000.00,Reduce AR for retainage
+JE-0074,2025-06-30,Revenue Recognition June 2025 - Hurricane Football Performance Center,REV-2025-06,1010,1800000.00,,Accounts receivable billed to UM
+JE-0074,2025-06-30,Revenue Recognition June 2025 - Hurricane Football Performance Center,REV-2025-06,4010,,1800000.00,Contract revenue - Hurricane Football Performance Center
+JE-0075,2025-06-30,Retainage Withheld June 2025 - Hurricane Football Performance Center,RET-2025-06,1020,90000.00,,Retainage receivable 5%
+JE-0075,2025-06-30,Retainage Withheld June 2025 - Hurricane Football Performance Center,RET-2025-06,1010,,90000.00,Reduce AR for retainage
+JE-0076,2025-06-30,Revenue Recognition June 2025 - Coral Gables Athlete Village,REV-2025-06,1010,1200000.00,,Accounts receivable billed to UM
+JE-0076,2025-06-30,Revenue Recognition June 2025 - Coral Gables Athlete Village,REV-2025-06,4020,,1200000.00,Contract revenue - Coral Gables Athlete Village
+JE-0077,2025-06-30,Retainage Withheld June 2025 - Coral Gables Athlete Village,RET-2025-06,1020,60000.00,,Retainage receivable 5%
+JE-0077,2025-06-30,Retainage Withheld June 2025 - Coral Gables Athlete Village,RET-2025-06,1010,,60000.00,Reduce AR for retainage
+JE-0078,2025-06-30,Revenue Recognition June 2025 - Hurricane Athletic Administration Tower,REV-2025-06,1010,700000.00,,Accounts receivable billed to UM
+JE-0078,2025-06-30,Revenue Recognition June 2025 - Hurricane Athletic Administration Tower,REV-2025-06,4030,,700000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0079,2025-06-30,Retainage Withheld June 2025 - Hurricane Athletic Administration Tower,RET-2025-06,1020,35000.00,,Retainage receivable 5%
+JE-0079,2025-06-30,Retainage Withheld June 2025 - Hurricane Athletic Administration Tower,RET-2025-06,1010,,35000.00,Reduce AR for retainage
+JE-0080,2025-06-30,Revenue Recognition June 2025 - Stadium District Site & Infrastructure,REV-2025-06,1010,2500000.00,,Accounts receivable billed to UM
+JE-0080,2025-06-30,Revenue Recognition June 2025 - Stadium District Site & Infrastructure,REV-2025-06,4040,,2500000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0081,2025-06-30,Retainage Withheld June 2025 - Stadium District Site & Infrastructure,RET-2025-06,1020,125000.00,,Retainage receivable 5%
+JE-0081,2025-06-30,Retainage Withheld June 2025 - Stadium District Site & Infrastructure,RET-2025-06,1010,,125000.00,Reduce AR for retainage
+JE-0082,2025-06-30,Cash Receipt June 2025 - UM Progress Payments,CASH-2025-06,1000,25006559.63,,Cash received from UM
+JE-0082,2025-06-30,Cash Receipt June 2025 - UM Progress Payments,CASH-2025-06,1010,,25006559.63,Clear accounts receivable
+JE-0083,2025-06-30,Construction Costs June 2025 - All Projects,COST-2025-06,5000,15613159.16,,Direct cost 5000
+JE-0083,2025-06-30,Construction Costs June 2025 - All Projects,COST-2025-06,5010,1734523.89,,Direct cost 5010
+JE-0083,2025-06-30,Construction Costs June 2025 - All Projects,COST-2025-06,5120,1517810.24,,Direct cost 5120
+JE-0083,2025-06-30,Construction Costs June 2025 - All Projects,COST-2025-06,5130,1084382.95,,Direct cost 5130
+JE-0083,2025-06-30,Construction Costs June 2025 - All Projects,COST-2025-06,5200,867669.30,,Direct cost 5200
+JE-0083,2025-06-30,Construction Costs June 2025 - All Projects,COST-2025-06,5230,303073.22,,Direct cost 5230
+JE-0083,2025-06-30,Construction Costs June 2025 - All Projects,COST-2025-06,5300,434242.01,,Direct cost 5300
+JE-0083,2025-06-30,Construction Costs June 2025 - All Projects,COST-2025-06,2000,,20477117.73,Accounts payable net of retainage
+JE-0083,2025-06-30,Construction Costs June 2025 - All Projects,COST-2025-06,2010,,1077743.04,Retainage payable to subs
+JE-0084,2025-06-30,Subcontractor & Vendor Payments June 2025,PAY-2025-06,2000,23342548.08,,Pay subcontractors and vendors
+JE-0084,2025-06-30,Subcontractor & Vendor Payments June 2025,PAY-2025-06,1000,,23342548.08,Cash paid
+JE-0085,2025-06-30,Overhead & Indirect Costs June 2025,OH-2025-06,5310,436333.33,,Overhead 5310
+JE-0085,2025-06-30,Overhead & Indirect Costs June 2025,OH-2025-06,5320,193916.67,,Overhead 5320
+JE-0085,2025-06-30,Overhead & Indirect Costs June 2025,OH-2025-06,5330,145416.67,,Overhead 5330
+JE-0085,2025-06-30,Overhead & Indirect Costs June 2025,OH-2025-06,5360,266666.67,,Overhead 5360
+JE-0085,2025-06-30,Overhead & Indirect Costs June 2025,OH-2025-06,5410,73000.00,,Overhead 5410
+JE-0085,2025-06-30,Overhead & Indirect Costs June 2025,OH-2025-06,5420,97000.00,,Overhead 5420
+JE-0085,2025-06-30,Overhead & Indirect Costs June 2025,OH-2025-06,5440,72750.00,,Overhead 5440
+JE-0085,2025-06-30,Overhead & Indirect Costs June 2025,OH-2025-06,2000,,1285083.34,AP - overhead costs
+JE-0086,2025-07-31,Revenue Recognition July 2025 - Hard Rock Legacy Stadium,REV-2025-07,1010,16200000.00,,Accounts receivable billed to UM
+JE-0086,2025-07-31,Revenue Recognition July 2025 - Hard Rock Legacy Stadium,REV-2025-07,4000,,16200000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0087,2025-07-31,Retainage Withheld July 2025 - Hard Rock Legacy Stadium,RET-2025-07,1020,810000.00,,Retainage receivable 5%
+JE-0087,2025-07-31,Retainage Withheld July 2025 - Hard Rock Legacy Stadium,RET-2025-07,1010,,810000.00,Reduce AR for retainage
+JE-0088,2025-07-31,Revenue Recognition July 2025 - Hurricane Football Performance Center,REV-2025-07,1010,1500000.00,,Accounts receivable billed to UM
+JE-0088,2025-07-31,Revenue Recognition July 2025 - Hurricane Football Performance Center,REV-2025-07,4010,,1500000.00,Contract revenue - Hurricane Football Performance Center
+JE-0089,2025-07-31,Retainage Withheld July 2025 - Hurricane Football Performance Center,RET-2025-07,1020,75000.00,,Retainage receivable 5%
+JE-0089,2025-07-31,Retainage Withheld July 2025 - Hurricane Football Performance Center,RET-2025-07,1010,,75000.00,Reduce AR for retainage
+JE-0090,2025-07-31,Revenue Recognition July 2025 - Coral Gables Athlete Village,REV-2025-07,1010,1100000.00,,Accounts receivable billed to UM
+JE-0090,2025-07-31,Revenue Recognition July 2025 - Coral Gables Athlete Village,REV-2025-07,4020,,1100000.00,Contract revenue - Coral Gables Athlete Village
+JE-0091,2025-07-31,Retainage Withheld July 2025 - Coral Gables Athlete Village,RET-2025-07,1020,55000.00,,Retainage receivable 5%
+JE-0091,2025-07-31,Retainage Withheld July 2025 - Coral Gables Athlete Village,RET-2025-07,1010,,55000.00,Reduce AR for retainage
+JE-0092,2025-07-31,Revenue Recognition July 2025 - Hurricane Athletic Administration Tower,REV-2025-07,1010,900000.00,,Accounts receivable billed to UM
+JE-0092,2025-07-31,Revenue Recognition July 2025 - Hurricane Athletic Administration Tower,REV-2025-07,4030,,900000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0093,2025-07-31,Retainage Withheld July 2025 - Hurricane Athletic Administration Tower,RET-2025-07,1020,45000.00,,Retainage receivable 5%
+JE-0093,2025-07-31,Retainage Withheld July 2025 - Hurricane Athletic Administration Tower,RET-2025-07,1010,,45000.00,Reduce AR for retainage
+JE-0094,2025-07-31,Revenue Recognition July 2025 - Stadium District Site & Infrastructure,REV-2025-07,1010,2200000.00,,Accounts receivable billed to UM
+JE-0094,2025-07-31,Revenue Recognition July 2025 - Stadium District Site & Infrastructure,REV-2025-07,4040,,2200000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0095,2025-07-31,Retainage Withheld July 2025 - Stadium District Site & Infrastructure,RET-2025-07,1020,110000.00,,Retainage receivable 5%
+JE-0095,2025-07-31,Retainage Withheld July 2025 - Stadium District Site & Infrastructure,RET-2025-07,1010,,110000.00,Reduce AR for retainage
+JE-0096,2025-07-31,Cash Receipt July 2025 - UM Progress Payments,CASH-2025-07,1000,22505903.67,,Cash received from UM
+JE-0096,2025-07-31,Cash Receipt July 2025 - UM Progress Payments,CASH-2025-07,1010,,22505903.67,Clear accounts receivable
+JE-0097,2025-07-31,Construction Costs July 2025 - All Projects,COST-2025-07,5000,14427349.60,,Direct cost 5000
+JE-0097,2025-07-31,Construction Costs July 2025 - All Projects,COST-2025-07,5010,1602787.90,,Direct cost 5010
+JE-0097,2025-07-31,Construction Costs July 2025 - All Projects,COST-2025-07,5120,1402533.52,,Direct cost 5120
+JE-0097,2025-07-31,Construction Costs July 2025 - All Projects,COST-2025-07,5130,1002024.75,,Direct cost 5130
+JE-0097,2025-07-31,Construction Costs July 2025 - All Projects,COST-2025-07,5200,801770.37,,Direct cost 5200
+JE-0097,2025-07-31,Construction Costs July 2025 - All Projects,COST-2025-07,5230,280055.00,,Direct cost 5230
+JE-0097,2025-07-31,Construction Costs July 2025 - All Projects,COST-2025-07,5300,401261.60,,Direct cost 5300
+JE-0097,2025-07-31,Construction Costs July 2025 - All Projects,COST-2025-07,2000,,18921893.60,Accounts payable net of retainage
+JE-0097,2025-07-31,Construction Costs July 2025 - All Projects,COST-2025-07,2010,,995889.14,Retainage payable to subs
+JE-0098,2025-07-31,Subcontractor & Vendor Payments July 2025,PAY-2025-07,2000,21008293.27,,Pay subcontractors and vendors
+JE-0098,2025-07-31,Subcontractor & Vendor Payments July 2025,PAY-2025-07,1000,,21008293.27,Cash paid
+JE-0099,2025-07-31,Overhead & Indirect Costs July 2025,OH-2025-07,5310,436333.33,,Overhead 5310
+JE-0099,2025-07-31,Overhead & Indirect Costs July 2025,OH-2025-07,5320,193916.67,,Overhead 5320
+JE-0099,2025-07-31,Overhead & Indirect Costs July 2025,OH-2025-07,5330,145416.67,,Overhead 5330
+JE-0099,2025-07-31,Overhead & Indirect Costs July 2025,OH-2025-07,5360,266666.67,,Overhead 5360
+JE-0099,2025-07-31,Overhead & Indirect Costs July 2025,OH-2025-07,5410,73000.00,,Overhead 5410
+JE-0099,2025-07-31,Overhead & Indirect Costs July 2025,OH-2025-07,5420,97000.00,,Overhead 5420
+JE-0099,2025-07-31,Overhead & Indirect Costs July 2025,OH-2025-07,5440,72750.00,,Overhead 5440
+JE-0099,2025-07-31,Overhead & Indirect Costs July 2025,OH-2025-07,2000,,1285083.34,AP - overhead costs
+JE-0100,2025-08-31,Revenue Recognition August 2025 - Hard Rock Legacy Stadium,REV-2025-08,1010,15800000.00,,Accounts receivable billed to UM
+JE-0100,2025-08-31,Revenue Recognition August 2025 - Hard Rock Legacy Stadium,REV-2025-08,4000,,15800000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0101,2025-08-31,Retainage Withheld August 2025 - Hard Rock Legacy Stadium,RET-2025-08,1020,790000.00,,Retainage receivable 5%
+JE-0101,2025-08-31,Retainage Withheld August 2025 - Hard Rock Legacy Stadium,RET-2025-08,1010,,790000.00,Reduce AR for retainage
+JE-0102,2025-08-31,Revenue Recognition August 2025 - Hurricane Football Performance Center,REV-2025-08,1010,1250000.00,,Accounts receivable billed to UM
+JE-0102,2025-08-31,Revenue Recognition August 2025 - Hurricane Football Performance Center,REV-2025-08,4010,,1250000.00,Contract revenue - Hurricane Football Performance Center
+JE-0103,2025-08-31,Retainage Withheld August 2025 - Hurricane Football Performance Center,RET-2025-08,1020,62500.00,,Retainage receivable 5%
+JE-0103,2025-08-31,Retainage Withheld August 2025 - Hurricane Football Performance Center,RET-2025-08,1010,,62500.00,Reduce AR for retainage
+JE-0104,2025-08-31,Revenue Recognition August 2025 - Coral Gables Athlete Village,REV-2025-08,1010,1000000.00,,Accounts receivable billed to UM
+JE-0104,2025-08-31,Revenue Recognition August 2025 - Coral Gables Athlete Village,REV-2025-08,4020,,1000000.00,Contract revenue - Coral Gables Athlete Village
+JE-0105,2025-08-31,Retainage Withheld August 2025 - Coral Gables Athlete Village,RET-2025-08,1020,50000.00,,Retainage receivable 5%
+JE-0105,2025-08-31,Retainage Withheld August 2025 - Coral Gables Athlete Village,RET-2025-08,1010,,50000.00,Reduce AR for retainage
+JE-0106,2025-08-31,Revenue Recognition August 2025 - Hurricane Athletic Administration Tower,REV-2025-08,1010,800000.00,,Accounts receivable billed to UM
+JE-0106,2025-08-31,Revenue Recognition August 2025 - Hurricane Athletic Administration Tower,REV-2025-08,4030,,800000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0107,2025-08-31,Retainage Withheld August 2025 - Hurricane Athletic Administration Tower,RET-2025-08,1020,40000.00,,Retainage receivable 5%
+JE-0107,2025-08-31,Retainage Withheld August 2025 - Hurricane Athletic Administration Tower,RET-2025-08,1010,,40000.00,Reduce AR for retainage
+JE-0108,2025-08-31,Revenue Recognition August 2025 - Stadium District Site & Infrastructure,REV-2025-08,1010,1800000.00,,Accounts receivable billed to UM
+JE-0108,2025-08-31,Revenue Recognition August 2025 - Stadium District Site & Infrastructure,REV-2025-08,4040,,1800000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0109,2025-08-31,Retainage Withheld August 2025 - Stadium District Site & Infrastructure,RET-2025-08,1020,90000.00,,Retainage receivable 5%
+JE-0109,2025-08-31,Retainage Withheld August 2025 - Stadium District Site & Infrastructure,RET-2025-08,1010,,90000.00,Reduce AR for retainage
+JE-0110,2025-08-31,Cash Receipt August 2025 - UM Progress Payments,CASH-2025-08,1000,20005247.71,,Cash received from UM
+JE-0110,2025-08-31,Cash Receipt August 2025 - UM Progress Payments,CASH-2025-08,1010,,20005247.71,Clear accounts receivable
+JE-0111,2025-08-31,Construction Costs August 2025 - All Projects,COST-2025-08,5000,13603870.75,,Direct cost 5000
+JE-0111,2025-08-31,Construction Costs August 2025 - All Projects,COST-2025-08,5010,1511304.57,,Direct cost 5010
+JE-0111,2025-08-31,Construction Costs August 2025 - All Projects,COST-2025-08,5120,1322480.23,,Direct cost 5120
+JE-0111,2025-08-31,Construction Costs August 2025 - All Projects,COST-2025-08,5130,944831.56,,Direct cost 5130
+JE-0111,2025-08-31,Construction Costs August 2025 - All Projects,COST-2025-08,5200,756007.22,,Direct cost 5200
+JE-0111,2025-08-31,Construction Costs August 2025 - All Projects,COST-2025-08,5230,264070.13,,Direct cost 5230
+JE-0111,2025-08-31,Construction Costs August 2025 - All Projects,COST-2025-08,5300,378358.54,,Direct cost 5300
+JE-0111,2025-08-31,Construction Costs August 2025 - All Projects,COST-2025-08,2000,,17841876.85,Accounts payable net of retainage
+JE-0111,2025-08-31,Construction Costs August 2025 - All Projects,COST-2025-08,2010,,939046.15,Retainage payable to subs
+JE-0112,2025-08-31,Subcontractor & Vendor Payments August 2025,PAY-2025-08,2000,21008293.27,,Pay subcontractors and vendors
+JE-0112,2025-08-31,Subcontractor & Vendor Payments August 2025,PAY-2025-08,1000,,21008293.27,Cash paid
+JE-0113,2025-08-31,Overhead & Indirect Costs August 2025,OH-2025-08,5310,436333.33,,Overhead 5310
+JE-0113,2025-08-31,Overhead & Indirect Costs August 2025,OH-2025-08,5320,193916.67,,Overhead 5320
+JE-0113,2025-08-31,Overhead & Indirect Costs August 2025,OH-2025-08,5330,145416.67,,Overhead 5330
+JE-0113,2025-08-31,Overhead & Indirect Costs August 2025,OH-2025-08,5360,266666.67,,Overhead 5360
+JE-0113,2025-08-31,Overhead & Indirect Costs August 2025,OH-2025-08,5410,73000.00,,Overhead 5410
+JE-0113,2025-08-31,Overhead & Indirect Costs August 2025,OH-2025-08,5420,97000.00,,Overhead 5420
+JE-0113,2025-08-31,Overhead & Indirect Costs August 2025,OH-2025-08,5440,72750.00,,Overhead 5440
+JE-0113,2025-08-31,Overhead & Indirect Costs August 2025,OH-2025-08,2000,,1285083.34,AP - overhead costs
+JE-0114,2025-09-30,Revenue Recognition September 2025 - Hard Rock Legacy Stadium,REV-2025-09,1010,16500000.00,,Accounts receivable billed to UM
+JE-0114,2025-09-30,Revenue Recognition September 2025 - Hard Rock Legacy Stadium,REV-2025-09,4000,,16500000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0115,2025-09-30,Retainage Withheld September 2025 - Hard Rock Legacy Stadium,RET-2025-09,1020,825000.00,,Retainage receivable 5%
+JE-0115,2025-09-30,Retainage Withheld September 2025 - Hard Rock Legacy Stadium,RET-2025-09,1010,,825000.00,Reduce AR for retainage
+JE-0116,2025-09-30,Revenue Recognition September 2025 - Hurricane Football Performance Center,REV-2025-09,1010,1100000.00,,Accounts receivable billed to UM
+JE-0116,2025-09-30,Revenue Recognition September 2025 - Hurricane Football Performance Center,REV-2025-09,4010,,1100000.00,Contract revenue - Hurricane Football Performance Center
+JE-0117,2025-09-30,Retainage Withheld September 2025 - Hurricane Football Performance Center,RET-2025-09,1020,55000.00,,Retainage receivable 5%
+JE-0117,2025-09-30,Retainage Withheld September 2025 - Hurricane Football Performance Center,RET-2025-09,1010,,55000.00,Reduce AR for retainage
+JE-0118,2025-09-30,Revenue Recognition September 2025 - Coral Gables Athlete Village,REV-2025-09,1010,900000.00,,Accounts receivable billed to UM
+JE-0118,2025-09-30,Revenue Recognition September 2025 - Coral Gables Athlete Village,REV-2025-09,4020,,900000.00,Contract revenue - Coral Gables Athlete Village
+JE-0119,2025-09-30,Retainage Withheld September 2025 - Coral Gables Athlete Village,RET-2025-09,1020,45000.00,,Retainage receivable 5%
+JE-0119,2025-09-30,Retainage Withheld September 2025 - Coral Gables Athlete Village,RET-2025-09,1010,,45000.00,Reduce AR for retainage
+JE-0120,2025-09-30,Revenue Recognition September 2025 - Hurricane Athletic Administration Tower,REV-2025-09,1010,700000.00,,Accounts receivable billed to UM
+JE-0120,2025-09-30,Revenue Recognition September 2025 - Hurricane Athletic Administration Tower,REV-2025-09,4030,,700000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0121,2025-09-30,Retainage Withheld September 2025 - Hurricane Athletic Administration Tower,RET-2025-09,1020,35000.00,,Retainage receivable 5%
+JE-0121,2025-09-30,Retainage Withheld September 2025 - Hurricane Athletic Administration Tower,RET-2025-09,1010,,35000.00,Reduce AR for retainage
+JE-0122,2025-09-30,Revenue Recognition September 2025 - Stadium District Site & Infrastructure,REV-2025-09,1010,2000000.00,,Accounts receivable billed to UM
+JE-0122,2025-09-30,Revenue Recognition September 2025 - Stadium District Site & Infrastructure,REV-2025-09,4040,,2000000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0123,2025-09-30,Retainage Withheld September 2025 - Stadium District Site & Infrastructure,RET-2025-09,1020,100000.00,,Retainage receivable 5%
+JE-0123,2025-09-30,Retainage Withheld September 2025 - Stadium District Site & Infrastructure,RET-2025-09,1010,,100000.00,Reduce AR for retainage
+JE-0124,2025-09-30,Cash Receipt September 2025 - UM Progress Payments,CASH-2025-09,1000,17504591.74,,Cash received from UM
+JE-0124,2025-09-30,Cash Receipt September 2025 - UM Progress Payments,CASH-2025-09,1010,,17504591.74,Clear accounts receivable
+JE-0125,2025-09-30,Construction Costs September 2025 - All Projects,COST-2025-09,5000,13966201.44,,Direct cost 5000
+JE-0125,2025-09-30,Construction Costs September 2025 - All Projects,COST-2025-09,5010,1551557.24,,Direct cost 5010
+JE-0125,2025-09-30,Construction Costs September 2025 - All Projects,COST-2025-09,5120,1357703.68,,Direct cost 5120
+JE-0125,2025-09-30,Construction Costs September 2025 - All Projects,COST-2025-09,5130,969996.56,,Direct cost 5130
+JE-0125,2025-09-30,Construction Costs September 2025 - All Projects,COST-2025-09,5200,776143.00,,Direct cost 5200
+JE-0125,2025-09-30,Construction Costs September 2025 - All Projects,COST-2025-09,5230,271103.47,,Direct cost 5230
+JE-0125,2025-09-30,Construction Costs September 2025 - All Projects,COST-2025-09,5300,388435.89,,Direct cost 5300
+JE-0125,2025-09-30,Construction Costs September 2025 - All Projects,COST-2025-09,2000,,18317084.22,Accounts payable net of retainage
+JE-0125,2025-09-30,Construction Costs September 2025 - All Projects,COST-2025-09,2010,,964057.06,Retainage payable to subs
+JE-0126,2025-09-30,Subcontractor & Vendor Payments September 2025,PAY-2025-09,2000,18674038.46,,Pay subcontractors and vendors
+JE-0126,2025-09-30,Subcontractor & Vendor Payments September 2025,PAY-2025-09,1000,,18674038.46,Cash paid
+JE-0127,2025-09-30,Overhead & Indirect Costs September 2025,OH-2025-09,5310,436333.33,,Overhead 5310
+JE-0127,2025-09-30,Overhead & Indirect Costs September 2025,OH-2025-09,5320,193916.67,,Overhead 5320
+JE-0127,2025-09-30,Overhead & Indirect Costs September 2025,OH-2025-09,5330,145416.67,,Overhead 5330
+JE-0127,2025-09-30,Overhead & Indirect Costs September 2025,OH-2025-09,5360,266666.67,,Overhead 5360
+JE-0127,2025-09-30,Overhead & Indirect Costs September 2025,OH-2025-09,5410,73000.00,,Overhead 5410
+JE-0127,2025-09-30,Overhead & Indirect Costs September 2025,OH-2025-09,5420,97000.00,,Overhead 5420
+JE-0127,2025-09-30,Overhead & Indirect Costs September 2025,OH-2025-09,5440,72750.00,,Overhead 5440
+JE-0127,2025-09-30,Overhead & Indirect Costs September 2025,OH-2025-09,2000,,1285083.34,AP - overhead costs
+JE-0128,2025-10-31,Revenue Recognition October 2025 - Hard Rock Legacy Stadium,REV-2025-10,1010,17200000.00,,Accounts receivable billed to UM
+JE-0128,2025-10-31,Revenue Recognition October 2025 - Hard Rock Legacy Stadium,REV-2025-10,4000,,17200000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0129,2025-10-31,Retainage Withheld October 2025 - Hard Rock Legacy Stadium,RET-2025-10,1020,860000.00,,Retainage receivable 5%
+JE-0129,2025-10-31,Retainage Withheld October 2025 - Hard Rock Legacy Stadium,RET-2025-10,1010,,860000.00,Reduce AR for retainage
+JE-0130,2025-10-31,Revenue Recognition October 2025 - Hurricane Football Performance Center,REV-2025-10,1010,950000.00,,Accounts receivable billed to UM
+JE-0130,2025-10-31,Revenue Recognition October 2025 - Hurricane Football Performance Center,REV-2025-10,4010,,950000.00,Contract revenue - Hurricane Football Performance Center
+JE-0131,2025-10-31,Retainage Withheld October 2025 - Hurricane Football Performance Center,RET-2025-10,1020,47500.00,,Retainage receivable 5%
+JE-0131,2025-10-31,Retainage Withheld October 2025 - Hurricane Football Performance Center,RET-2025-10,1010,,47500.00,Reduce AR for retainage
+JE-0132,2025-10-31,Revenue Recognition October 2025 - Coral Gables Athlete Village,REV-2025-10,1010,700000.00,,Accounts receivable billed to UM
+JE-0132,2025-10-31,Revenue Recognition October 2025 - Coral Gables Athlete Village,REV-2025-10,4020,,700000.00,Contract revenue - Coral Gables Athlete Village
+JE-0133,2025-10-31,Retainage Withheld October 2025 - Coral Gables Athlete Village,RET-2025-10,1020,35000.00,,Retainage receivable 5%
+JE-0133,2025-10-31,Retainage Withheld October 2025 - Coral Gables Athlete Village,RET-2025-10,1010,,35000.00,Reduce AR for retainage
+JE-0134,2025-10-31,Revenue Recognition October 2025 - Hurricane Athletic Administration Tower,REV-2025-10,1010,600000.00,,Accounts receivable billed to UM
+JE-0134,2025-10-31,Revenue Recognition October 2025 - Hurricane Athletic Administration Tower,REV-2025-10,4030,,600000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0135,2025-10-31,Retainage Withheld October 2025 - Hurricane Athletic Administration Tower,RET-2025-10,1020,30000.00,,Retainage receivable 5%
+JE-0135,2025-10-31,Retainage Withheld October 2025 - Hurricane Athletic Administration Tower,RET-2025-10,1010,,30000.00,Reduce AR for retainage
+JE-0136,2025-10-31,Revenue Recognition October 2025 - Stadium District Site & Infrastructure,REV-2025-10,1010,1800000.00,,Accounts receivable billed to UM
+JE-0136,2025-10-31,Revenue Recognition October 2025 - Stadium District Site & Infrastructure,REV-2025-10,4040,,1800000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0137,2025-10-31,Retainage Withheld October 2025 - Stadium District Site & Infrastructure,RET-2025-10,1020,90000.00,,Retainage receivable 5%
+JE-0137,2025-10-31,Retainage Withheld October 2025 - Stadium District Site & Infrastructure,RET-2025-10,1010,,90000.00,Reduce AR for retainage
+JE-0138,2025-10-31,Cash Receipt October 2025 - UM Progress Payments,CASH-2025-10,1000,15003935.78,,Cash received from UM
+JE-0138,2025-10-31,Cash Receipt October 2025 - UM Progress Payments,CASH-2025-10,1010,,15003935.78,Clear accounts receivable
+JE-0139,2025-10-31,Construction Costs October 2025 - All Projects,COST-2025-10,5000,13999140.60,,Direct cost 5000
+JE-0139,2025-10-31,Construction Costs October 2025 - All Projects,COST-2025-10,5010,1555216.57,,Direct cost 5010
+JE-0139,2025-10-31,Construction Costs October 2025 - All Projects,COST-2025-10,5120,1360905.81,,Direct cost 5120
+JE-0139,2025-10-31,Construction Costs October 2025 - All Projects,COST-2025-10,5130,972284.29,,Direct cost 5130
+JE-0139,2025-10-31,Construction Costs October 2025 - All Projects,COST-2025-10,5200,777973.53,,Direct cost 5200
+JE-0139,2025-10-31,Construction Costs October 2025 - All Projects,COST-2025-10,5230,271742.87,,Direct cost 5230
+JE-0139,2025-10-31,Construction Costs October 2025 - All Projects,COST-2025-10,5300,389352.01,,Direct cost 5300
+JE-0139,2025-10-31,Construction Costs October 2025 - All Projects,COST-2025-10,2000,,18360284.90,Accounts payable net of retainage
+JE-0139,2025-10-31,Construction Costs October 2025 - All Projects,COST-2025-10,2010,,966330.78,Retainage payable to subs
+JE-0140,2025-10-31,Subcontractor & Vendor Payments October 2025,PAY-2025-10,2000,14005528.85,,Pay subcontractors and vendors
+JE-0140,2025-10-31,Subcontractor & Vendor Payments October 2025,PAY-2025-10,1000,,14005528.85,Cash paid
+JE-0141,2025-10-31,Overhead & Indirect Costs October 2025,OH-2025-10,5310,436333.33,,Overhead 5310
+JE-0141,2025-10-31,Overhead & Indirect Costs October 2025,OH-2025-10,5320,193916.67,,Overhead 5320
+JE-0141,2025-10-31,Overhead & Indirect Costs October 2025,OH-2025-10,5330,145416.67,,Overhead 5330
+JE-0141,2025-10-31,Overhead & Indirect Costs October 2025,OH-2025-10,5360,266666.67,,Overhead 5360
+JE-0141,2025-10-31,Overhead & Indirect Costs October 2025,OH-2025-10,5410,73000.00,,Overhead 5410
+JE-0141,2025-10-31,Overhead & Indirect Costs October 2025,OH-2025-10,5420,97000.00,,Overhead 5420
+JE-0141,2025-10-31,Overhead & Indirect Costs October 2025,OH-2025-10,5440,72750.00,,Overhead 5440
+JE-0141,2025-10-31,Overhead & Indirect Costs October 2025,OH-2025-10,2000,,1285083.34,AP - overhead costs
+JE-0142,2025-11-30,Revenue Recognition November 2025 - Hard Rock Legacy Stadium,REV-2025-11,1010,16800000.00,,Accounts receivable billed to UM
+JE-0142,2025-11-30,Revenue Recognition November 2025 - Hard Rock Legacy Stadium,REV-2025-11,4000,,16800000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0143,2025-11-30,Retainage Withheld November 2025 - Hard Rock Legacy Stadium,RET-2025-11,1020,840000.00,,Retainage receivable 5%
+JE-0143,2025-11-30,Retainage Withheld November 2025 - Hard Rock Legacy Stadium,RET-2025-11,1010,,840000.00,Reduce AR for retainage
+JE-0144,2025-11-30,Revenue Recognition November 2025 - Hurricane Football Performance Center,REV-2025-11,1010,800000.00,,Accounts receivable billed to UM
+JE-0144,2025-11-30,Revenue Recognition November 2025 - Hurricane Football Performance Center,REV-2025-11,4010,,800000.00,Contract revenue - Hurricane Football Performance Center
+JE-0145,2025-11-30,Retainage Withheld November 2025 - Hurricane Football Performance Center,RET-2025-11,1020,40000.00,,Retainage receivable 5%
+JE-0145,2025-11-30,Retainage Withheld November 2025 - Hurricane Football Performance Center,RET-2025-11,1010,,40000.00,Reduce AR for retainage
+JE-0146,2025-11-30,Revenue Recognition November 2025 - Coral Gables Athlete Village,REV-2025-11,1010,500000.00,,Accounts receivable billed to UM
+JE-0146,2025-11-30,Revenue Recognition November 2025 - Coral Gables Athlete Village,REV-2025-11,4020,,500000.00,Contract revenue - Coral Gables Athlete Village
+JE-0147,2025-11-30,Retainage Withheld November 2025 - Coral Gables Athlete Village,RET-2025-11,1020,25000.00,,Retainage receivable 5%
+JE-0147,2025-11-30,Retainage Withheld November 2025 - Coral Gables Athlete Village,RET-2025-11,1010,,25000.00,Reduce AR for retainage
+JE-0148,2025-11-30,Revenue Recognition November 2025 - Hurricane Athletic Administration Tower,REV-2025-11,1010,550000.00,,Accounts receivable billed to UM
+JE-0148,2025-11-30,Revenue Recognition November 2025 - Hurricane Athletic Administration Tower,REV-2025-11,4030,,550000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0149,2025-11-30,Retainage Withheld November 2025 - Hurricane Athletic Administration Tower,RET-2025-11,1020,27500.00,,Retainage receivable 5%
+JE-0149,2025-11-30,Retainage Withheld November 2025 - Hurricane Athletic Administration Tower,RET-2025-11,1010,,27500.00,Reduce AR for retainage
+JE-0150,2025-11-30,Revenue Recognition November 2025 - Stadium District Site & Infrastructure,REV-2025-11,1010,1200000.00,,Accounts receivable billed to UM
+JE-0150,2025-11-30,Revenue Recognition November 2025 - Stadium District Site & Infrastructure,REV-2025-11,4040,,1200000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0151,2025-11-30,Retainage Withheld November 2025 - Stadium District Site & Infrastructure,RET-2025-11,1020,60000.00,,Retainage receivable 5%
+JE-0151,2025-11-30,Retainage Withheld November 2025 - Stadium District Site & Infrastructure,RET-2025-11,1010,,60000.00,Reduce AR for retainage
+JE-0152,2025-11-30,Cash Receipt November 2025 - UM Progress Payments,CASH-2025-11,1000,10002623.85,,Cash received from UM
+JE-0152,2025-11-30,Cash Receipt November 2025 - UM Progress Payments,CASH-2025-11,1010,,10002623.85,Clear accounts receivable
+JE-0153,2025-11-30,Construction Costs November 2025 - All Projects,COST-2025-11,5000,13076844.28,,Direct cost 5000
+JE-0153,2025-11-30,Construction Costs November 2025 - All Projects,COST-2025-11,5010,1452755.24,,Direct cost 5010
+JE-0153,2025-11-30,Construction Costs November 2025 - All Projects,COST-2025-11,5120,1271246.13,,Direct cost 5120
+JE-0153,2025-11-30,Construction Costs November 2025 - All Projects,COST-2025-11,5130,908227.91,,Direct cost 5130
+JE-0153,2025-11-30,Construction Costs November 2025 - All Projects,COST-2025-11,5200,726718.80,,Direct cost 5200
+JE-0153,2025-11-30,Construction Costs November 2025 - All Projects,COST-2025-11,5230,253839.81,,Direct cost 5230
+JE-0153,2025-11-30,Construction Costs November 2025 - All Projects,COST-2025-11,5300,363700.58,,Direct cost 5300
+JE-0153,2025-11-30,Construction Costs November 2025 - All Projects,COST-2025-11,2000,,17150666.11,Accounts payable net of retainage
+JE-0153,2025-11-30,Construction Costs November 2025 - All Projects,COST-2025-11,2010,,902666.64,Retainage payable to subs
+JE-0154,2025-11-30,Subcontractor & Vendor Payments November 2025,PAY-2025-11,2000,9337019.23,,Pay subcontractors and vendors
+JE-0154,2025-11-30,Subcontractor & Vendor Payments November 2025,PAY-2025-11,1000,,9337019.23,Cash paid
+JE-0155,2025-11-30,Overhead & Indirect Costs November 2025,OH-2025-11,5310,436333.33,,Overhead 5310
+JE-0155,2025-11-30,Overhead & Indirect Costs November 2025,OH-2025-11,5320,193916.67,,Overhead 5320
+JE-0155,2025-11-30,Overhead & Indirect Costs November 2025,OH-2025-11,5330,145416.67,,Overhead 5330
+JE-0155,2025-11-30,Overhead & Indirect Costs November 2025,OH-2025-11,5360,266666.67,,Overhead 5360
+JE-0155,2025-11-30,Overhead & Indirect Costs November 2025,OH-2025-11,5410,73000.00,,Overhead 5410
+JE-0155,2025-11-30,Overhead & Indirect Costs November 2025,OH-2025-11,5420,97000.00,,Overhead 5420
+JE-0155,2025-11-30,Overhead & Indirect Costs November 2025,OH-2025-11,5440,72750.00,,Overhead 5440
+JE-0155,2025-11-30,Overhead & Indirect Costs November 2025,OH-2025-11,2000,,1285083.34,AP - overhead costs
+JE-0156,2025-12-31,Revenue Recognition December 2025 - Hard Rock Legacy Stadium,REV-2025-12,1010,15800000.00,,Accounts receivable billed to UM
+JE-0156,2025-12-31,Revenue Recognition December 2025 - Hard Rock Legacy Stadium,REV-2025-12,4000,,15800000.00,Contract revenue - Hard Rock Legacy Stadium
+JE-0157,2025-12-31,Retainage Withheld December 2025 - Hard Rock Legacy Stadium,RET-2025-12,1020,790000.00,,Retainage receivable 5%
+JE-0157,2025-12-31,Retainage Withheld December 2025 - Hard Rock Legacy Stadium,RET-2025-12,1010,,790000.00,Reduce AR for retainage
+JE-0158,2025-12-31,Revenue Recognition December 2025 - Hurricane Football Performance Center,REV-2025-12,1010,350000.00,,Accounts receivable billed to UM
+JE-0158,2025-12-31,Revenue Recognition December 2025 - Hurricane Football Performance Center,REV-2025-12,4010,,350000.00,Contract revenue - Hurricane Football Performance Center
+JE-0159,2025-12-31,Retainage Withheld December 2025 - Hurricane Football Performance Center,RET-2025-12,1020,17500.00,,Retainage receivable 5%
+JE-0159,2025-12-31,Retainage Withheld December 2025 - Hurricane Football Performance Center,RET-2025-12,1010,,17500.00,Reduce AR for retainage
+JE-0160,2025-12-31,Revenue Recognition December 2025 - Coral Gables Athlete Village,REV-2025-12,1010,400000.00,,Accounts receivable billed to UM
+JE-0160,2025-12-31,Revenue Recognition December 2025 - Coral Gables Athlete Village,REV-2025-12,4020,,400000.00,Contract revenue - Coral Gables Athlete Village
+JE-0161,2025-12-31,Retainage Withheld December 2025 - Coral Gables Athlete Village,RET-2025-12,1020,20000.00,,Retainage receivable 5%
+JE-0161,2025-12-31,Retainage Withheld December 2025 - Coral Gables Athlete Village,RET-2025-12,1010,,20000.00,Reduce AR for retainage
+JE-0162,2025-12-31,Revenue Recognition December 2025 - Hurricane Athletic Administration Tower,REV-2025-12,1010,450000.00,,Accounts receivable billed to UM
+JE-0162,2025-12-31,Revenue Recognition December 2025 - Hurricane Athletic Administration Tower,REV-2025-12,4030,,450000.00,Contract revenue - Hurricane Athletic Administration Tower
+JE-0163,2025-12-31,Retainage Withheld December 2025 - Hurricane Athletic Administration Tower,RET-2025-12,1020,22500.00,,Retainage receivable 5%
+JE-0163,2025-12-31,Retainage Withheld December 2025 - Hurricane Athletic Administration Tower,RET-2025-12,1010,,22500.00,Reduce AR for retainage
+JE-0164,2025-12-31,Revenue Recognition December 2025 - Stadium District Site & Infrastructure,REV-2025-12,1010,1000000.00,,Accounts receivable billed to UM
+JE-0164,2025-12-31,Revenue Recognition December 2025 - Stadium District Site & Infrastructure,REV-2025-12,4040,,1000000.00,Contract revenue - Stadium District Site & Infrastructure
+JE-0165,2025-12-31,Retainage Withheld December 2025 - Stadium District Site & Infrastructure,RET-2025-12,1020,50000.00,,Retainage receivable 5%
+JE-0165,2025-12-31,Retainage Withheld December 2025 - Stadium District Site & Infrastructure,RET-2025-12,1010,,50000.00,Reduce AR for retainage
+JE-0166,2025-12-31,Cash Receipt December 2025 - UM Progress Payments,CASH-2025-12,1000,5001311.93,,Cash received from UM
+JE-0166,2025-12-31,Cash Receipt December 2025 - UM Progress Payments,CASH-2025-12,1010,,5001311.93,Clear accounts receivable
+JE-0167,2025-12-31,Construction Costs December 2025 - All Projects,COST-2025-12,5000,11858095.56,,Direct cost 5000
+JE-0167,2025-12-31,Construction Costs December 2025 - All Projects,COST-2025-12,5010,1317359.92,,Direct cost 5010
+JE-0167,2025-12-31,Construction Costs December 2025 - All Projects,COST-2025-12,5120,1152767.27,,Direct cost 5120
+JE-0167,2025-12-31,Construction Costs December 2025 - All Projects,COST-2025-12,5130,823581.99,,Direct cost 5130
+JE-0167,2025-12-31,Construction Costs December 2025 - All Projects,COST-2025-12,5200,658989.37,,Direct cost 5200
+JE-0167,2025-12-31,Construction Costs December 2025 - All Projects,COST-2025-12,5230,230182.19,,Direct cost 5230
+JE-0167,2025-12-31,Construction Costs December 2025 - All Projects,COST-2025-12,5300,329804.07,,Direct cost 5300
+JE-0167,2025-12-31,Construction Costs December 2025 - All Projects,COST-2025-12,2000,,15552241.35,Accounts payable net of retainage
+JE-0167,2025-12-31,Construction Costs December 2025 - All Projects,COST-2025-12,2010,,818539.02,Retainage payable to subs
+JE-0168,2025-12-31,Subcontractor & Vendor Payments December 2025,PAY-2025-12,2000,4668509.62,,Pay subcontractors and vendors
+JE-0168,2025-12-31,Subcontractor & Vendor Payments December 2025,PAY-2025-12,1000,,4668509.62,Cash paid
+JE-0169,2025-12-31,Overhead & Indirect Costs December 2025,OH-2025-12,5310,436333.37,,Overhead 5310
+JE-0169,2025-12-31,Overhead & Indirect Costs December 2025,OH-2025-12,5320,193916.63,,Overhead 5320
+JE-0169,2025-12-31,Overhead & Indirect Costs December 2025,OH-2025-12,5330,145416.63,,Overhead 5330
+JE-0169,2025-12-31,Overhead & Indirect Costs December 2025,OH-2025-12,5360,266666.63,,Overhead 5360
+JE-0169,2025-12-31,Overhead & Indirect Costs December 2025,OH-2025-12,5410,73000.00,,Overhead 5410
+JE-0169,2025-12-31,Overhead & Indirect Costs December 2025,OH-2025-12,5420,97000.00,,Overhead 5420
+JE-0169,2025-12-31,Overhead & Indirect Costs December 2025,OH-2025-12,5440,72750.00,,Overhead 5440
+JE-0169,2025-12-31,Overhead & Indirect Costs December 2025,OH-2025-12,2000,,1285083.26,AP - overhead costs
+JE-0170,2025-03-31,Depreciation Q1 2025 - Equipment,DEP-2025-Q1,5230,400000.00,,Equipment depreciation
+JE-0170,2025-03-31,Depreciation Q1 2025 - Equipment,DEP-2025-Q1,1110,,400000.00,Accumulated depreciation
+JE-0171,2025-06-30,Depreciation Q2 2025 - Equipment,DEP-2025-Q2,5230,400000.00,,Equipment depreciation
+JE-0171,2025-06-30,Depreciation Q2 2025 - Equipment,DEP-2025-Q2,1110,,400000.00,Accumulated depreciation
+JE-0172,2025-09-30,Depreciation Q3 2025 - Equipment,DEP-2025-Q3,5230,400000.00,,Equipment depreciation
+JE-0172,2025-09-30,Depreciation Q3 2025 - Equipment,DEP-2025-Q3,1110,,400000.00,Accumulated depreciation
+JE-0173,2025-12-31,Depreciation Q4 2025 - Equipment,DEP-2025-Q4,5230,400000.00,,Equipment depreciation
+JE-0173,2025-12-31,Depreciation Q4 2025 - Equipment,DEP-2025-Q4,1110,,400000.00,Accumulated depreciation
+JE-0174,2025-06-30,Equipment Purchase 2025,EQUIP-2025,1100,2800000.00,,New equipment
+JE-0174,2025-06-30,Equipment Purchase 2025,EQUIP-2025,1000,,2800000.00,Cash for equipment
+JE-0175,2025-03-31,Utility & Permit Deposits 2025,DEPOSIT-2025,1200,800000.00,,Deposits paid
+JE-0175,2025-03-31,Utility & Permit Deposits 2025,DEPOSIT-2025,1000,,800000.00,Cash for deposits
+JE-0176,2025-06-30,Equipment Financing 2025,FIN-2025,1000,1200000.00,,Financing proceeds
+JE-0176,2025-06-30,Equipment Financing 2025,FIN-2025,2200,,1200000.00,Equipment financing LT
+JE-0177,2025-12-31,Year-End Accrual Reclassification,ADJ-2025-YE,2000,3000000.00,,Reduce AP
+JE-0177,2025-12-31,Year-End Accrual Reclassification,ADJ-2025-YE,2030,,1200000.00,Accrued payroll
+JE-0177,2025-12-31,Year-End Accrual Reclassification,ADJ-2025-YE,2040,,1800000.00,Accrued project costs

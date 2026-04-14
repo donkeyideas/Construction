@@ -1,0 +1,13 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2025-10-01,8500000,0,2025-11-01,Progress Payment #3 – MSP North Terminal Structural Steel Level 1 Complete,paid,,Metropolitan Airports Commission,MSP North Terminal Expansion
+receivable,2025-12-01,11200000,0,2026-01-01,Progress Payment #4 – MSP North Terminal Foundation and Level 2 Framing,paid,,Metropolitan Airports Commission,MSP North Terminal Expansion
+receivable,2026-01-15,9800000,0,2026-02-15,Progress Payment #5 – MSP North Terminal Level 2 and Level 3 Steel,pending,,Metropolitan Airports Commission,MSP North Terminal Expansion
+receivable,2025-11-01,4200000,0,2025-12-01,Progress Payment #2 – Runway 17-35 Full Depth Reclamation Sta 0+00 to 24+00,paid,,Metropolitan Airports Commission,Runway 17-35 Rehabilitation
+receivable,2026-01-15,3100000,0,2026-02-15,Progress Payment #3 – Runway 17-35 PCC Paving Sta 0+00 to 14+00,pending,,Metropolitan Airports Commission,Runway 17-35 Rehabilitation
+receivable,2025-12-15,1850000,0,2026-01-15,Progress Payment #1 – Rochester Cargo Site Mobilization and Foundation,paid,,City of Rochester Airport Authority,Rochester International Airport Cargo Facility
+receivable,2025-09-30,7650000,0,2025-10-30,Final Payment – Duluth GA Ramp Reconstruction,paid,,Duluth Airport Authority,Duluth International Airport General Aviation Ramp
+payable,2026-01-10,3850000,0,2026-02-10,Payment Application #6 – MSP North Terminal Steel Erection Level 2-3,pending,Prairie Structural Steel,,MSP North Terminal Expansion
+payable,2026-01-10,3200000,0,2026-02-10,Payment Application #4 – MSP North Terminal Mechanical Rough-in Level 1,pending,Ironclad Mechanical Inc.,,MSP North Terminal Expansion
+payable,2025-12-15,2650000,0,2026-01-15,Payment Application #3 – MSP North Terminal Electrical Service and Distribution,approved,Northern States Electrical,,MSP North Terminal Expansion
+payable,2026-01-05,2400000,0,2026-02-05,Payment Application #5 – MSP North Terminal Concrete Level 2,approved,Glacier Concrete Co.,,MSP North Terminal Expansion
+payable,2025-12-20,3900000,0,2026-01-20,Payment Application #4 – Runway 17-35 FDR and PCC Paving,paid,Great Lakes Asphalt Inc.,,Runway 17-35 Rehabilitation

@@ -200,6 +200,11 @@
       "fullName": "Vollstaendiger Name",
       "phone": "Telefon",
       "saveChanges": "Aenderungen Speichern"
+    },
+    "portalLabel": {
+      "tenant": "Mieterportal",
+      "vendor": "Lieferantenportal",
+      "employee": "Mitarbeiterportal"
     }
   },
   "mobile": {

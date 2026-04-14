@@ -1,0 +1,6 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+General Operating,US Bank,checking,2291,2500,7500000.00
+Payroll Account,US Bank,checking,2292,2500,1800000.00
+Project Escrow – West Seattle Bridge,Banner Bank,checking,8841,9910,6100000.00
+Project Escrow – SR-520 Lid,Banner Bank,checking,8842,9910,2800000.00
+Equipment Reserve,HomeStreet Bank,savings,5519,1140,1000000.00

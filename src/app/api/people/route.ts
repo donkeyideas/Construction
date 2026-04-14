@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { parseJsonBody, isErrorResponse } from "@/lib/utils/api-response";
 
 // ---------------------------------------------------------------------------
 // POST /api/people - Create a new contact
@@ -19,7 +20,9 @@ export async function POST(request: NextRequest) {
     const subBlock = await checkSubscriptionAccess(userCtx.companyId, "POST");
     if (subBlock) return subBlock;
 
-    const body = await request.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = await parseJsonBody<Record<string, any>>(request);
+    if (isErrorResponse(body)) return body;
 
     // Validate required fields
     if (!body.first_name || typeof body.first_name !== "string" || !body.first_name.trim()) {
@@ -67,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Create contact error:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(contact, { status: 201 });

@@ -1,0 +1,70 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-003,2025-10-01,Direct costs – MSP NTE October,AP-OCT-01,5010,4250000,,Subcontractor costs – Prairie Steel and Glacier Concrete
+JE-003,2025-10-01,Direct costs – MSP NTE October,AP-OCT-01,2000,,4250000,Accounts payable – subcontractors October
+JE-004,2025-10-01,Direct labor – MSP NTE October,PR-OCT-01,5000,980000,,Direct field labor October
+JE-004,2025-10-01,Direct labor – MSP NTE October,PR-OCT-01,2030,,980000,Accrued payroll October
+JE-005,2025-10-20,Payroll October disbursement,PR-OCT-PYMT,2030,980000,,Clear accrued payroll
+JE-005,2025-10-20,Payroll October disbursement,PR-OCT-PYMT,1000,,980000,Cash disbursed – payroll
+JE-006,2025-10-31,Sub payments October,AP-OCT-PYMT,2000,4250000,,Clear AP October
+JE-006,2025-10-31,Sub payments October,AP-OCT-PYMT,1000,,4250000,Cash disbursed – sub payments October
+JE-017,2025-11-30,Subcontractor costs November – MSP NTE,AP-NOV-01,5010,5800000,,Sub costs – all MSP NTE packages November
+JE-017,2025-11-30,Subcontractor costs November – MSP NTE,AP-NOV-01,2000,,5800000,AP – subs November
+JE-018,2025-11-30,Direct labor November,PR-NOV-01,5000,1180000,,Direct labor November all projects
+JE-018,2025-11-30,Direct labor November,PR-NOV-01,2030,,1180000,Accrued payroll November
+JE-019,2025-12-15,November AP settled,AP-NOV-PYMT,2000,5800000,,Clear AP November
+JE-019,2025-12-15,November AP settled,AP-NOV-PYMT,1000,,5800000,Cash disbursed November subs
+JE-020,2025-12-15,November payroll disbursed,PR-NOV-PYMT,2030,1180000,,Clear accrued payroll November
+JE-020,2025-12-15,November payroll disbursed,PR-NOV-PYMT,1000,,1180000,Cash disbursed payroll November
+JE-021,2025-12-31,Subcontractor costs December – MSP NTE and Runway,AP-DEC-01,5010,6250000,,Sub costs December – all projects
+JE-021,2025-12-31,Subcontractor costs December – MSP NTE and Runway,AP-DEC-01,5010,1950000,,Great Lakes Asphalt runway paving December
+JE-021,2025-12-31,Subcontractor costs December – MSP NTE and Runway,AP-DEC-01,2000,,8200000,AP December subcontractors
+JE-022,2025-12-31,Direct labor December all projects,PR-DEC-01,5000,1350000,,Direct labor December
+JE-022,2025-12-31,Direct labor December all projects,PR-DEC-01,2030,,1350000,Accrued payroll December
+JE-023,2026-01-05,December AP partially settled,AP-DEC-PYMT,2000,5950000,,Cash paid to subs December
+JE-023,2026-01-05,December AP partially settled,AP-DEC-PYMT,1000,,5950000,Cash disbursed December subs
+JE-024,2026-01-20,December payroll disbursed,PR-DEC-PYMT,2030,1350000,,Clear accrued payroll December
+JE-024,2026-01-20,December payroll disbursed,PR-DEC-PYMT,1000,,1350000,Cash disbursed payroll December
+JE-025,2026-01-31,January 2026 sub costs – all projects,AP-JAN-01,5010,7100000,,Sub costs January 2026 MSP NTE PP#5 period
+JE-025,2026-01-31,January 2026 sub costs – all projects,AP-JAN-01,5010,2400000,,Sub costs January runway project
+JE-025,2026-01-31,January 2026 sub costs – all projects,AP-JAN-01,2000,,9500000,AP January subcontractors
+JE-026,2026-01-31,January 2026 direct labor,PR-JAN-01,5000,1520000,,Direct labor January 2026 all projects
+JE-026,2026-01-31,January 2026 direct labor,PR-JAN-01,2030,,1520000,Accrued payroll January 2026
+JE-027,2026-01-31,Materials and direct costs January,AP-MAT-01,5020,850000,,Materials and supplies January 2026
+JE-027,2026-01-31,Materials and direct costs January,AP-MAT-01,2000,,850000,AP materials vendors
+JE-028,2025-10-31,G&A salaries Q4 2025,PR-GA-Q4,6000,1680000,,G&A salaries October through December
+JE-028,2025-10-31,G&A salaries Q4 2025,PR-GA-Q4,6010,420000,,Payroll taxes and benefits Q4
+JE-028,2025-10-31,G&A salaries Q4 2025,PR-GA-Q4,2030,,2100000,Accrued payroll G&A Q4
+JE-029,2025-12-31,Q4 G&A payroll disbursed,PR-GA-Q4-PYMT,2030,2100000,,Clear G&A accrued payroll Q4
+JE-029,2025-12-31,Q4 G&A payroll disbursed,PR-GA-Q4-PYMT,1000,,2100000,Cash disbursed G&A payroll Q4
+JE-030,2026-01-31,G&A salaries January 2026,PR-GA-JAN,6000,560000,,G&A salaries January 2026
+JE-030,2026-01-31,G&A salaries January 2026,PR-GA-JAN,6010,140000,,Payroll taxes and benefits January
+JE-030,2026-01-31,G&A salaries January 2026,PR-GA-JAN,2030,,700000,Accrued payroll G&A January
+JE-031,2025-10-31,Insurance – Q4 2025,EXP-INS-Q4,6030,385000,,General liability workers comp umbrella Q4
+JE-031,2025-10-31,Insurance – Q4 2025,EXP-INS-Q4,1040,,385000,Draw on prepaid insurance
+JE-032,2026-01-31,Insurance – January 2026,EXP-INS-JAN,6030,128000,,Insurance January 2026
+JE-032,2026-01-31,Insurance – January 2026,EXP-INS-JAN,2040,,128000,Accrued insurance January
+JE-033,2025-12-31,Depreciation – Q4 2025,DEP-Q4-25,6040,420000,,Equipment and vehicle depreciation Q4 2025
+JE-033,2025-12-31,Depreciation – Q4 2025,DEP-Q4-25,1130,,420000,Accumulated depreciation Q4
+JE-034,2026-01-31,Depreciation – January 2026,DEP-JAN-26,6040,140000,,Equipment and vehicle depreciation January 2026
+JE-034,2026-01-31,Depreciation – January 2026,DEP-JAN-26,1130,,140000,Accumulated depreciation January
+JE-035,2025-12-31,Professional fees – Q4 2025,EXP-PROF-Q4,6050,145000,,Legal
+JE-035,2025-12-31,Professional fees – Q4 2025,EXP-PROF-Q4,2040,,145000,Accrued professional fees Q4
+JE-036,2026-01-31,Office and technology expenses January,EXP-IT-JAN,6080,48000,,Software subscriptions and IT January
+JE-036,2026-01-31,Office and technology expenses January,EXP-IT-JAN,2040,,48000,Accrued office expenses
+JE-037,2025-12-31,Interest expense Q4 2025,EXP-INT-Q4,7000,92000,,Interest on equipment financing and LOC Q4 2025
+JE-037,2025-12-31,Interest expense Q4 2025,EXP-INT-Q4,2040,,92000,Accrued interest Q4
+JE-038,2026-01-31,Interest expense January 2026,EXP-INT-JAN,7000,31000,,Interest January 2026
+JE-038,2026-01-31,Interest expense January 2026,EXP-INT-JAN,2040,,31000,Accrued interest January
+JE-039,2025-12-31,Income tax expense accrual year-end,TAX-YE-25,8000,1850000,,Federal and state income tax accrual FY2025
+JE-039,2025-12-31,Income tax accrual year-end,TAX-YE-25,2050,,1850000,Income taxes payable year-end
+JE-040,2026-01-31,Retainage withheld from MAC billings – MSP NTE,RET-MAC-01,1020,2890000,,10% retainage on MSP NTE billings to date
+JE-040,2026-01-31,Retainage withheld from MAC billings – MSP NTE,RET-MAC-01,1010,,2890000,Reduce AR for retainage held
+JE-041,2026-01-31,Retainage withheld from subs – MSP NTE,RET-SUB-01,2000,2240000,,10% retainage withheld from sub payments
+JE-041,2026-01-31,Retainage withheld from subs – MSP NTE,RET-SUB-01,2010,,2240000,Retainage payable to subs
+JE-000,2024-01-31,Opening balance entry – beginning of operations tracking period,OB-2024,1000,5500000,,Beginning cash balance carryforward
+JE-000,2024-01-31,Opening balance entry – beginning of operations tracking period,OB-2024,1100,5297000,,Equipment net book value beginning of period (gross 7.1M less accum dep 1.8M)
+JE-000,2024-01-31,Opening balance entry – beginning of operations tracking period,OB-2024,1200,150000,,Security deposits and other long-term assets
+JE-000,2024-01-31,Opening balance entry – beginning of operations tracking period,OB-2024,1040,650000,,Prepaid insurance beginning of period
+JE-000,2024-01-31,Opening balance entry – beginning of operations tracking period,OB-2024,2100,0,2850000,Equipment financing – long-term debt
+JE-000,2024-01-31,Opening balance entry – beginning of operations tracking period,OB-2024,3000,0,500000,Common stock – paid-in capital
+JE-000,2024-01-31,Opening balance entry – beginning of operations tracking period,OB-2024,3010,0,8247000,Retained earnings – beginning of period

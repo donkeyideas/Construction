@@ -1,0 +1,300 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-001,2025-01-31,January In-Store Sales,POS-JAN,1000,46250.00,,Cash receipt from POS in-store sales
+JE-001,2025-01-31,January In-Store Sales,POS-JAN,4000,,46250.00,In-store food & beverage sales - January
+JE-002,2025-01-31,January Delivery Sales,DEL-JAN,1000,11480.00,,Cash receipt net of delivery fees
+JE-002,2025-01-31,January Delivery Sales,DEL-JAN,4020,,16400.00,Third-party delivery gross revenue - January
+JE-002,2025-01-31,January Delivery Sales,DEL-JAN,5800,4920.00,,Delivery platform fees 30% - January
+JE-005,2025-01-31,January Payroll,PAY-JAN,5100,16500.00,,Hourly wages - January
+JE-005,2025-01-31,January Payroll,PAY-JAN,5110,1262.25,,Payroll taxes - January
+JE-005,2025-01-31,January Payroll,PAY-JAN,5120,950.00,,Benefits - January
+JE-005,2025-01-31,January Payroll,PAY-JAN,1000,,18712.25,Payroll cash disbursement - January
+JE-006,2025-01-31,January Subway Royalties,ROY-JAN,5200,5488.00,,Royalties 8% of gross sales $68600
+JE-006,2025-01-31,January Subway Royalties,ROY-JAN,2030,,5488.00,Royalties payable - January
+JE-007,2025-01-31,January Advertising Fund,ADV-JAN,5210,3086.00,,Ad fund 4.5% of gross sales
+JE-007,2025-01-31,January Advertising Fund,ADV-JAN,2030,,3086.00,Ad fund payable - January
+JE-008,2025-01-31,January Rent,RENT-JAN,5300,4500.00,,Base rent - January
+JE-008,2025-01-31,January Rent,RENT-JAN,5310,420.00,,CAM charges - January
+JE-008,2025-01-31,January Rent,RENT-JAN,1000,,4920.00,Rent cash disbursement - January
+JE-009,2025-01-31,January Utilities,UTIL-JAN,5400,1850.00,,Electric gas water - January
+JE-009,2025-01-31,January Utilities,UTIL-JAN,5410,180.00,,Internet & phone - January
+JE-009,2025-01-31,January Utilities,UTIL-JAN,1000,,2030.00,Utilities disbursement - January
+JE-010,2025-01-31,January Other OpEx,OPS-JAN,5500,380.00,,Supplies - January
+JE-010,2025-01-31,January Other OpEx,OPS-JAN,5600,720.00,,Insurance - January
+JE-010,2025-01-31,January Other OpEx,OPS-JAN,5700,1208.33,,Depreciation - January
+JE-010,2025-01-31,January Other OpEx,OPS-JAN,5900,250.00,,Miscellaneous - January
+JE-010,2025-01-31,January Other OpEx,OPS-JAN,1520,,1208.33,Accumulated depreciation
+JE-010,2025-01-31,January Other OpEx,OPS-JAN,1000,,1350.00,Cash disbursements - January OpEx
+JE-011,2025-01-31,January SBA Loan Payment,LOAN-JAN,2040,1462.50,,SBA loan principal payment
+JE-011,2025-01-31,January SBA Loan Payment,LOAN-JAN,6000,585.00,,Interest expense on SBA loan
+JE-011,2025-01-31,January SBA Loan Payment,LOAN-JAN,1000,,2047.50,SBA loan cash payment
+JE-012,2025-02-28,February In-Store Sales,POS-FEB,1000,42800.00,,Cash receipt from POS in-store sales
+JE-012,2025-02-28,February In-Store Sales,POS-FEB,4000,,42800.00,In-store food & beverage sales - February
+JE-013,2025-02-28,February Delivery Sales,DEL-FEB,1000,10640.00,,Cash receipt net of delivery fees
+JE-013,2025-02-28,February Delivery Sales,DEL-FEB,4020,,15200.00,Third-party delivery gross revenue - February
+JE-013,2025-02-28,February Delivery Sales,DEL-FEB,5800,4560.00,,Delivery platform fees 30% - February
+JE-016,2025-02-28,February Payroll,PAY-FEB,5100,16500.00,,Hourly wages - February
+JE-016,2025-02-28,February Payroll,PAY-FEB,5110,1262.25,,Payroll taxes - February
+JE-016,2025-02-28,February Payroll,PAY-FEB,5120,950.00,,Benefits - February
+JE-016,2025-02-28,February Payroll,PAY-FEB,1000,,18712.25,Payroll cash disbursement - February
+JE-017,2025-02-28,February Royalties & AdFund,ROY-FEB,5200,5104.00,,Royalties 8% - February gross $63800
+JE-017,2025-02-28,February Royalties & AdFund,ROY-FEB,5210,2871.00,,Ad fund 4.5% - February
+JE-017,2025-02-28,February Royalties & AdFund,ROY-FEB,2030,,7975.00,Royalties & ad fund payable - February
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,5300,4500.00,,Rent - February
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,5310,420.00,,CAM - February
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,5400,1780.00,,Utilities - February
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,5410,180.00,,Internet & phone - February
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,5500,360.00,,Supplies - February
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,5600,720.00,,Insurance - February
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,5700,1208.33,,Depreciation - February
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,5900,200.00,,Miscellaneous - February
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,1520,,1208.33,Accumulated depreciation
+JE-018,2025-02-28,February Fixed Expenses,FIX-FEB,1000,,8160.00,Cash disbursements February fixed
+JE-019,2025-02-28,February SBA Loan Payment,LOAN-FEB,2040,1462.50,,SBA loan principal
+JE-019,2025-02-28,February SBA Loan Payment,LOAN-FEB,6000,579.00,,Interest - February
+JE-019,2025-02-28,February SBA Loan Payment,LOAN-FEB,1000,,2041.50,SBA loan cash payment
+JE-020,2025-03-31,March In-Store Sales,POS-MAR,1000,49600.00,,Cash receipt in-store sales - March
+JE-020,2025-03-31,March In-Store Sales,POS-MAR,4000,,49600.00,In-store food & beverage sales - March
+JE-021,2025-03-31,March Delivery & Catering,DEL-MAR,1000,13510.00,,Cash net - delivery March
+JE-021,2025-03-31,March Delivery & Catering,DEL-MAR,4020,,19300.00,Third-party delivery gross - March
+JE-021,2025-03-31,March Delivery & Catering,DEL-MAR,5800,5790.00,,Delivery platform fees - March
+JE-024,2025-03-31,March Payroll,PAY-MAR,5100,17200.00,,Wages - March (extra PT hire spring break)
+JE-024,2025-03-31,March Payroll,PAY-MAR,5110,1316.00,,Payroll taxes - March
+JE-024,2025-03-31,March Payroll,PAY-MAR,5120,950.00,,Benefits - March
+JE-024,2025-03-31,March Payroll,PAY-MAR,1000,,19466.00,Payroll disbursement - March
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5200,5878.64,,Royalties 8% gross $73483
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5210,3306.74,,Ad fund 4.5%
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5300,4500.00,,Rent - March
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5310,420.00,,CAM - March
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5400,1920.00,,Utilities - March
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5410,180.00,,Internet & phone
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5500,380.00,,Supplies
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5600,720.00,,Insurance
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5700,1208.33,,Depreciation
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,5900,300.00,,Miscellaneous
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,2030,,9185.38,Royalties & ad fund payable
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,1520,,1208.33,Accumulated depreciation
+JE-025,2025-03-31,March Royalties & Fixed,ROY-MAR,1000,,8420.00,Cash disbursements fixed costs
+JE-026,2025-03-31,March SBA Loan,LOAN-MAR,2040,1462.50,,Principal payment
+JE-026,2025-03-31,March SBA Loan,LOAN-MAR,6000,572.00,,Interest
+JE-026,2025-03-31,March SBA Loan,LOAN-MAR,1000,,2034.50,Cash payment
+JE-027,2025-04-30,April In-Store Sales,POS-APR,1000,51200.00,,In-store sales - April
+JE-027,2025-04-30,April In-Store Sales,POS-APR,4000,,51200.00,Revenue - April
+JE-028,2025-04-30,April Delivery,DEL-APR,1000,13720.00,,Cash net delivery
+JE-028,2025-04-30,April Delivery,DEL-APR,4020,,19600.00,Delivery gross - April
+JE-028,2025-04-30,April Delivery,DEL-APR,5800,5880.00,,Platform fees - April
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5100,16500.00,,Wages - April
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5110,1262.25,,Payroll taxes
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5120,950.00,,Benefits
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5200,6094.64,,Royalties 8%
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5210,3428.24,,Ad fund 4.5%
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5300,4500.00,,Rent
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5310,420.00,,CAM
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5400,1800.00,,Utilities
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5410,180.00,,Internet
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5500,360.00,,Supplies
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5600,720.00,,Insurance
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5700,1208.33,,Depreciation
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,5900,250.00,,Misc
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,2030,,9522.88,Royalties payable
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,1520,,1208.33,Accum depreciation
+JE-031,2025-04-30,April Payroll & Fixed,PAY-APR,1000,,26422.50,Cash disbursements
+JE-032,2025-04-30,April SBA Loan,LOAN-APR,2040,1462.50,,Principal
+JE-032,2025-04-30,April SBA Loan,LOAN-APR,6000,565.00,,Interest
+JE-032,2025-04-30,April SBA Loan,LOAN-APR,1000,,2027.50,Cash payment
+JE-033,2025-05-31,May In-Store Sales,POS-MAY,1000,56800.00,,In-store sales May (spring tourist season)
+JE-033,2025-05-31,May In-Store Sales,POS-MAY,4000,,56800.00,Revenue
+JE-034,2025-05-31,May Delivery,DEL-MAY,1000,15120.00,,Cash net delivery
+JE-034,2025-05-31,May Delivery,DEL-MAY,4020,,21600.00,Delivery gross
+JE-034,2025-05-31,May Delivery,DEL-MAY,5800,6480.00,,Platform fees
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5100,17500.00,,Wages - extra summer staff
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5110,1338.75,,Payroll taxes
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5120,950.00,,Benefits
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5200,6638.64,,Royalties 8% of $82983
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5210,3734.24,,Ad fund 4.5%
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5300,4500.00,,Rent
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5310,420.00,,CAM
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5400,2100.00,,Utilities (AC season begins)
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5410,180.00,,Internet
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5500,380.00,,Supplies
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5600,720.00,,Insurance
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5700,1208.33,,Depreciation
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,5900,300.00,,Misc
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,2030,,10372.88,Royalties payable
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,1520,,1208.33,Accum depreciation
+JE-037,2025-05-31,May Payroll & Fixed,PAY-MAY,1000,,27580.00,Cash disbursements
+JE-038,2025-05-31,May SBA Loan,LOAN-MAY,2040,1462.50,,Principal
+JE-038,2025-05-31,May SBA Loan,LOAN-MAY,6000,558.00,,Interest
+JE-038,2025-05-31,May SBA Loan,LOAN-MAY,1000,,2020.50,Cash payment
+JE-039,2025-06-30,June In-Store Sales,POS-JUN,1000,55400.00,,In-store sales June
+JE-039,2025-06-30,June In-Store Sales,POS-JUN,4000,,55400.00,Revenue
+JE-040,2025-06-30,June Delivery,DEL-JUN,1000,14700.00,,Cash net delivery
+JE-040,2025-06-30,June Delivery,DEL-JUN,4020,,21000.00,Delivery gross
+JE-040,2025-06-30,June Delivery,DEL-JUN,5800,6300.00,,Platform fees
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5100,17500.00,,Wages
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5110,1338.75,,Payroll taxes
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5120,950.00,,Benefits
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5200,6542.64,,Royalties 8% of $81783
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5210,3680.24,,Ad fund 4.5%
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5300,4500.00,,Rent
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5310,420.00,,CAM
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5400,2300.00,,Utilities peak summer
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5410,180.00,,Internet
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5500,380.00,,Supplies
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5600,720.00,,Insurance
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5700,1208.33,,Depreciation
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,5900,280.00,,Misc
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,2030,,10222.88,Royalties payable
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,1520,,1208.33,Accum depreciation
+JE-043,2025-06-30,June Payroll & Fixed,PAY-JUN,1000,,28280.00,Cash disbursements
+JE-044,2025-06-30,June SBA & TurboChef Service,MISC-JUN,2040,1462.50,,SBA principal
+JE-044,2025-06-30,June SBA & TurboChef Service,MISC-JUN,6000,551.00,,Interest
+JE-044,2025-06-30,June SBA & TurboChef Service,MISC-JUN,1000,,2816.50,SBA + TurboChef service cash out
+JE-044,2025-06-30,June SBA & TurboChef Service,MISC-JUN,5900,803.00,,TurboChef annual service both ovens
+JE-045,2025-07-31,July In-Store Sales,POS-JUL,1000,58200.00,,In-store sales July (peak tourist)
+JE-045,2025-07-31,July In-Store Sales,POS-JUL,4000,,58200.00,Revenue
+JE-046,2025-07-31,July Delivery,DEL-JUL,1000,15610.00,,Cash net delivery
+JE-046,2025-07-31,July Delivery,DEL-JUL,4020,,22300.00,Delivery gross
+JE-046,2025-07-31,July Delivery,DEL-JUL,5800,6690.00,,Platform fees
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5100,18000.00,,Wages July - peak staffing
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5110,1377.00,,Payroll taxes
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5120,950.00,,Benefits
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5200,6806.24,,Royalties 8% of $85078
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5210,3828.51,,Ad fund 4.5%
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5300,4500.00,,Rent
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5310,420.00,,CAM
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5400,2500.00,,Utilities peak summer
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5410,180.00,,Internet
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5500,400.00,,Supplies
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5600,720.00,,Insurance
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5700,1208.33,,Depreciation
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,5900,300.00,,Misc
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,2030,,10634.75,Royalties payable
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,1520,,1208.33,Accum depreciation
+JE-049,2025-07-31,July Payroll & Fixed,PAY-JUL,1000,,29570.00,Cash disbursements
+JE-050,2025-07-31,July SBA Loan,LOAN-JUL,2040,1462.50,,Principal
+JE-050,2025-07-31,July SBA Loan,LOAN-JUL,6000,544.00,,Interest
+JE-050,2025-07-31,July SBA Loan,LOAN-JUL,1000,,2006.50,Cash payment
+JE-051,2025-08-31,August In-Store Sales,POS-AUG,1000,57100.00,,In-store sales August
+JE-051,2025-08-31,August In-Store Sales,POS-AUG,4000,,57100.00,Revenue
+JE-052,2025-08-31,August Delivery,DEL-AUG,1000,15050.00,,Cash net delivery
+JE-052,2025-08-31,August Delivery,DEL-AUG,4020,,21500.00,Delivery gross
+JE-052,2025-08-31,August Delivery,DEL-AUG,5800,6450.00,,Platform fees
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5100,18000.00,,Wages August
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5110,1377.00,,Payroll taxes
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5120,950.00,,Benefits
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5200,6638.24,,Royalties 8% of $82978
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5210,3734.01,,Ad fund 4.5%
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5300,4500.00,,Rent
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5310,420.00,,CAM
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5400,2400.00,,Utilities
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5410,180.00,,Internet
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5500,380.00,,Supplies
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5600,720.00,,Insurance
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5700,1208.33,,Depreciation
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,5900,280.00,,Misc
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,2030,,10372.25,Royalties payable
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,1520,,1208.33,Accum depreciation
+JE-055,2025-08-31,August Payroll & Fixed,PAY-AUG,1000,,29280.00,Cash disbursements
+JE-056,2025-08-31,August SBA Loan,LOAN-AUG,2040,1462.50,,Principal
+JE-056,2025-08-31,August SBA Loan,LOAN-AUG,6000,537.00,,Interest
+JE-056,2025-08-31,August SBA Loan,LOAN-AUG,1000,,1999.50,Cash payment
+JE-057,2025-09-30,September In-Store Sales,POS-SEP,1000,53400.00,,In-store sales September (back to work)
+JE-057,2025-09-30,September In-Store Sales,POS-SEP,4000,,53400.00,Revenue
+JE-058,2025-09-30,September Delivery,DEL-SEP,1000,13720.00,,Cash net delivery
+JE-058,2025-09-30,September Delivery,DEL-SEP,4020,,19600.00,Delivery gross
+JE-058,2025-09-30,September Delivery,DEL-SEP,5800,5880.00,,Platform fees
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5100,17000.00,,Wages September
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5110,1300.50,,Payroll taxes
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5120,950.00,,Benefits
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5200,6158.24,,Royalties 8% of $76978
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5210,3464.01,,Ad fund 4.5%
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5300,4500.00,,Rent
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5310,420.00,,CAM
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5400,2100.00,,Utilities
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5410,180.00,,Internet
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5500,380.00,,Supplies
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5600,720.00,,Insurance
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5700,1208.33,,Depreciation
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,5900,300.00,,Misc
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,2030,,9622.25,Royalties payable
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,1520,,1208.33,Accum depreciation
+JE-061,2025-09-30,September Payroll & Fixed,PAY-SEP,1000,,27350.00,Cash disbursements
+JE-062,2025-09-30,September SBA & Slicer Service,MISC-SEP,2040,1462.50,,Principal
+JE-062,2025-09-30,September SBA & Slicer Service,MISC-SEP,6000,529.00,,Interest
+JE-062,2025-09-30,September SBA & Slicer Service,MISC-SEP,5900,95.00,,Globe slicer blade sharpening
+JE-062,2025-09-30,September SBA & Slicer Service,MISC-SEP,1000,,2086.50,Cash payment
+JE-063,2025-10-31,October In-Store Sales,POS-OCT,1000,52300.00,,In-store sales October
+JE-063,2025-10-31,October In-Store Sales,POS-OCT,4000,,52300.00,Revenue
+JE-064,2025-10-31,October Delivery,DEL-OCT,1000,13440.00,,Cash net delivery
+JE-064,2025-10-31,October Delivery,DEL-OCT,4020,,19200.00,Delivery gross
+JE-064,2025-10-31,October Delivery,DEL-OCT,5800,5760.00,,Platform fees
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5100,16500.00,,Wages October
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5110,1262.25,,Payroll taxes
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5120,950.00,,Benefits
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5200,6071.04,,Royalties 8% of $75888
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5210,3414.96,,Ad fund 4.5%
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5300,4500.00,,Rent
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5310,420.00,,CAM
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5400,1950.00,,Utilities
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5410,180.00,,Internet
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5500,380.00,,Supplies
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5600,720.00,,Insurance
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5700,1208.33,,Depreciation
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,5900,280.00,,Misc
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,2030,,9486.00,Royalties payable
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,1520,,1208.33,Accum depreciation
+JE-067,2025-10-31,October Payroll & Fixed,PAY-OCT,1000,,26880.00,Cash disbursements
+JE-068,2025-10-31,October SBA Loan,LOAN-OCT,2040,1462.50,,Principal
+JE-068,2025-10-31,October SBA Loan,LOAN-OCT,6000,522.00,,Interest
+JE-068,2025-10-31,October SBA Loan,LOAN-OCT,1000,,1984.50,Cash payment
+JE-069,2025-11-30,November In-Store Sales,POS-NOV,1000,50100.00,,In-store sales November
+JE-069,2025-11-30,November In-Store Sales,POS-NOV,4000,,50100.00,Revenue
+JE-070,2025-11-30,November Delivery,DEL-NOV,1000,12810.00,,Cash net delivery
+JE-070,2025-11-30,November Delivery,DEL-NOV,4020,,18300.00,Delivery gross
+JE-070,2025-11-30,November Delivery,DEL-NOV,5800,5490.00,,Platform fees
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5100,16500.00,,Wages November
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5110,1262.25,,Payroll taxes
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5120,950.00,,Benefits
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5200,5839.04,,Royalties 8% of $72988
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5210,3284.46,,Ad fund 4.5%
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5300,4500.00,,Rent
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5310,420.00,,CAM
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5400,1900.00,,Utilities
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5410,180.00,,Internet
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5500,380.00,,Supplies
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5600,720.00,,Insurance
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5700,1208.33,,Depreciation
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,5900,280.00,,Misc
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,2030,,9123.50,Royalties payable
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,1520,,1208.33,Accum depreciation
+JE-073,2025-11-30,November Payroll & Fixed,PAY-NOV,1000,,25880.00,Cash disbursements
+JE-074,2025-11-30,November SBA Loan,LOAN-NOV,2040,1462.50,,Principal
+JE-074,2025-11-30,November SBA Loan,LOAN-NOV,6000,514.00,,Interest
+JE-074,2025-11-30,November SBA Loan,LOAN-NOV,1000,,1976.50,Cash payment
+JE-075,2025-12-31,December In-Store Sales,POS-DEC,1000,54800.00,,In-store sales December (holiday)
+JE-075,2025-12-31,December In-Store Sales,POS-DEC,4000,,54800.00,Revenue
+JE-076,2025-12-31,December Delivery,DEL-DEC,1000,14490.00,,Cash net delivery
+JE-076,2025-12-31,December Delivery,DEL-DEC,4020,,20700.00,Delivery gross
+JE-076,2025-12-31,December Delivery,DEL-DEC,5800,6210.00,,Platform fees
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5100,17500.00,,Wages December holiday
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5110,1338.75,,Payroll taxes
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5120,950.00,,Benefits
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5200,6471.12,,Royalties 8% of $80889
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5210,3640.01,,Ad fund 4.5%
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5300,4500.00,,Rent
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5310,420.00,,CAM
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5400,2050.00,,Utilities
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5410,180.00,,Internet
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5500,400.00,,Supplies
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5510,480.00,,Uniforms new year issue
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5600,720.00,,Insurance
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5700,1208.33,,Depreciation
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,5900,400.00,,Misc holiday supplies
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,2030,,10111.13,Royalties payable
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,1520,,1208.33,Accum depreciation
+JE-079,2025-12-31,December Payroll & Fixed,PAY-DEC,1000,,28730.00,Cash disbursements
+JE-080,2025-12-31,December SBA Loan,LOAN-DEC,2040,1462.50,,Principal
+JE-080,2025-12-31,December SBA Loan,LOAN-DEC,6000,507.00,,Interest
+JE-080,2025-12-31,December SBA Loan,LOAN-DEC,1000,,1969.50,Cash payment
+JE-081,2025-12-31,December Ice Machine Service,EQUIP-DEC,5900,220.00,,Hoshizaki 6-month cleaning
+JE-081,2025-12-31,December Ice Machine Service,EQUIP-DEC,1000,,220.00,Cash payment equipment service

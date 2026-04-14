@@ -8,7 +8,7 @@ export async function GET() {
   const userCompany = await getCurrentUserCompany(supabase);
 
   if (!userCompany) {
-    return new Response("Unauthorized", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { data, error } = await supabase
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   const userCompany = await getCurrentUserCompany(supabase);
 
   if (!userCompany) {
-    return new Response("Unauthorized", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { title, messages } = (await req.json()) as {

@@ -1,0 +1,28 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Robert,Stafford,employee,r.stafford@pinnaclebuilds.com,305-555-0101,,CEO & Principal
+Claudia,Reyes,employee,c.reyes@pinnaclebuilds.com,305-555-0102,,CFO
+Marcus,Holloway,employee,m.holloway@pinnaclebuilds.com,305-555-0103,,VP of Construction
+Jennifer,Tam,employee,j.tam@pinnaclebuilds.com,305-555-0104,,Senior Project Manager
+Darius,Knight,employee,d.knight@pinnaclebuilds.com,305-555-0105,,Project Manager
+Alicia,Fontaine,employee,a.fontaine@pinnaclebuilds.com,305-555-0106,,FF&E Coordinator
+Tony,Esposito,employee,t.esposito@pinnaclebuilds.com,305-555-0107,,Superintendent
+Yolanda,Marsh,employee,y.marsh@pinnaclebuilds.com,305-555-0108,,Project Engineer
+Carlos,Vega,employee,c.vega@pinnaclebuilds.com,305-555-0109,,Safety Manager
+Priya,Patel,employee,p.patel@pinnaclebuilds.com,305-555-0110,,Project Controller
+William,Harrington,client,w.harrington@luxebridgedev.com,212-555-0201,LuxeBridge Hotel Development,Managing Partner
+Sophia,Chen,client,s.chen@luxebridgedev.com,212-555-0202,LuxeBridge Hotel Development,VP Development
+Derek,Osei,client,d.osei@marriott.com,301-555-0203,Marriott International,Brand Standards Director
+Lauren,Whitmore,client,l.whitmore@marriott.com,301-555-0204,Marriott International,Project Manager - Owner Services
+Frank,Deluca,client,f.deluca@luxebridgedev.com,212-555-0205,LuxeBridge Hotel Development,Lender Representative
+Nathan,Cross,vendor,n.cross@southeastfoundation.com,305-555-0301,Southeast Foundation Group,Project Manager
+Irene,Burgess,vendor,i.burgess@tropicalconcrete.com,305-555-0302,Tropical Concrete Inc,Regional Sales Manager
+Steven,Park,vendor,s.park@sunbeltsteelerectors.com,305-555-0303,Sunbelt Steel Erectors,VP Operations
+Rosa,Delgado,vendor,r.delgado@floridamep.com,305-555-0304,Florida MEP Contractors,Principal
+Hector,Suarez,vendor,h.suarez@caribbeandrywall.com,305-555-0305,Caribbean Drywall & Framing,President
+Linda,Kovacs,vendor,l.kovacs@premiercurtainwall.com,305-555-0306,Premier Curtain Wall Systems,Project Director
+Joseph,Tran,vendor,j.tran@eliteroofing.com,305-555-0307,Elite Roofing & Waterproofing,Estimator
+Amanda,Russo,vendor,a.russo@southernelectric.com,305-555-0308,Southern Electrical Group,Project Manager
+Marcus,Williams,vendor,m.williams@poolandspa.com,305-555-0309,Aqua Hospitality Systems,President
+Diane,Nakamura,vendor,d.nakamura@avintegrationsfl.com,305-555-0310,AV Integration Solutions FL,Director of Projects
+Patricia,Owens,vendor,p.owens@luxuryffefl.com,305-555-0311,Luxury FF&E Procurement LLC,Account Executive
+Gary,Monroe,vendor,g.monroe@flamarble.com,305-555-0312,Florida Marble & Stone Works,Estimator

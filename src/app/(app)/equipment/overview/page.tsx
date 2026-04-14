@@ -6,9 +6,11 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getEquipmentOverview } from "@/lib/queries/equipment";
 import { formatCompactCurrency, formatPercent } from "@/lib/utils/format";
 import { formatLocalDate } from "@/lib/utils/date";
-import EquipmentStatusChart from "@/components/charts/EquipmentStatusChart";
-import EquipmentTypeChart from "@/components/charts/EquipmentTypeChart";
+import dynamic from "next/dynamic";
 import { getTranslations } from "next-intl/server";
+
+const EquipmentStatusChart = dynamic(() => import("@/components/charts/EquipmentStatusChart"), { loading: () => <div style={{ height: 260 }} /> });
+const EquipmentTypeChart = dynamic(() => import("@/components/charts/EquipmentTypeChart"), { loading: () => <div style={{ height: 260 }} /> });
 
 
 export const metadata = {

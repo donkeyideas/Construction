@@ -37,6 +37,8 @@
   ],
   "exclude": [
     "node_modules",
+    "mobile",
+    "side.project",
     "mockups",
     "mockups-v2",
     "mockups-corporate",

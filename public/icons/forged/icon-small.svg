@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="molten" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#dc2626"/>
+      <stop offset="40%" stop-color="#f59e0b"/>
+      <stop offset="75%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+    <filter id="heat">
+      <feGaussianBlur stdDeviation="0.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="32" height="32" rx="7" fill="#0c0a09"/>
+
+  <!-- Ember glow -->
+  <ellipse cx="16" cy="30" rx="12" ry="5" fill="#dc2626" opacity="0.2"/>
+
+  <!-- Molten B -->
+  <path fill-rule="evenodd" fill="url(#molten)" filter="url(#heat)" d="
+    M 8 5 L 19 5 C 22.5 5 25 7.5 25 10.5
+    C 25 12.8 23.8 14.5 22 15.5
+    C 24 16.5 25.5 18.5 25.5 21.5
+    C 25.5 25 23 27 19.5 27
+    L 8 27 Z
+
+    M 12.5 9.5 L 12.5 13.5 L 17.8 13.5
+    C 19.5 13.5 20.8 12.5 20.8 11.5
+    C 20.8 10.5 19.5 9.5 17.8 9.5 Z
+
+    M 12.5 17.5 L 12.5 23.2 L 18.5 23.2
+    C 20.8 23.2 22 21.8 22 20.3
+    C 22 18.8 20.8 17.5 18.5 17.5 Z
+  "/>
+
+  <!-- Sparks -->
+  <circle cx="24" cy="7" r="0.8" fill="#fef3c7" opacity="0.8"/>
+  <circle cx="26" cy="12" r="0.6" fill="#fef3c7" opacity="0.5"/>
+</svg>

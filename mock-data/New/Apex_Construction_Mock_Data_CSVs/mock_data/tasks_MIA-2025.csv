@@ -1,0 +1,19 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design development and value engineering,Preconstruction & Permitting,high,2024-09-01,2025-01-15,100,false,true,Brickell Bay Luxury Hotel
+Miami Building Department permit approval,Preconstruction & Permitting,critical,2025-02-28,2025-02-28,100,true,true,Brickell Bay Luxury Hotel
+Site mobilization and temporary facilities,Site Preparation & Deep Foundation,high,2025-03-01,2025-03-31,100,false,true,Brickell Bay Luxury Hotel
+Dewatering system installation,Site Preparation & Deep Foundation,critical,2025-03-15,2025-04-30,100,false,true,Brickell Bay Luxury Hotel
+Caisson drilling - 68 caissons,Site Preparation & Deep Foundation,critical,2025-04-15,2025-09-30,10,false,true,Brickell Bay Luxury Hotel
+Mat foundation pour - podium level,Site Preparation & Deep Foundation,critical,2025-06-01,2025-09-30,85,false,true,Brickell Bay Luxury Hotel
+Underground utilities and site infrastructure,Site Preparation & Deep Foundation,high,2025-05-01,2025-08-31,100,false,false,Brickell Bay Luxury Hotel
+Podium structure and parking levels,Podium & Lower Tower,critical,2025-07-01,2025-12-31,60,false,true,Brickell Bay Luxury Hotel
+Tower core concrete floors 1-10,Podium & Lower Tower,critical,2025-09-01,2026-06-30,15,false,true,Brickell Bay Luxury Hotel
+Below grade MEP and waterproofing,Podium & Lower Tower,high,2025-08-01,2026-03-31,25,false,false,Brickell Bay Luxury Hotel
+Tower core concrete floors 11-22,Upper Tower Structure,critical,2026-04-01,2026-09-30,0,false,true,Brickell Bay Luxury Hotel
+Tower core concrete floors 23-32,Upper Tower Structure,critical,2026-10-01,2026-12-31,0,false,true,Brickell Bay Luxury Hotel
+Hurricane impact curtain wall floors 1-15,MEP & Exterior Envelope,critical,2026-06-01,2026-10-31,0,false,true,Brickell Bay Luxury Hotel
+Hurricane impact curtain wall floors 16-32,MEP & Exterior Envelope,critical,2026-11-01,2027-03-31,0,false,true,Brickell Bay Luxury Hotel
+MEP rough-in all floors,MEP & Exterior Envelope,high,2026-08-01,2027-04-30,0,false,false,Brickell Bay Luxury Hotel
+Hotel FF&E installation and finishes,Interior Finishes & FF&E,high,2026-10-01,2027-07-31,0,false,false,Brickell Bay Luxury Hotel
+Spa and pool construction and finish,Interior Finishes & FF&E,high,2026-10-01,2027-06-30,0,false,false,Brickell Bay Luxury Hotel
+Hotel commissioning and soft opening,Commissioning & Hotel Opening,critical,2027-06-01,2027-08-31,0,true,true,Brickell Bay Luxury Hotel

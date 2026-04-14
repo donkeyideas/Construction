@@ -1,0 +1,5 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+General Operating,Atlantic Union Bank,checking,7741,5510,2185000.00
+Payroll Account,Atlantic Union Bank,checking,7742,5510,685000.00
+Equipment Reserve,Atlantic Union Bank,savings,7743,5510,450000.00
+Retainage Escrow,Atlantic Union Bank,checking,7744,5510,1240000.00

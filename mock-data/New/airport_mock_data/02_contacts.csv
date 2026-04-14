@@ -1,0 +1,20 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+James,Kowalczyk,employee,j.kowalczyk@northstarbuilds.com,612-555-0101,,CEO & Founder
+Patricia,Andersson,employee,p.andersson@northstarbuilds.com,612-555-0102,,CFO
+Derek,Olson,employee,d.olson@northstarbuilds.com,612-555-0103,,COO
+Michelle,Nguyen,employee,m.nguyen@northstarbuilds.com,612-555-0104,,VP of Project Management
+Ryan,Christensen,employee,r.christensen@northstarbuilds.com,612-555-0105,,Chief Estimator
+Brianna,Larsen,employee,b.larsen@northstarbuilds.com,612-555-0106,,Controller
+Todd,Magnusson,employee,t.magnusson@northstarbuilds.com,612-555-0107,,Safety Director
+Erik,Halverson,employee,e.halverson@northstarbuilds.com,612-555-0108,,Project Manager – Airport Expansion
+Sara,Petersen,employee,s.petersen@northstarbuilds.com,612-555-0109,,Project Manager – Terminal Interior
+William,Strand,employee,w.strand@northstarbuilds.com,612-555-0110,,Senior Superintendent
+Carol,Brandt,client,c.brandt@mspaairport.gov,651-555-0201,Metropolitan Airports Commission,Deputy Director of Capital Programs
+Neil,Sandberg,client,n.sandberg@mspaairport.gov,651-555-0202,Metropolitan Airports Commission,Project Owner Representative
+Laura,Holt,client,l.holt@faa.gov,202-555-0203,Federal Aviation Administration,Regional Engineer
+Marcus,Bell,subcontractor,m.bell@ironcladsub.com,612-555-0301,Ironclad Mechanical Inc.,VP Operations
+Donna,Tran,subcontractor,d.tran@northernelectric.com,612-555-0302,Northern States Electrical,Account Manager
+Greg,Schaefer,subcontractor,g.schaefer@glacierconcrete.com,651-555-0303,Glacier Concrete Co.,Project Executive
+Amy,Irons,subcontractor,a.irons@prairiestructural.com,763-555-0304,Prairie Structural Steel,Estimating Manager
+Tom,Bergquist,vendor,t.bergquist@midwestsupply.com,612-555-0305,Midwest Building Supply,Regional Sales Manager
+Janet,Cote,vendor,j.cote@twincitieslumber.com,651-555-0306,Twin Cities Lumber & Hardware,Account Manager

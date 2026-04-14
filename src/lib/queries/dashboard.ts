@@ -183,26 +183,31 @@ export async function getCashFlow(
   const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
   const fromDate = startDate || twelveMonthsAgo.toISOString().slice(0, 10);
 
-  // Fetch both receivable and payable invoices in parallel
-  let receivableQuery = supabase
-    .from("invoices")
-    .select("invoice_date, total_amount")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "receivable")
-    .gte("invoice_date", fromDate);
-  if (endDate) receivableQuery = receivableQuery.lte("invoice_date", endDate);
-  if (projectId) receivableQuery = receivableQuery.eq("project_id", projectId);
-
-  let payableQuery = supabase
-    .from("invoices")
-    .select("invoice_date, total_amount")
-    .eq("company_id", companyId)
-    .eq("invoice_type", "payable")
-    .gte("invoice_date", fromDate);
-  if (endDate) payableQuery = payableQuery.lte("invoice_date", endDate);
-  if (projectId) payableQuery = payableQuery.eq("project_id", projectId);
-
-  const [receivableRes, payableRes] = await Promise.all([receivableQuery, payableQuery]);
+  // Fetch both receivable and payable invoices in parallel (paginated to avoid 1000-row limit)
+  const [receivableRows, payableRows] = await Promise.all([
+    paginatedQuery<{ invoice_date: string; total_amount: number }>((from, to) => {
+      let q = supabase
+        .from("invoices")
+        .select("invoice_date, total_amount")
+        .eq("company_id", companyId)
+        .eq("invoice_type", "receivable")
+        .gte("invoice_date", fromDate);
+      if (endDate) q = q.lte("invoice_date", endDate);
+      if (projectId) q = q.eq("project_id", projectId);
+      return q.range(from, to);
+    }),
+    paginatedQuery<{ invoice_date: string; total_amount: number }>((from, to) => {
+      let q = supabase
+        .from("invoices")
+        .select("invoice_date, total_amount")
+        .eq("company_id", companyId)
+        .eq("invoice_type", "payable")
+        .gte("invoice_date", fromDate);
+      if (endDate) q = q.lte("invoice_date", endDate);
+      if (projectId) q = q.eq("project_id", projectId);
+      return q.range(from, to);
+    }),
+  ]);
 
   // Build maps for all 12 months
   const cashInMap = new Map<string, number>();
@@ -218,7 +223,7 @@ export async function getCashFlow(
   }
 
   // Sum receivable invoices (cash in)
-  for (const inv of receivableRes.data ?? []) {
+  for (const inv of receivableRows) {
     const d = new Date(inv.invoice_date);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     if (cashInMap.has(key)) {
@@ -227,7 +232,7 @@ export async function getCashFlow(
   }
 
   // Sum payable invoices (cash out)
-  for (const inv of payableRes.data ?? []) {
+  for (const inv of payableRows) {
     const d = new Date(inv.invoice_date);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     if (cashOutMap.has(key)) {

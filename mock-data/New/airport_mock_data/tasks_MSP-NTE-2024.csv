@@ -1,0 +1,23 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design development and MAC approval,Preconstruction & Permitting,critical,2023-08-01,2023-12-15,100,false,true,MSP North Terminal Expansion
+FAA AIP grant application and approval,Preconstruction & Permitting,critical,2023-09-01,2024-01-15,100,false,true,MSP North Terminal Expansion
+Building permit issued,Preconstruction & Permitting,critical,2024-01-31,2024-01-31,100,true,true,MSP North Terminal Expansion
+Site fencing and temporary facilities,Site Mobilization & Demolition,high,2024-02-01,2024-02-28,100,false,true,MSP North Terminal Expansion
+Existing apron demolition and removal,Site Mobilization & Demolition,critical,2024-03-01,2024-05-31,100,false,true,MSP North Terminal Expansion
+Caisson and drilled pier foundations,Foundations & Underground,critical,2024-04-01,2024-07-31,100,false,true,MSP North Terminal Expansion
+Underground MEP and utility installation,Foundations & Underground,high,2024-06-01,2024-09-30,100,false,false,MSP North Terminal Expansion
+Level 1 structural steel erection,Structural Steel & Concrete,critical,2024-07-01,2024-10-31,100,false,true,MSP North Terminal Expansion
+Level 2 structural steel erection,Structural Steel & Concrete,critical,2024-10-01,2025-02-28,100,false,true,MSP North Terminal Expansion
+Level 3 structural steel erection,Structural Steel & Concrete,critical,2025-01-01,2025-06-30,100,false,true,MSP North Terminal Expansion
+Roof structural steel erection,Structural Steel & Concrete,critical,2025-12-01,2026-04-30,38,false,true,MSP North Terminal Expansion
+Concrete decks Level 1-2,Structural Steel & Concrete,high,2024-08-01,2025-04-30,100,false,false,MSP North Terminal Expansion
+Concrete decks Level 3-4,Structural Steel & Concrete,high,2025-05-01,2026-04-30,35,false,false,MSP North Terminal Expansion
+Curtain wall installation south facade,Exterior Envelope,high,2025-03-01,2025-12-31,80,false,false,MSP North Terminal Expansion
+Curtain wall installation north facade,Exterior Envelope,high,2025-08-01,2026-06-30,25,false,false,MSP North Terminal Expansion
+Precast spandrel panels east and west,Exterior Envelope,medium,2025-06-01,2026-05-31,35,false,false,MSP North Terminal Expansion
+MEP rough-in Level 1,MEP Rough-in,critical,2024-08-01,2025-06-30,100,false,true,MSP North Terminal Expansion
+MEP rough-in Level 2,MEP Rough-in,critical,2025-01-01,2026-01-31,60,false,true,MSP North Terminal Expansion
+MEP rough-in Level 3-4,MEP Rough-in,high,2025-08-01,2026-08-31,15,false,false,MSP North Terminal Expansion
+Airfield taxiway realignment,Airfield & Site,critical,2024-06-01,2025-09-30,100,false,true,MSP North Terminal Expansion
+Gate hardstands G1-G12 construction,Airfield & Site,critical,2025-04-01,2026-08-31,30,false,true,MSP North Terminal Expansion
+Airfield lighting – new gates,Airfield & Site,high,2025-10-01,2026-10-31,10,false,false,MSP North Terminal Expansion

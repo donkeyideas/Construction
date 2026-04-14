@@ -227,26 +227,20 @@
 
 /* ===== Badges ===== */
 .vendor-badge {
-  padding: 2px 9px;
-  border-radius: 10px;
   font-size: 0.7rem;
   font-weight: 600;
   white-space: nowrap;
 }
 .vendor-badge-blue {
-  background: var(--blue-light, #eff6ff);
   color: var(--blue, #1d4ed8);
 }
 .vendor-badge-amber {
-  background: var(--amber-light, #fef3c7);
   color: var(--amber, #b45309);
 }
 .vendor-badge-green {
-  background: rgba(22, 163, 74, .08);
   color: var(--green, #16a34a);
 }
 .vendor-badge-red {
-  background: rgba(220, 38, 38, .08);
   color: var(--red, #dc2626);
 }
 
@@ -686,11 +680,9 @@
   background: var(--color-blue-dark, #1e3a5f);
 }
 [data-variant="corporate"] .vendor-badge-blue {
-  background: var(--color-blue-light, rgba(44, 82, 130, 0.1));
   color: var(--color-blue, #2c5282);
 }
 [data-variant="corporate"] .vendor-badge-amber {
-  background: var(--color-amber-light, rgba(201, 168, 76, 0.12));
   color: var(--color-amber, #c9a84c);
 }
 [data-variant="corporate"] .vendor-doc-icon {
@@ -927,18 +919,16 @@
 
 .aging-badge {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
   font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
 }
 
-.aging-current { background: rgba(22, 163, 74, 0.1); color: var(--color-green, #16a34a); }
-.aging-30 { background: rgba(234, 179, 8, 0.1); color: var(--color-amber, #d97706); }
-.aging-60 { background: rgba(249, 115, 22, 0.1); color: #ea580c; }
-.aging-90 { background: rgba(220, 38, 38, 0.1); color: var(--color-red, #dc2626); }
-.aging-90plus { background: rgba(127, 29, 29, 0.15); color: #991b1b; }
+.aging-current { color: var(--color-green, #16a34a); }
+.aging-30 { color: var(--color-amber, #d97706); }
+.aging-60 { color: #ea580c; }
+.aging-90 { color: var(--color-red, #dc2626); }
+.aging-90plus { color: #991b1b; }
 
 /* ===== AP Record Payment Modal ===== */
 

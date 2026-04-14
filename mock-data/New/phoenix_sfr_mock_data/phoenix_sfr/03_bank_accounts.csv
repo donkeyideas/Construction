@@ -1,0 +1,6 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+Operating Account,First Interstate Bank AZ,checking,3341,1220,1850000.00
+Security Deposit Trust Account,First Interstate Bank AZ,checking,3342,1220,259715.00
+Capital Reserve Account,First Interstate Bank AZ,savings,3343,1220,950000.00
+Payroll Account,First Interstate Bank AZ,checking,3344,1220,185000.00
+3rd-Party Owner Distribution Account,Wells Fargo,checking,7781,0690,82000.00

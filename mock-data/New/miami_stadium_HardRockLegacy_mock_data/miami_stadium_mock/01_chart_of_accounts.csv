@@ -1,0 +1,72 @@
+account_number,name,account_type,sub_type,description
+1000,Cash & Equivalents,asset,Current Asset,Operating cash and project funding accounts
+1010,Accounts Receivable,asset,Current Asset,Amounts billed and receivable from University of Miami
+1020,Retainage Receivable,asset,Current Asset,5% retainage held by owner on progress billings
+1030,Costs in Excess of Billings,asset,Current Asset,Under-billed work in progress
+1040,Prepaid Expenses,asset,Current Asset,Prepaid insurance bonds and project costs
+1050,Materials & Inventory on Site,asset,Current Asset,Owner-furnished materials stored on site
+1060,Joint Venture Receivable,asset,Current Asset,Amounts receivable from JV partner PCL Construction
+1100,Equipment - Owned,asset,Fixed Asset,Construction equipment at cost
+1110,Accumulated Depreciation - Equipment,asset,Fixed Asset,Accumulated depreciation on owned equipment
+1120,Office & Field Trailers,asset,Fixed Asset,Site office trailers and modular facilities
+1200,Project Deposits,asset,Other Asset,Utility and permit deposits
+2000,Accounts Payable - Trade,liability,Current Liability,Subcontractor and vendor payables
+2010,Accounts Payable - Retainage,liability,Current Liability,Retainage withheld from subcontractors
+2020,Billings in Excess of Costs,liability,Current Liability,Over-billed work in progress
+2030,Accrued Payroll,liability,Current Liability,Accrued wages and salaries
+2040,Accrued Project Costs,liability,Current Liability,Accrued subcontractor and material costs
+2050,Sales Tax Payable,liability,Current Liability,Florida sales tax on materials
+2060,Bonding Payable,liability,Current Liability,Performance and payment bond premiums
+2100,Equipment Financing - Current,liability,Current Liability,Current portion of equipment loans
+2200,Equipment Financing - Long Term,liability,Long-Term Liability,Long-term equipment financing
+3000,Owner Capital,equity,Equity,Joint venture capital contributions
+3010,Retained Earnings,equity,Equity,Accumulated retained earnings from prior projects
+3020,Current Year Earnings,equity,Equity,Current project year net earnings
+4000,Contract Revenue - Stadium Structure,revenue,Contract Revenue,Stadium bowl and structural package billings
+4010,Contract Revenue - Football Facility,revenue,Contract Revenue,Performance center and football ops billings
+4020,Contract Revenue - Athlete Village,revenue,Contract Revenue,Dormitory complex billings
+4030,Contract Revenue - Office & Admin,revenue,Contract Revenue,Administrative building billings
+4040,Contract Revenue - Site & Civil,revenue,Contract Revenue,Site work utilities and civil infrastructure
+4050,Contract Revenue - MEP Systems,revenue,Contract Revenue,Mechanical electrical plumbing billings
+4060,Contract Revenue - Specialty Sports,revenue,Contract Revenue,Turf scoreboards A/V and specialty sports systems
+4070,Change Order Revenue,revenue,Contract Revenue,Owner-approved change order billings
+4080,Equipment Rental Revenue,revenue,Other Revenue,Equipment rental to subcontractors
+4090,General Conditions Revenue,revenue,Contract Revenue,General conditions markup and reimbursements
+5000,Subcontractor Costs - Structural,expense,Direct Cost,Structural steel and concrete subcontractor payments
+5010,Subcontractor Costs - MEP,expense,Direct Cost,Mechanical electrical plumbing subcontractors
+5020,Subcontractor Costs - Concrete,expense,Direct Cost,Cast-in-place and precast concrete subcontractors
+5030,Subcontractor Costs - Steel,expense,Direct Cost,Structural and miscellaneous steel fabrication
+5040,Subcontractor Costs - Exterior,expense,Direct Cost,Facade cladding roofing and waterproofing
+5050,Subcontractor Costs - Interior,expense,Direct Cost,Drywall framing flooring and finishes
+5060,Subcontractor Costs - Sitework,expense,Direct Cost,Earthwork grading utilities and paving
+5070,Subcontractor Costs - Specialty,expense,Direct Cost,Turf scoreboards seating and specialty systems
+5080,Subcontractor Costs - HVAC,expense,Direct Cost,HVAC and controls subcontractors
+5090,Subcontractor Costs - Electrical,expense,Direct Cost,Electrical power and lighting subcontractors
+5100,Subcontractor Costs - Plumbing,expense,Direct Cost,Plumbing and fire protection subcontractors
+5110,Subcontractor Costs - Elevator,expense,Direct Cost,Elevator and vertical transport subcontractors
+5120,Materials - Concrete & Masonry,expense,Direct Cost,Ready-mix concrete masonry and grout
+5130,Materials - Steel & Rebar,expense,Direct Cost,Structural steel rebar and metal deck
+5140,Materials - Lumber & Framing,expense,Direct Cost,Dimensional lumber and light gauge framing
+5150,Materials - Roofing & Waterproofing,expense,Direct Cost,Roofing membranes flashings and waterproofing
+5160,Materials - Doors Windows & Glass,expense,Direct Cost,Doors windows curtain wall and glazing
+5170,Materials - Finishes,expense,Direct Cost,Flooring tile paint and interior finishes
+5180,Materials - MEP Materials,expense,Direct Cost,Pipe duct wire and MEP materials
+5190,Materials - Specialty,expense,Direct Cost,Stadium seating turf and specialty materials
+5200,Labor - Field Staff,expense,Direct Cost,Direct field labor wages
+5210,Labor - Payroll Taxes,expense,Direct Cost,Employer payroll taxes on field staff
+5220,Labor - Benefits,expense,Direct Cost,Health insurance and retirement on field staff
+5230,Equipment - Owned Operation,expense,Direct Cost,Owned equipment fuel maintenance and operation
+5240,Equipment - Rented,expense,Direct Cost,Third-party equipment rental costs
+5250,Equipment - Cranes,expense,Direct Cost,Tower crane and mobile crane rental
+5300,General Conditions - Superintendent,expense,General Conditions,Project superintendent salaries
+5310,General Conditions - Project Mgmt,expense,General Conditions,Project manager and engineer salaries
+5320,General Conditions - Site Facilities,expense,General Conditions,Trailers toilets fencing and temp utilities
+5330,General Conditions - Safety,expense,General Conditions,Safety officer PPE and safety programs
+5340,General Conditions - Survey & Testing,expense,General Conditions,Surveying materials testing and inspection
+5350,General Conditions - Temporary Work,expense,General Conditions,Temporary roads shoring and protection
+5360,General Conditions - Bonds & Insurance,expense,General Conditions,Performance bond and builders risk insurance
+5400,Overhead - Project Allocated,expense,Overhead,Allocated home office overhead
+5410,Overhead - IT & Communications,expense,Overhead,Project management software and communications
+5420,Overhead - Legal & Professional,expense,Overhead,Legal accounting and professional fees
+5430,Overhead - Marketing & BD,expense,Overhead,Marketing and business development
+5440,Overhead - Executive Salaries,expense,Overhead,Executive team allocated to project

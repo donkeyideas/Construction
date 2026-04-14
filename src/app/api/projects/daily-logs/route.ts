@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       console.error("Insert daily_log error:", error);
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: 500 }
       );
     }
 
@@ -152,7 +152,7 @@ export async function PATCH(request: NextRequest) {
       console.error("Update daily_log error:", error);
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: 500 }
       );
     }
 

@@ -1,0 +1,14 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+Power Purchase Agreement - NextDecade 200MW,owner,NextDecade Corporation,f.dimarcio@nextdecade.com,336000000,2023-06-01,2033-05-31,monthly_settlement
+GE Long-Term Service Agreement - GT1 & GT2,subcontractor,GE Power Services,t.boudreaux@ge.com,185000000,2022-06-01,2037-05-31,milestone_based
+Siemens Energy SST-900 Maintenance Agreement,subcontractor,Siemens Energy,a.sharma@siemens-energy.com,28000000,2022-06-01,2032-05-31,annual_fixed
+Natural Gas Supply Agreement - Shell Energy,subcontractor,Shell Energy North America,g.kim@shell-energy.com,0,2023-01-01,2027-12-31,monthly_index
+Natural Gas Supply Agreement - BP Energy,subcontractor,BP Energy Company,d.holloway@bp-energy.com,0,2024-01-01,2026-12-31,monthly_index
+Pipeline Transportation - Kinder Morgan,subcontractor,Kinder Morgan Texas Pipeline,r.flores@kinder-morgan.com,0,2022-06-01,2037-05-31,monthly_reservation
+CenterPoint Gas Distribution Agreement,subcontractor,CenterPoint Energy Resources,e.vasquez@centerpoint.com,0,2022-06-01,2037-05-31,monthly_volumetric
+Water Supply & Treatment - Veolia,subcontractor,Veolia Water Technologies,k.marsh@veolia.com,12000000,2022-06-01,2027-05-31,annual_fixed
+Property & Casualty Insurance,subcontractor,Travelers Insurance,r.kowalski@travelers.com,0,2025-01-01,2025-12-31,annual_premium
+Project Finance - Term Loan A (Prudential),loan,Prudential Capital Group,s.kellerman@prudential.com,480000000,2022-04-01,2040-04-01,semi_annual
+Project Finance - Term Loan B (Apollo),loan,Apollo Global Management,h.banks@apollo.com,280000000,2022-04-01,2037-04-01,quarterly
+ERCOT Interconnection Agreement,owner,ERCOT,w.stover@ercot.com,0,2022-06-01,2052-05-31,monthly_settlement
+TCEQ Air Quality Permit NSR,owner,Texas Commission on Environmental Quality,permits@tceq.texas.gov,0,2022-06-01,2037-05-31,annual_renewal

@@ -13,9 +13,11 @@ import {
   getProjectsOverview,
 } from "@/lib/queries/projects";
 import { formatCompactCurrency, formatPercent, formatDateSafe } from "@/lib/utils/format";
-import ProjectStatusChart from "@/components/charts/ProjectStatusChart";
-import ProjectBudgetChart from "@/components/charts/ProjectBudgetChart";
+import dynamic from "next/dynamic";
 import { getTranslations } from "next-intl/server";
+
+const ProjectStatusChart = dynamic(() => import("@/components/charts/ProjectStatusChart"), { loading: () => <div style={{ height: 260 }} /> });
+const ProjectBudgetChart = dynamic(() => import("@/components/charts/ProjectBudgetChart"), { loading: () => <div style={{ height: 260 }} /> });
 
 
 export const metadata = {

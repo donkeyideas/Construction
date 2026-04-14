@@ -1,0 +1,4 @@
+name,property_type,address_line1,city,state,zip,year_built,total_sqft,total_units,purchase_price,current_value
+Apex Construction Group HQ,commercial,4400 N Lamar Blvd Suite 200,Austin,TX,78756,2018,12000,1,3200000,4100000
+Apex Regional Office - Dallas,commercial,5600 Tennyson Pkwy Suite 150,Plano,TX,75024,2015,5500,1,1100000,1450000
+Apex Regional Office - Denver,commercial,8000 E Prentice Ave Suite 800,Greenwood Village,CO,80111,2019,4200,1,980000,1280000

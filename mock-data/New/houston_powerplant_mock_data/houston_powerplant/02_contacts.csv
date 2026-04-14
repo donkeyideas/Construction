@@ -1,0 +1,24 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+William,Hargrove,employee,w.hargrove@lonestarpwr.com,713-555-0101,,Plant Manager
+Sandra,Okafor,employee,s.okafor@lonestarpwr.com,713-555-0102,,Director of Finance
+James,Trevino,employee,j.trevino@lonestarpwr.com,713-555-0103,,Operations Manager
+Michelle,Beaumont,employee,m.beaumont@lonestarpwr.com,713-555-0104,,Senior Plant Engineer
+Derek,Sloane,employee,d.sloane@lonestarpwr.com,713-555-0105,,Lead Control Room Operator
+Carlos,Vega,employee,c.vega@lonestarpwr.com,713-555-0106,,Control Room Operator
+Patricia,Nguyen,employee,p.nguyen@lonestarpwr.com,713-555-0107,,Control Room Operator
+Roy,Castellano,employee,r.castellano@lonestarpwr.com,713-555-0108,,Gas Turbine Technician
+Angela,Brooks,employee,a.brooks@lonestarpwr.com,713-555-0109,,Electrical Technician
+Marcus,Whitley,employee,m.whitley@lonestarpwr.com,713-555-0110,,I&C Technician
+Donna,Ramirez,employee,d.ramirez@lonestarpwr.com,713-555-0111,,Environmental Compliance Manager
+Kevin,Park,employee,k.park@lonestarpwr.com,713-555-0112,,Safety Manager
+Linda,Chen,employee,l.chen@lonestarpwr.com,713-555-0113,,Plant Accountant
+Thomas,Boudreaux,vendor,t.boudreaux@ge.com,713-555-0201,GE Power Services,Senior Service Manager
+Anita,Sharma,vendor,a.sharma@siemens-energy.com,713-555-0202,Siemens Energy,Service Account Manager
+Robert,Flores,vendor,r.flores@kinder-morgan.com,713-555-0203,Kinder Morgan,Commercial Manager
+Grace,Kim,vendor,g.kim@shell-energy.com,713-555-0204,Shell Energy North America,Gas Supply Trader
+David,Holloway,vendor,d.holloway@bp-energy.com,713-555-0205,BP Energy Company,Structured Products
+Elena,Vasquez,vendor,e.vasquez@centerpoint.com,713-555-0206,CenterPoint Energy,Customer Service Manager
+William,Stover,vendor,w.stover@ercot.com,512-555-0301,ERCOT,Counterparty Relations
+Frank,DiMarcio,vendor,f.dimarcio@nextdecade.com,713-555-0302,NextDecade (PPA Offtaker),VP Power Procurement
+Susan,Kellerman,vendor,s.kellerman@prudential.com,212-555-0401,Prudential Capital Group,Portfolio Manager (Lender)
+Harold,Banks,vendor,h.banks@apollo.com,212-555-0402,Apollo Global Management,Senior Credit Officer (Lender)

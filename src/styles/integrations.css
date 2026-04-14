@@ -248,8 +248,6 @@
 .integrations-category-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: 10px;
   font-size: 0.68rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -258,57 +256,27 @@
 }
 
 .integrations-category-badge.accounting {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
 .integrations-category-badge.project_management {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
 .integrations-category-badge.communication {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
 .integrations-category-badge.payment {
-  background: var(--color-red-light);
   color: var(--color-red);
 }
 
 .integrations-category-badge.productivity {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
 .integrations-category-badge.automation {
-  background: var(--color-amber-light);
   color: var(--color-amber);
-}
-
-[data-theme="dark"] .integrations-category-badge.accounting {
-  background: rgba(29, 78, 216, 0.15);
-}
-
-[data-theme="dark"] .integrations-category-badge.project_management {
-  background: rgba(180, 83, 9, 0.15);
-}
-
-[data-theme="dark"] .integrations-category-badge.communication {
-  background: rgba(22, 163, 74, 0.15);
-}
-
-[data-theme="dark"] .integrations-category-badge.payment {
-  background: rgba(220, 38, 38, 0.15);
-}
-
-[data-theme="dark"] .integrations-category-badge.productivity {
-  background: rgba(29, 78, 216, 0.15);
-}
-
-[data-theme="dark"] .integrations-category-badge.automation {
-  background: rgba(180, 83, 9, 0.15);
 }
 
 /* ===== Card Sync Info ===== */

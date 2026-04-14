@@ -1,0 +1,11 @@
+company_name,first_name,last_name,email,phone,job_title
+Subway IPC (Independent Purchasing Coop),James,O'Brien,jobrien@ipc.subway.com,800-888-4848,Account Manager
+NY Food Service Distributors,Linda,Stavros,l.stavros@nyfoodservice.com,718-555-0201,Sales Rep
+Sysco Metro New York,Paul,DiLorenzo,p.dilorenzo@sysco.com,718-555-0202,Account Executive
+Con Edison,Customer,Service,business@coned.com,800-752-6633,Business Services
+TD Bank Business Banking,Rachel,Torres,r.torres@tdbank.com,212-555-0401,Relationship Manager
+Midtown Realty Partners,Robert,Huang,r.huang@midtownrealty.com,212-555-0301,Property Manager
+American Family Insurance,Greg,Sampson,g.sampson@amfam.com,212-555-0501,Commercial Agent
+DoorDash for Merchants,Merchant,Support,merchant@doordash.com,855-973-1040,Support
+UberEats for Business,Merchant,Support,restaurant@ubereats.com,800-253-9377,Support
+GrubHub for Restaurants,Merchant,Support,restaurant@grubhub.com,877-585-7878,Support

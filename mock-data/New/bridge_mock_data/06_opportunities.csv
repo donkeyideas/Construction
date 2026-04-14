@@ -1,0 +1,6 @@
+name,client_name,stage,estimated_value,probability_pct,expected_close_date,source
+Aurora Bridge Seismic Retrofit Phase 2,Seattle Department of Transportation,negotiation,89000000,80,2026-05-15,existing_client
+Mercer Island I-90 Floating Bridge Deck Replacement,Washington State DOT,proposal,210000000,55,2026-08-01,existing_client
+Tacoma Narrows Bridge Maintenance Contract,Washington State DOT,qualification,42000000,45,2026-10-01,referral
+Portage Bay Bridge Rehabilitation,Washington State DOT,prospecting,65000000,30,2027-02-01,open_bid
+SR-99 Battery Street Tunnel Portal Improvements,Seattle Department of Transportation,prospecting,28000000,20,2027-06-01,open_bid

@@ -1,0 +1,29 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Mobilization and staging area setup,Mobilization & Preconstruction,high,2024-03-01,2024-03-31,100,false,true,I-81 Widening - Shenandoah Valley Corridor
+SWPPP installation and DEQ permit activation,Mobilization & Preconstruction,critical,2024-03-15,2024-04-15,100,false,true,I-81 Widening - Shenandoah Valley Corridor
+MOT Phase 1 deployment MM 264-298,Mobilization & Preconstruction,critical,2024-04-01,2024-04-30,100,true,true,I-81 Widening - Shenandoah Valley Corridor
+Clearing grubbing and demolition MM 264-276,Earthwork & Drainage MM 264-276,high,2024-05-01,2024-07-31,100,false,true,I-81 Widening - Shenandoah Valley Corridor
+Earthwork embankment and cut MM 264-276,Earthwork & Drainage MM 264-276,critical,2024-06-01,2025-01-31,100,false,true,I-81 Widening - Shenandoah Valley Corridor
+Drainage pipe and structures MM 264-276,Earthwork & Drainage MM 264-276,high,2024-07-01,2025-02-28,100,false,false,I-81 Widening - Shenandoah Valley Corridor
+Base course 21-A placement MM 264-274,Base Course & Paving MM 264-274,critical,2025-01-15,2025-05-31,100,false,true,I-81 Widening - Shenandoah Valley Corridor
+Intermediate and surface course paving MM 264-274,Base Course & Paving MM 264-274,critical,2025-04-01,2025-07-15,100,false,true,I-81 Widening - Shenandoah Valley Corridor
+Guardrail installation MM 264-274,Base Course & Paving MM 264-274,high,2025-05-01,2025-07-31,100,false,false,I-81 Widening - Shenandoah Valley Corridor
+Soft subgrade undercut MM 279 - Change Order,Earthwork & Drainage MM 276-290,critical,2025-05-01,2025-07-31,100,false,true,I-81 Widening - Shenandoah Valley Corridor
+Earthwork grading MM 276-290 NB,Earthwork & Drainage MM 276-290,critical,2025-03-01,2026-01-31,68,false,true,I-81 Widening - Shenandoah Valley Corridor
+Drainage culverts and structures MM 276-290,Earthwork & Drainage MM 276-290,high,2025-04-01,2026-01-31,55,false,false,I-81 Widening - Shenandoah Valley Corridor
+Cable median barrier MM 286-290 - Change Order,Earthwork & Drainage MM 276-290,high,2025-10-01,2026-01-31,80,false,false,I-81 Widening - Shenandoah Valley Corridor
+Milling MP 12.4-22 US-11,Mobilization & Milling MP 12.4-22,critical,2025-04-01,2025-06-01,100,false,true,US-11 Overlay & Drainage Improvement
+Full depth reclamation 6 sections,FDR & Base Work,critical,2025-05-01,2025-07-15,100,false,true,US-11 Overlay & Drainage Improvement
+FDR expansion MP 21-23 - Change Order,FDR & Base Work,high,2025-06-15,2025-08-01,100,false,false,US-11 Overlay & Drainage Improvement
+Overlay placement MP 12.4-28.6,Overlay MP 12.4-28.6,critical,2025-06-15,2025-10-01,100,false,true,US-11 Overlay & Drainage Improvement
+ADA curb ramps 18 locations,ADA Ramps Striping & Punch List,high,2025-09-01,2025-11-15,100,false,false,US-11 Overlay & Drainage Improvement
+Pavement marking and striping,ADA Ramps Striping & Punch List,high,2025-10-01,2025-11-30,100,false,true,US-11 Overlay & Drainage Improvement
+Final punch list and substantial completion,ADA Ramps Striping & Punch List,critical,2025-11-15,2025-12-15,90,true,true,US-11 Overlay & Drainage Improvement
+FDR and subbase north approach,Mobilization & FDR North Approach,critical,2025-06-01,2025-07-31,100,false,true,VA-259 Bridge Approach Reconstruction
+Micro-pile installation south approach 24 piles,Micro-piling South Approach,critical,2025-07-15,2025-09-30,100,false,true,VA-259 Bridge Approach Reconstruction
+Approach slab rebar and forming,Approach Slabs & Drainage,critical,2025-09-15,2026-01-15,60,false,true,VA-259 Bridge Approach Reconstruction
+Approach slab concrete pour - North,Approach Slabs & Drainage,critical,2026-01-20,2026-01-31,0,false,true,VA-259 Bridge Approach Reconstruction
+Approach slab concrete pour - South,Approach Slabs & Drainage,critical,2026-02-10,2026-02-20,0,false,true,VA-259 Bridge Approach Reconstruction
+Guardrail and drainage final,Guardrail Paving & Final,high,2026-02-15,2026-03-15,0,false,false,VA-259 Bridge Approach Reconstruction
+Surface course paving and striping,Guardrail Paving & Final,critical,2026-03-01,2026-03-25,0,false,true,VA-259 Bridge Approach Reconstruction
+Substantial completion and VDOT final inspection,Guardrail Paving & Final,critical,2026-03-31,2026-03-31,0,true,true,VA-259 Bridge Approach Reconstruction

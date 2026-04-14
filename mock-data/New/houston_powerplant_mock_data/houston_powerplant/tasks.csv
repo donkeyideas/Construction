@@ -1,0 +1,39 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Issue GE LTP work order and confirm scope,Pre-Outage Planning and Parts Staging,high,2025-02-01,2025-02-05,100,false,true,GT1 Combustion Inspection 2025
+Parts staging and GE technician mobilization,Pre-Outage Planning and Parts Staging,high,2025-02-15,2025-02-28,100,false,true,GT1 Combustion Inspection 2025
+GT1 synchronized shutdown and cool-down,GT1 Combustion Inspection - Active Outage,critical,2025-03-01,2025-03-02,100,true,true,GT1 Combustion Inspection 2025
+Combustion can disassembly all 14 cans,GT1 Combustion Inspection - Active Outage,critical,2025-03-02,2025-03-07,100,false,true,GT1 Combustion Inspection 2025
+Combustion liner and transition piece inspection,GT1 Combustion Inspection - Active Outage,critical,2025-03-07,2025-03-12,100,false,true,GT1 Combustion Inspection 2025
+Fuel nozzle refurbishment and flow testing,GT1 Combustion Inspection - Active Outage,high,2025-03-08,2025-03-14,100,false,false,GT1 Combustion Inspection 2025
+Reassembly and controls calibration,GT1 Combustion Inspection - Active Outage,critical,2025-03-14,2025-03-19,100,false,true,GT1 Combustion Inspection 2025
+GT1 first fire and synchronization,Post-Outage Testing and Return to Service,critical,2025-03-21,2025-03-21,100,true,true,GT1 Combustion Inspection 2025
+GT1 full load performance test,Post-Outage Testing and Return to Service,critical,2025-03-22,2025-03-25,100,false,true,GT1 Combustion Inspection 2025
+GT2 long lead parts order - buckets and nozzles,Pre-Outage Planning Long Lead Parts,critical,2025-06-01,2025-06-15,100,false,true,GT2 Hot Gas Path Inspection 2025
+GT2 synchronized shutdown,GT2 HGP Active Outage,critical,2025-09-05,2025-09-05,100,true,true,GT2 Hot Gas Path Inspection 2025
+Stage 1 2 3 disassembly and bucket removal,GT2 HGP Active Outage,critical,2025-09-05,2025-09-15,100,false,true,GT2 Hot Gas Path Inspection 2025
+New bucket installation and clearance checks,GT2 HGP Active Outage,critical,2025-09-15,2025-09-22,100,false,true,GT2 Hot Gas Path Inspection 2025
+Stage 3 nozzle replacement (CO - 8 additional),GT2 HGP Active Outage,high,2025-09-18,2025-09-25,100,false,false,GT2 Hot Gas Path Inspection 2025
+All combustion liner replacement (CO - proactive),GT2 HGP Active Outage,high,2025-09-20,2025-09-26,100,false,false,GT2 Hot Gas Path Inspection 2025
+Turbine reassembly and alignment,GT2 HGP Active Outage,critical,2025-09-25,2025-09-30,100,false,true,GT2 Hot Gas Path Inspection 2025
+GT2 first fire and synchronization,Post-Outage Performance Testing,critical,2025-10-02,2025-10-02,100,true,true,GT2 Hot Gas Path Inspection 2025
+GT2 full load performance verification,Post-Outage Performance Testing,critical,2025-10-02,2025-10-10,100,false,true,GT2 Hot Gas Path Inspection 2025
+IAC additional chiller equipment delivery and rigging,IAC Expansion Installation,high,2025-01-15,2025-01-25,100,false,true,Inlet Air Chiller Expansion - GT1
+Refrigerant piping and compressor installation,IAC Expansion Installation,critical,2025-01-25,2025-02-20,100,false,true,Inlet Air Chiller Expansion - GT1
+Mark VIe I/O integration and HMI screens,IAC Controls Integration and Commissioning,critical,2025-03-01,2025-03-10,100,false,true,Inlet Air Chiller Expansion - GT1
+System commissioning and performance test,IAC Controls Integration and Commissioning,critical,2025-03-10,2025-03-15,100,true,true,Inlet Air Chiller Expansion - GT1
+CEMS analyzer installation HRSG-1,CEMS Equipment Installation,critical,2025-04-01,2025-04-12,100,false,true,HRSG1 CEMS Upgrade
+Wiring and data acquisition system,CEMS Equipment Installation,high,2025-04-10,2025-04-20,100,false,false,HRSG1 CEMS Upgrade
+RATA (Relative Accuracy Test Audit),CEMS Certification and Recertification,critical,2025-04-25,2025-05-05,100,false,true,HRSG1 CEMS Upgrade
+TCEQ CEMS certification issued,CEMS Certification and Recertification,critical,2025-05-15,2025-05-15,100,true,true,HRSG1 CEMS Upgrade
+CT-2 basin dewatering and surface prep,CT Basin Prep and Concrete Repair,high,2025-11-15,2025-11-25,100,false,true,Cooling Tower Basin Recoating
+CT-2 east wall concrete repair (CO),CT Basin Prep and Concrete Repair,high,2025-11-25,2025-12-10,100,false,false,Cooling Tower Basin Recoating
+CT-1 basin dewatering and prep,CT Basin Prep and Concrete Repair,high,2025-12-01,2025-12-15,100,false,true,Cooling Tower Basin Recoating
+Epoxy primer and coating application CT-2,CT Epoxy Recoating Application,critical,2025-12-15,2026-01-05,80,false,true,Cooling Tower Basin Recoating
+Epoxy primer and coating application CT-1,CT Epoxy Recoating Application,critical,2025-12-20,2026-01-10,70,false,true,Cooling Tower Basin Recoating
+Nozzle and fill replacement CT-1 and CT-2,CT Epoxy Recoating Application,high,2026-01-05,2026-01-18,50,false,false,Cooling Tower Basin Recoating
+Hydro test and SPCC inspection,CT Final Inspection and Return to Full Service,critical,2026-01-20,2026-01-25,0,false,true,Cooling Tower Basin Recoating
+Return CT-1 and CT-2 to service,CT Final Inspection and Return to Full Service,critical,2026-01-28,2026-01-31,0,true,true,Cooling Tower Basin Recoating
+GE compressor rotor purchase order placed,GT1 MO - Long Lead Planning and Procurement,critical,2025-08-15,2025-08-15,100,true,true,GT1 Major Overhaul Planning 2027
+Factory witness test schedule confirmed,GT1 MO - Long Lead Planning and Procurement,high,2025-09-01,2025-09-30,100,false,true,GT1 Major Overhaul Planning 2027
+Outage scope document finalized with GE,GT1 MO - Engineering and Scope Development,critical,2026-09-01,2026-12-31,0,false,true,GT1 Major Overhaul Planning 2027
+GT1 Major Overhaul commence - target Q1 2027,GT1 MO - Pre-Outage Mobilization,critical,2027-01-15,2027-01-15,0,true,true,GT1 Major Overhaul Planning 2027

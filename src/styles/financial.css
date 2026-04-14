@@ -373,8 +373,6 @@
 .inv-type {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -382,21 +380,11 @@
 }
 
 .inv-type-payable {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .inv-type-payable {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .inv-type-receivable {
-  background: var(--color-blue-light);
   color: var(--color-blue);
-}
-
-[data-theme="dark"] .inv-type-receivable {
-  background: rgba(29, 78, 216, 0.15);
 }
 
 /* ===== Invoice Form ===== */

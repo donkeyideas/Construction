@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
+import Image from "next/image";
 import { HomepageThemeToggle } from "@/components/homepage-theme-toggle";
 import CustomPlanCard from "@/components/CustomPlanCard";
 import { createClient } from "@/lib/supabase/server";
@@ -265,11 +266,12 @@ function HeroSection({ c }: { c: any }) {
   return (
     <section className="hp-hero">
       <div className="hp-hero-image">
-        <img
+        <Image
           src={c.image_url || "https://placehold.co/800x900/b45309/ffffff?text=Construction+Site"}
           alt={c.image_alt || "Construction management software"}
           width={800}
           height={900}
+          unoptimized
         />
       </div>
       <div className="hp-hero-content">
@@ -325,11 +327,12 @@ function ModulesSection({ c }: { c: any }) {
       {(c.modules || []).map((mod: any, i: number) => (
         <div key={i} className={`hp-module-block ${i % 2 !== 0 ? "hp-module-reverse" : ""}`}>
           <div className="hp-module-img">
-            <img
+            <Image
               src={mod.image_url || `https://placehold.co/700x480/292524/ffffff?text=${encodeURIComponent(mod.title)}`}
               alt={mod.image_alt || mod.title}
               width={700}
               height={480}
+              unoptimized
             />
           </div>
           <div className="hp-module-text">

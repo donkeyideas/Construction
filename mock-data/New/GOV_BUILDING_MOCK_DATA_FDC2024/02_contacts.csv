@@ -1,0 +1,24 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+James,Whitfield,employee,j.whitfield@apexgovcon.com,202-555-0101,,CEO & President
+Sandra,Okafor,employee,s.okafor@apexgovcon.com,202-555-0102,,CFO
+Marcus,Delaney,employee,m.delaney@apexgovcon.com,202-555-0103,,VP of Operations
+Patricia,Nguyen,employee,p.nguyen@apexgovcon.com,202-555-0104,,Project Executive
+Daniel,Hargrove,employee,d.hargrove@apexgovcon.com,202-555-0105,,Senior Project Manager
+Linda,Castillo,employee,l.castillo@apexgovcon.com,202-555-0106,,Project Manager
+Kevin,Osei,employee,k.osei@apexgovcon.com,202-555-0107,,Superintendent
+Brenda,Walsh,employee,b.walsh@apexgovcon.com,202-555-0108,,Compliance Officer - Davis-Bacon
+Raymond,Torres,employee,r.torres@apexgovcon.com,202-555-0109,,Safety Director
+Angela,Petrov,employee,a.petrov@apexgovcon.com,202-555-0110,,Project Controller
+Thomas,Jefferson,client,t.jefferson@gsa.gov,202-555-0201,U.S. General Services Administration,Contracting Officer
+Diane,Kaminski,client,d.kaminski@gsa.gov,202-555-0202,U.S. General Services Administration,Contracting Officer Representative
+Robert,Greenfield,client,r.greenfield@statearch.gov,202-555-0203,State Dept of Public Works,Deputy Director
+Michelle,Obi,client,m.obi@hud.gov,202-555-0204,U.S. Dept of Housing & Urban Development,Grant Administrator
+Frank,Sloane,client,f.sloane@cdbg.gov,202-555-0205,CDBG Office,Program Manager
+Walter,Huang,vendor,w.huang@huangstructural.com,202-555-0301,Huang Structural Engineering,Principal Engineer
+Constance,Merritt,vendor,c.merritt@capitalmep.com,202-555-0302,Capital MEP Group,Project Manager
+Jerome,Kessler,vendor,j.kessler@federalsteel.com,202-555-0303,Federal Steel Erectors,Estimator
+Sylvia,Drummond,vendor,s.drummond@patriotelectric.com,202-555-0304,Patriot Electrical Contractors,President
+Harold,Nkemelu,vendor,h.nkemelu@eagleexcavation.com,202-555-0305,Eagle Excavation LLC,Operations Manager
+Tonya,Bassett,vendor,t.bassett@nationwideconcrete.com,202-555-0306,Nationwide Concrete Inc,Regional Manager
+Victor,Asamoah,vendor,v.asamoah@uniondrywall.com,202-555-0307,Union Drywall & Framing,Estimator
+Lisa,Vandenberg,vendor,l.vandenberg@capitolroofing.com,202-555-0308,Capitol Roofing Systems,Project Manager

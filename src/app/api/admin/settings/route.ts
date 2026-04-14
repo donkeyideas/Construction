@@ -106,7 +106,7 @@ export async function PATCH(request: NextRequest) {
     );
 
     if (error) {
-      return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ error }, { status: 500 });
     }
 
     // Audit log (fire-and-forget)

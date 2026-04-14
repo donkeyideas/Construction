@@ -200,6 +200,11 @@
       "fullName": "Nom Complet",
       "phone": "Telephone",
       "saveChanges": "Enregistrer"
+    },
+    "portalLabel": {
+      "tenant": "Portail Locataire",
+      "vendor": "Portail Fournisseur",
+      "employee": "Portail Employe"
     }
   },
   "mobile": {

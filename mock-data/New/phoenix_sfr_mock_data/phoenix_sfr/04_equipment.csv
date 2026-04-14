@@ -1,0 +1,11 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+RAM 1500 Pickup - Property Manager 1 (Kristen Ybarra),pickup truck,RAM,1500 Big Horn,RAM1500-KY-001,42000,0.00,2023-02-15
+RAM 1500 Pickup - Property Manager 2 (Marcus Bell),pickup truck,RAM,1500 Big Horn,RAM1500-MB-001,42000,0.00,2023-03-01
+RAM 1500 Pickup - Maintenance Coord 1 (Tom Whitaker),pickup truck,RAM,1500 Tradesman,RAM1500-TW-001,38000,0.00,2022-11-01
+RAM 1500 Pickup - Maintenance Coord 2 (Priya Shah),pickup truck,RAM,1500 Tradesman,RAM1500-PS-001,38000,0.00,2023-01-15
+Dell Latitude Laptops (8x Staff),laptop,Dell,Latitude 5540,DELL-LAT-8SET,16000,0.00,2023-01-01
+iPad Pro - Field Inspections (6x),tablet,Apple,iPad Pro 12.9,APL-IPAD-6SET,7800,0.00,2023-06-01
+HP LaserJet Pro MFP,printer,HP,LaserJet Pro MFP M479,HP-LJPRO-001,1200,0.00,2022-09-01
+Ring Pro Video Doorbell Cameras (Inventory - 40 units),security,Ring,Video Doorbell Pro 2,RING-INV-40SET,12000,0.00,2023-04-01
+Nest Thermostats - Smart (Inventory - 60 units),smart home,Google,Nest Learning 3rd Gen,NEST-INV-60SET,9000,0.00,2023-04-01
+Office Furniture & Fixtures - Scottsdale Office,furniture,Various,Office Suite,OFF-FURN-2022,8500,0.00,2022-08-01

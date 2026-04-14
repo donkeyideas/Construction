@@ -1,0 +1,32 @@
+csi_code,description,budgeted_amount,committed_amount,actual_amount
+03 10 00,Concrete Formwork & Accessories,18500000,17800000,18250000
+03 20 00,Concrete Reinforcing Steel,22000000,21500000,21200000
+03 30 00,Cast-in-Place Concrete,35000000,34200000,33800000
+03 40 00,Precast Concrete (Seating Risers & Panels),28000000,27500000,29100000
+03 05 00,Concrete Testing & Inspection,2200000,2100000,2050000
+05 12 00,Structural Steel Framing,65000000,63500000,64800000
+05 31 00,Steel Decking,12000000,11600000,11400000
+05 50 00,Metal Fabrications (Misc Metals),8500000,8200000,8750000
+05 21 00,Steel Joist Framing,9500000,9200000,9100000
+07 10 00,Waterproofing & Dampproofing,6500000,6300000,6200000
+07 21 00,Thermal Insulation,4800000,4600000,4550000
+07 40 00,Roofing (Retractable Roof System),42000000,41000000,38500000
+07 92 00,Joint Sealants,3200000,3100000,3050000
+09 21 00,Gypsum Board Assemblies (Drywall),7500000,7200000,7350000
+09 30 00,Tiling (Concourses & Restrooms),5200000,5000000,5100000
+09 60 00,Flooring (Concourses & Suites),8800000,8500000,7900000
+09 90 00,Painting & Coatings,4500000,4300000,4250000
+09 68 00,Carpeting (Luxury Suites & Clubs),3800000,3600000,3500000
+21 10 00,Fire Suppression Sprinkler Systems,9200000,8900000,8800000
+21 30 00,Fire Pumps & Standpipes,3500000,3400000,3550000
+22 10 00,Plumbing Piping & Fixtures,14000000,13500000,13200000
+22 40 00,Plumbing Specialties (Grease Traps & Backflow),2800000,2700000,2650000
+23 05 00,HVAC Equipment & Ductwork,32000000,31000000,30500000
+23 09 00,HVAC Controls & Instrumentation (BAS),5500000,5200000,5100000
+26 05 00,Electrical Power Distribution,28000000,27200000,27800000
+26 20 00,Electrical Lighting (Stadium & Field),18000000,17500000,16800000
+26 50 00,Electrical Systems (Scoreboards & AV),15000000,14500000,15200000
+31 10 00,Site Clearing & Earthwork,12000000,11800000,12300000
+31 23 00,Excavation & Fill,9500000,9300000,9600000
+32 10 00,Exterior Paving & Hardscapes,11500000,11000000,10800000
+32 90 00,Exterior Landscaping & Irrigation,6000000,5800000,5500000

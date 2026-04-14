@@ -6,9 +6,11 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getSafetyOverview } from "@/lib/queries/safety";
 import { formatPercent } from "@/lib/utils/format";
 import { formatLocalDate } from "@/lib/utils/date";
-import IncidentTrendChart from "@/components/charts/IncidentTrendChart";
-import IncidentTypeChart from "@/components/charts/IncidentTypeChart";
+import dynamic from "next/dynamic";
 import { getTranslations } from "next-intl/server";
+
+const IncidentTrendChart = dynamic(() => import("@/components/charts/IncidentTrendChart"), { loading: () => <div style={{ height: 260 }} /> });
+const IncidentTypeChart = dynamic(() => import("@/components/charts/IncidentTypeChart"), { loading: () => <div style={{ height: 260 }} /> });
 
 
 export const metadata = {

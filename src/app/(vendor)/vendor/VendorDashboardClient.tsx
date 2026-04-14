@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import NextImage from "next/image";
 import { useTranslations } from "next-intl";
 import {
   Building2,
@@ -1281,8 +1282,7 @@ export default function VendorDashboardClient({ dashboard }: Props) {
                   </div>
                 ) : previewUrl ? (
                   <div className="vendor-doc-preview-image">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={previewUrl} alt={previewDoc.doc_name} />
+                    <NextImage src={previewUrl} alt={previewDoc.doc_name} width={600} height={400} unoptimized style={{ maxWidth: "100%", height: "auto" }} />
                   </div>
                 ) : null
               )}

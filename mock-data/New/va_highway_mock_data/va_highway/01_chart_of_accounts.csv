@@ -1,0 +1,52 @@
+account_number,name,account_type,sub_type,description
+1000,Cash & Equivalents,asset,Current Asset,Operating cash and short-term deposits
+1010,Accounts Receivable,asset,Current Asset,Progress billing receivables from VDOT
+1020,Contract Retainage Receivable,asset,Current Asset,10% retainage held by VDOT pending project completion
+1030,Costs in Excess of Billings (CIE),asset,Current Asset,Underbillings - work performed not yet billed
+1040,Prepaid Expenses,asset,Current Asset,Prepaid insurance bonds and deposits
+1050,Fuel & Materials Inventory,asset,Current Asset,On-site fuel aggregate and materials stockpile
+1500,Construction Equipment,asset,Fixed Asset,Heavy equipment owned by company
+1510,Vehicles & Trucks,asset,Fixed Asset,Pickup trucks and support vehicles
+1520,Field Trailers & Offices,asset,Fixed Asset,Portable site offices and storage trailers
+1530,Accumulated Depreciation,asset,Fixed Asset,Accumulated depreciation on all fixed assets
+2000,Accounts Payable,liability,Current Liability,Amounts owed to subcontractors and suppliers
+2010,Billings in Excess of Costs (BIE),liability,Current Liability,Overbillings - billed but not yet earned
+2020,Accrued Liabilities,liability,Current Liability,Accrued wages payroll taxes and benefits
+2030,Accrued Subcontractor Retainage,liability,Current Liability,Retainage withheld from subcontractor payments
+2040,Insurance Premium Payable,liability,Current Liability,Builders risk and GL premium balance
+2050,Equipment Loan - Current,liability,Current Liability,Current portion of equipment financing
+2500,Equipment Loan - Long Term,liability,Long-Term Liability,Long-term equipment financing balance
+2510,Bonding Line of Credit,liability,Long-Term Liability,Surety bond credit facility
+3000,Stockholder Equity,equity,Equity,Founder capital and paid-in capital
+3010,Retained Earnings,equity,Equity,Accumulated net income from prior years
+4000,Contract Revenue - VDOT,revenue,Revenue,Prime contract earned revenue from VDOT
+4010,Contract Revenue - Change Orders,revenue,Revenue,Approved change order revenue
+4020,Equipment Rental Income,revenue,Revenue,Equipment rented to other contractors on site
+5000,Direct Labor - Field,expense,COGS,Field crew wages and overtime
+5010,Labor Burden,expense,COGS,Payroll taxes benefits and workers comp on field labor
+5100,Subcontractor Costs,expense,COGS,Payments to subcontractors
+5110,Subcontractor Retainage Released,expense,COGS,Retainage released to subs upon milestones
+5200,Materials - Aggregate & Stone,expense,COGS,Crushed stone base aggregate and gravel
+5210,Materials - Asphalt,expense,COGS,Hot mix asphalt and surface materials
+5220,Materials - Concrete,expense,COGS,Structural concrete and precast
+5230,Materials - Guardrail & Safety,expense,COGS,Guardrail beam sign structures and delineators
+5240,Materials - Erosion Control,expense,COGS,Silt fence BMP mats and erosion control materials
+5300,Equipment - Fuel & Lubrication,expense,COGS,Diesel and equipment fluids
+5310,Equipment - Repairs & Maintenance,expense,COGS,On-site equipment repairs
+5320,Equipment - Depreciation,expense,COGS,Equipment depreciation allocated to project
+5330,Equipment Rental,expense,COGS,Third-party equipment rental
+5400,Project Management Labor,expense,Operating,PM superintendent and field engineer salaries
+5410,Project Management Burden,expense,Operating,Benefits and taxes on PM staff
+5500,General & Administrative,expense,Operating,Home office G&A allocated to project
+5510,Office Salaries,expense,Operating,Estimating accounting and admin staff
+5520,Estimating & Bid Costs,expense,Operating,Bid preparation costs
+5600,Insurance - GL & Umbrella,expense,Operating,General liability and umbrella premiums
+5610,Insurance - Builder's Risk,expense,Operating,Builder's risk policy
+5620,Workers Compensation,expense,Operating,Workers compensation premiums
+5700,Bond Premium,expense,Operating,Performance and payment bond premiums
+5800,Permits & Fees,expense,Operating,VDOT permits environmental fees and inspections
+5810,Traffic Control,expense,Operating,MOT plan implementation and flagging
+5900,Small Tools & Consumables,expense,Operating,Hand tools PPE and consumables
+5910,Temporary Facilities,expense,Operating,Site utilities portable restrooms and fencing
+6000,Interest Expense,expense,Other,Interest on equipment loans and credit lines
+6010,Bank Charges,expense,Other,Bank fees and wire transfer charges

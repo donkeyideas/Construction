@@ -8,6 +8,7 @@ import {
   getCurrentUserCompany,
 } from "@/lib/queries/projects";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { parseJsonBody, isErrorResponse } from "@/lib/utils/api-response";
 
 // ---------------------------------------------------------------------------
 // GET /api/projects/[id] - Get single project with stats
@@ -93,12 +94,14 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = await parseJsonBody<Record<string, any>>(request);
+    if (isErrorResponse(body)) return body;
 
     const { project, error } = await updateProject(supabase, id, body);
 
     if (error) {
-      return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ error }, { status: 500 });
     }
 
     return NextResponse.json(project);
@@ -146,7 +149,7 @@ export async function DELETE(
     const { error } = await deleteProject(supabase, id);
 
     if (error) {
-      return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ error }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

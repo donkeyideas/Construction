@@ -1,0 +1,30 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+Liebherr LTM 1750-9.1 Mobile Crane,crane,Liebherr,LTM 1750-9.1,LIE175091-44201,0,2800.00,2021-03-15
+Liebherr LTM 1500-8.1 Mobile Crane,crane,Liebherr,LTM 1500-8.1,LIE150081-39814,0,2200.00,2020-08-22
+Manitowoc 18000 Crawler Crane,crane,Manitowoc,18000,MAN18000-55123,0,3200.00,2019-06-10
+CAT 390F Hydraulic Excavator,excavator,Caterpillar,390F L,CAT390F-78421,0,275.00,2018-04-15
+CAT 336 Next Gen Excavator,excavator,Caterpillar,336 GC,CAT336GC-92104,0,225.00,2021-06-20
+CAT D10T2 Dozer,dozer,Caterpillar,D10T2,CATD10T2-61883,0,385.00,2020-11-01
+CAT 16M3 Motor Grader,grader,Caterpillar,16M3,CAT16M3-74221,0,210.00,2021-09-14
+CAT 745 Articulated Truck - Unit 1,haul truck,Caterpillar,745,CAT745-88011,0,185.00,2022-01-20
+CAT 745 Articulated Truck - Unit 2,haul truck,Caterpillar,745,CAT745-88012,0,185.00,2022-01-20
+CAT 745 Articulated Truck - Unit 3,haul truck,Caterpillar,745,CAT745-88013,0,185.00,2022-03-15
+Schwing Stetter S 65 SX Concrete Pump,concrete pump,Schwing,S 65 SX,SWS65SX-30142,0,320.00,2021-07-08
+Putzmeister BSA 2109 Stationary Pump,concrete pump,Putzmeister,BSA 2109,PUT2109-44891,0,180.00,2020-05-22
+JLG 1500SJ Ultra Boom Lift - Unit 1,aerial lift,JLG,1500SJ,JLG1500-81234,0,145.00,2022-04-01
+JLG 1500SJ Ultra Boom Lift - Unit 2,aerial lift,JLG,1500SJ,JLG1500-81235,0,145.00,2022-04-01
+JLG 1500SJ Ultra Boom Lift - Unit 3,aerial lift,JLG,1500SJ,JLG1500-81236,0,145.00,2023-01-15
+Manitou MHT 10225 Telehandler,telehandler,Manitou,MHT 10225,MAN10225-55291,0,95.00,2022-08-10
+Mack Granite Concrete Mixer - Unit 1,concrete mixer,Mack,Granite MHD,MCK-GRN-44001,0,0.00,2021-02-14
+Mack Granite Concrete Mixer - Unit 2,concrete mixer,Mack,Granite MHD,MCK-GRN-44002,0,0.00,2021-02-14
+Caterpillar 938M Wheel Loader,loader,Caterpillar,938M,CAT938M-70033,0,175.00,2020-09-01
+Wacker Neuson DS70Y Trench Compactor,compactor,Wacker Neuson,DS70Y,WKR-DS70-52241,0,0.00,2022-11-30
+Generac SG150 Standby Generator - Unit 1,generator,Generac,SG150,GEN150-SG-19201,0,0.00,2023-02-01
+Generac SG150 Standby Generator - Unit 2,generator,Generac,SG150,GEN150-SG-19202,0,0.00,2023-02-01
+Gradall XL 4100 IV Excavator,excavator,Gradall,XL 4100 IV,GRD4100-88341,0,195.00,2021-10-15
+BrandSafway Harsco Scaffolding System,scaffolding,BrandSafway,Modular Systems,BSW-MOD-22014,0,0.00,2023-03-10
+Ford F-450 Super Duty - Superintendent Truck 1,vehicle,Ford,F-450 SD,1FD0W4GT5N-1001,0,0.00,2022-07-01
+Ford F-450 Super Duty - Superintendent Truck 2,vehicle,Ford,F-450 SD,1FD0W4GT5N-1002,0,0.00,2022-07-01
+Ford F-450 Super Duty - Safety Truck,vehicle,Ford,F-450 SD,1FD0W4GT5N-1003,0,0.00,2022-09-01
+RAM 3500 Crew Cab - PM Truck 1,vehicle,RAM,3500 Crew Cab,3C7WRTEL5N-2001,0,0.00,2023-01-01
+RAM 3500 Crew Cab - PM Truck 2,vehicle,RAM,3500 Crew Cab,3C7WRTEL5N-2002,0,0.00,2023-01-01

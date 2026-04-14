@@ -1,0 +1,7 @@
+name,client_name,stage,estimated_value,probability_pct,expected_close_date,source
+East Austin Micro-Unit Community,UrbanEdge Development,negotiation,31000000,80,2026-03-15,existing_client
+San Antonio Convention Hotel Expansion,Alamo Hospitality Trust,proposal,54000000,55,2026-05-01,referral
+Denver Tech Campus Phase 2,Front Range Industrial Partners,qualification,28000000,40,2026-06-30,existing_client
+Tampa Bay Distribution Hub,Gulf Coast Logistics LLC,lead,22000000,25,2026-09-01,cold_outreach
+Chicago Southside Mixed-Use,Lakeshore Urban Ventures,proposal,67000000,50,2026-07-15,referral
+Phoenix Outpatient Medical Center,SunState Health Systems,negotiation,38000000,75,2026-04-01,existing_client

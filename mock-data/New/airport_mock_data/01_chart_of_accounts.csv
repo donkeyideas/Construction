@@ -1,0 +1,44 @@
+account_number,name,account_type,sub_type,description
+1000,Cash & Equivalents,asset,Current Asset,Operating cash and short-term deposits
+1010,Accounts Receivable,asset,Current Asset,Amounts owed by clients for completed work
+1020,Retainage Receivable,asset,Current Asset,Retained amounts from client progress billings
+1030,Costs in Excess of Billings,asset,Current Asset,Underbillings on contracts in progress
+1040,Prepaid Expenses,asset,Current Asset,Insurance and other prepaid costs
+1050,Inventory & Materials on Hand,asset,Current Asset,Stored materials not yet installed
+1100,Equipment – Net of Depreciation,asset,Fixed Asset,Construction equipment at book value
+1110,Vehicles – Net of Depreciation,asset,Fixed Asset,Company trucks and vehicles at book value
+1120,Office Furniture & Equipment,asset,Fixed Asset,Office FF&E at book value
+1130,Accumulated Depreciation,asset,Fixed Asset,Total accumulated depreciation
+1200,Other Assets,asset,Other Asset,Security deposits and other long-term assets
+2000,Accounts Payable,liability,Current Liability,Amounts owed to subcontractors and vendors
+2010,Retainage Payable,liability,Current Liability,Retained amounts withheld from subcontractors
+2020,Billings in Excess of Costs,liability,Current Liability,Overbillings on contracts in progress
+2030,Accrued Payroll,liability,Current Liability,Wages earned but not yet paid
+2040,Accrued Expenses,liability,Current Liability,Other accrued liabilities
+2050,Income Taxes Payable,liability,Current Liability,Federal and state income taxes payable
+2100,Equipment Financing,liability,Long-Term Liability,Long-term debt on equipment purchases
+2110,Line of Credit,liability,Long-Term Liability,Revolving credit facility
+3000,Common Stock,equity,Equity,Paid-in capital
+3010,Retained Earnings,equity,Equity,Cumulative net income retained in business
+3020,Current Year Net Income,equity,Equity,Net income for current fiscal year
+4000,Contract Revenue,income,Revenue,Revenue recognized on construction contracts
+4010,Change Order Revenue,income,Revenue,Revenue from approved change orders
+4020,Equipment Rental Income,income,Revenue,Revenue from equipment rentals to third parties
+5000,Direct Labor,expense,Cost of Revenue,Field labor costs directly on projects
+5010,Subcontractor Costs,expense,Cost of Revenue,Amounts paid to subcontractors
+5020,Materials & Supplies,expense,Cost of Revenue,Materials installed in projects
+5030,Equipment Costs – Direct,expense,Cost of Revenue,Equipment operating costs allocated to projects
+5040,Other Direct Costs,expense,Cost of Revenue,Permits, testing, temporary facilities
+6000,General & Administrative Salaries,expense,Operating Expense,Office and management salaries
+6010,Payroll Taxes & Benefits,expense,Operating Expense,Employer payroll taxes and benefits
+6020,Rent & Utilities,expense,Operating Expense,Office rent and utilities
+6030,Insurance,expense,Operating Expense,General liability, workers comp, umbrella
+6040,Depreciation Expense,expense,Operating Expense,Equipment and vehicle depreciation
+6050,Professional Fees,expense,Operating Expense,Legal, accounting, consulting
+6060,Marketing & Business Development,expense,Operating Expense,Pursuit costs and marketing
+6070,Travel & Entertainment,expense,Operating Expense,Business travel and meals
+6080,Office Supplies & Technology,expense,Operating Expense,IT, software, office supplies
+6090,Miscellaneous Expense,expense,Operating Expense,Other general expenses
+7000,Interest Expense,expense,Other Expense,Interest on debt and credit facilities
+7010,Gain (Loss) on Equipment Sale,expense,Other Income/Expense,Gains or losses on asset disposals
+8000,Income Tax Expense,expense,Tax,Federal and state income taxes

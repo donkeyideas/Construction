@@ -12,7 +12,7 @@ export async function GET(
   const userCompany = await getCurrentUserCompany(supabase);
 
   if (!userCompany) {
-    return new Response("Unauthorized", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { data, error } = await supabase
@@ -40,7 +40,7 @@ export async function PUT(
   const userCompany = await getCurrentUserCompany(supabase);
 
   if (!userCompany) {
-    return new Response("Unauthorized", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = (await req.json()) as {
@@ -77,7 +77,7 @@ export async function DELETE(
   const userCompany = await getCurrentUserCompany(supabase);
 
   if (!userCompany) {
-    return new Response("Unauthorized", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { error } = await supabase

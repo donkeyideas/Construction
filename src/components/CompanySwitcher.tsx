@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { Building2, ChevronDown, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -89,7 +90,7 @@ export default function CompanySwitcher() {
         }}
       >
         {active?.logo_url ? (
-          <img src={active.logo_url} alt="" style={{ width: "20px", height: "20px", borderRadius: "4px", objectFit: "contain" }} />
+          <Image src={active.logo_url} alt="" width={20} height={20} unoptimized style={{ borderRadius: "4px", objectFit: "contain" }} />
         ) : (
           <Building2 size={16} style={{ color: "var(--muted)" }} />
         )}
@@ -137,7 +138,7 @@ export default function CompanySwitcher() {
                 }}
               >
                 {c.logo_url ? (
-                  <img src={c.logo_url} alt="" style={{ width: "18px", height: "18px", borderRadius: "3px", objectFit: "contain" }} />
+                  <Image src={c.logo_url} alt="" width={18} height={18} unoptimized style={{ borderRadius: "3px", objectFit: "contain" }} />
                 ) : (
                   <Building2 size={14} style={{ color: "var(--muted)" }} />
                 )}

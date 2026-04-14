@@ -202,6 +202,11 @@
       "fullName": "Full Name",
       "phone": "Phone",
       "saveChanges": "Save Changes"
+    },
+    "portalLabel": {
+      "tenant": "Tenant Portal",
+      "vendor": "Vendor Portal",
+      "employee": "Employee Portal"
     }
   },
   "mobile": {

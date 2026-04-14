@@ -1,0 +1,52 @@
+account_number,name,account_type,sub_type,description
+1000,Cash & Equivalents,asset,Current Asset,Operating cash and short-term deposits
+1010,Accounts Receivable,asset,Current Asset,Amounts owed by clients for completed work
+1020,Contract Assets - Overbillings,asset,Current Asset,Work in place not yet billed
+1030,Retainage Receivable,asset,Current Asset,Retained amounts held by clients
+1050,Prepaid Expenses,asset,Current Asset,Prepaid insurance and other items
+1060,Inventory & Materials on Hand,asset,Current Asset,Stored materials not yet installed
+1100,Equipment - Net,asset,Fixed Asset,Construction equipment net of depreciation
+1110,Vehicles - Net,asset,Fixed Asset,Company vehicles net of depreciation
+1120,Office Furniture & Equipment - Net,asset,Fixed Asset,FF&E net of depreciation
+1130,Right of Use Assets,asset,Fixed Asset,Operating lease right of use assets
+1200,Goodwill,asset,Other Asset,Goodwill from acquisitions
+1210,Security Deposits,asset,Other Asset,Security deposits held by landlords
+2000,Accounts Payable,liability,Current Liability,Amounts owed to subcontractors and vendors
+2010,Accrued Liabilities,liability,Current Liability,Accrued wages payroll taxes and benefits
+2020,Contract Liabilities - Underbillings,liability,Current Liability,Amounts billed in excess of work in place
+2030,Retainage Payable,liability,Current Liability,Retainage held from subcontractors
+2040,Short-Term Debt,liability,Current Liability,Current portion of long-term debt
+2050,Income Taxes Payable,liability,Current Liability,Current income taxes payable
+2100,Long-Term Debt,liability,Long-Term Liability,Equipment loans and lines of credit
+2110,Operating Lease Liability,liability,Long-Term Liability,Long-term operating lease obligations
+3000,Common Stock,equity,Equity,Owner equity contributions
+3010,Retained Earnings,equity,Equity,Accumulated retained earnings
+3020,Current Year Net Income,equity,Equity,Current fiscal year net income
+4000,Contract Revenue,revenue,Revenue,Revenue recognized from construction contracts
+4010,Change Order Revenue,revenue,Revenue,Revenue from approved change orders
+4020,Equipment Rental Income,revenue,Revenue,Revenue from renting equipment to third parties
+4030,Other Income,revenue,Revenue,Miscellaneous income
+5000,Direct Labor,expense,Cost of Revenue,Field labor wages and payroll burden
+5010,Subcontractor Costs,expense,Cost of Revenue,Payments to subcontractors
+5020,Materials & Supplies,expense,Cost of Revenue,Direct materials installed in projects
+5030,Equipment Costs,expense,Cost of Revenue,Equipment depreciation and operating costs
+5040,Permits & Fees,expense,Cost of Revenue,Building permits inspection fees and related
+5050,Other Direct Costs,expense,Cost of Revenue,Other job-direct costs
+6000,Salaries - Officers,expense,Operating Expense,Officer and executive compensation
+6010,Salaries - Administrative,expense,Operating Expense,Administrative staff compensation
+6020,Payroll Taxes & Benefits,expense,Operating Expense,Employer payroll taxes and benefits overhead
+6030,Office Rent,expense,Operating Expense,Corporate and regional office rent
+6040,Insurance - General Liability,expense,Operating Expense,General liability and umbrella insurance
+6050,Insurance - Workers Comp,expense,Operating Expense,Workers compensation insurance
+6060,Vehicle Expense,expense,Operating Expense,Fuel maintenance and vehicle costs
+6070,Depreciation - G&A,expense,Operating Expense,Depreciation on administrative assets
+6080,Professional Fees,expense,Operating Expense,Legal accounting and consulting fees
+6090,Telephone & Communications,expense,Operating Expense,Phone internet and communications
+6100,Office Supplies & Postage,expense,Operating Expense,Office consumables and postage
+6110,Travel & Entertainment,expense,Operating Expense,Business travel meals and entertainment
+6120,Marketing & Advertising,expense,Operating Expense,Business development and marketing
+6130,Technology & Software,expense,Operating Expense,Software subscriptions and IT costs
+6140,Bad Debt Expense,expense,Operating Expense,Write-offs of uncollectible receivables
+7000,Interest Expense,expense,Other Expense,Interest on debt and credit facilities
+7010,Gain/Loss on Equipment Sale,expense,Other Expense,Gains or losses on equipment disposals
+8000,Income Tax Expense,expense,Tax,Federal and state income tax expense

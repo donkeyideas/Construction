@@ -1,0 +1,5 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+General Operating,US Bank,checking,4412,9100,3850000.00
+Payroll Account,US Bank,checking,4413,9100,975000.00
+Project Escrow – MSP North Terminal,US Bank,checking,4414,9100,2200000.00
+Equipment Reserve,Wells Fargo,savings,7821,2750,520000.00

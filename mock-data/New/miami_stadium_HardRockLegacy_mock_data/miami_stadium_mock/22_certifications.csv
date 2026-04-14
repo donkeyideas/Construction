@@ -1,0 +1,24 @@
+cert_name,cert_type,issuing_authority,cert_number,issued_date,expiry_date,contact_name
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2023-98201,2023-04-15,2028-04-15,Sandra Fuentes
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2023-98202,2023-04-15,2028-04-15,Derek Washington
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2022-77103,2022-09-01,2027-09-01,Priya Nair
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2024-44291,2024-01-10,2029-01-10,Lisa Huang
+OSHA 10-Hour Construction Safety,safety,OSHA Training Institute,OSHA10-2024-55001,2024-01-15,2029-01-15,Frank Morales
+NCCO Crane Operator - Lattice Boom Crawler,equipment,National Commission for the Certification of Crane Operators,NCCO-LBC-2022-31441,2022-07-20,2027-07-20,Tyler Banks
+NCCO Crane Operator - Lattice Boom Truck,equipment,National Commission for the Certification of Crane Operators,NCCO-LBT-2021-28813,2021-11-15,2026-11-15,Craig Ellison
+NCCO Crane Operator - Telescopic Boom - Fixed Cab,equipment,National Commission for the Certification of Crane Operators,NCCO-TBF-2023-44120,2023-03-08,2028-03-08,Roberto Castillo
+Certified Construction Manager (CCM),professional,Construction Management Association of America,CCM-2019-18842,2019-06-01,2026-06-01,James Okafor
+PMP - Project Management Professional,professional,Project Management Institute,PMP-2021-884201,2021-09-15,2024-09-15,Angela Brooks
+LEED AP BD+C,professional,US Green Building Council,LEEDAP-BD-2020-44891,2020-05-01,2025-05-01,Natasha Bowen
+LEED AP BD+C,professional,US Green Building Council,LEEDAP-BD-2019-38201,2019-08-20,2024-08-20,Sandra Fuentes
+Florida General Contractor License - CGC,license,Florida DBPR,CGC1508841,2018-01-01,2026-01-01,Marcus Delgado
+Florida General Contractor License - CGC,license,Florida DBPR,CGC1504122,2016-06-15,2026-06-15,Raymond Kowalski
+Miami-Dade Building Permit - Stadium HRL-2024,permit,Miami-Dade County,MD-BP-2024-HRL-001,2024-01-10,2028-01-10,James Okafor
+Miami-Dade Building Permit - Football Facility HPC-2024,permit,Miami-Dade County,MD-BP-2024-HPC-001,2024-02-20,2027-02-20,Sandra Fuentes
+Miami-Dade Building Permit - Athlete Village CAV-2024,permit,Miami-Dade County,MD-BP-2024-CAV-001,2024-05-15,2027-05-15,Derek Washington
+South Florida Water Management District ERP,permit,South Florida Water Management District,SFWMD-ERP-2024-HRL,2024-01-05,2028-01-05,Alicia Torres
+US Army Corps of Engineers Section 404 Permit,permit,US Army Corps of Engineers,USACE-404-2023-HRL,2023-11-20,2027-11-20,Alicia Torres
+FDOT Driveway Connection Permit,permit,Florida Department of Transportation,FDOT-DCP-2024-0088,2024-01-12,2026-12-31,Alicia Torres
+Certified Safety Professional (CSP),safety,Board of Certified Safety Professionals,CSP-2018-44012,2018-09-15,2027-09-15,Lisa Huang
+First Aid / CPR / AED - Team Certification,safety,American Red Cross,ARC-FA-2025-HRL,2025-01-15,2027-01-15,Frank Morales
+Asbestos Contractor License - Florida,license,Florida DEP,FL-ACL-2023-00441,2023-04-01,2026-04-01,James Okafor

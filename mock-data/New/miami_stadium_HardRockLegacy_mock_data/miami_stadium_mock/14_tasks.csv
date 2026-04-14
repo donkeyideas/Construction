@@ -1,0 +1,138 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Schematic design and owner approvals,Preconstruction & Design,critical,2022-06-01,2022-12-31,100,false,true,Hard Rock Legacy Stadium
+Design development - 60% CD set,Preconstruction & Design,critical,2023-01-01,2023-06-30,100,false,true,Hard Rock Legacy Stadium
+100% Construction documents issued,Preconstruction & Design,critical,2023-07-01,2023-12-31,100,true,true,Hard Rock Legacy Stadium
+GMP established and contract executed,Preconstruction & Design,critical,2024-01-05,2024-01-14,100,true,true,Hard Rock Legacy Stadium
+Site mobilization and temporary facilities,Site Preparation & Mobilization,high,2024-01-08,2024-02-15,100,false,true,Hard Rock Legacy Stadium
+Mass earthwork and dewatering,Site Preparation & Mobilization,critical,2024-01-15,2024-03-31,100,false,true,Hard Rock Legacy Stadium
+Drilled pier installation - all quadrants,Deep Foundation & Earthwork,critical,2024-02-01,2024-08-31,100,false,true,Hard Rock Legacy Stadium
+Foundation caps and grade beams,Deep Foundation & Earthwork,high,2024-06-01,2024-09-30,100,false,true,Hard Rock Legacy Stadium
+Stadium foundation complete milestone,Deep Foundation & Earthwork,critical,2024-09-30,2024-09-30,100,true,true,Hard Rock Legacy Stadium
+Level 1 below-grade concourse slab,Structural Concrete - Below Grade,critical,2024-07-01,2024-10-31,100,false,true,Hard Rock Legacy Stadium
+Level B1 and B2 parking concrete,Structural Concrete - Below Grade,high,2024-06-01,2024-11-30,100,false,true,Hard Rock Legacy Stadium
+Columns and shear walls Level 1-2 erect,Structural Steel & Superstructure,critical,2024-06-15,2024-12-31,100,false,true,Hard Rock Legacy Stadium
+Level 1 concourse slab poured all zones,Structural Concrete - Bowl & Concourse,high,2024-08-01,2025-01-31,100,false,true,Hard Rock Legacy Stadium
+Level 2 concourse concrete complete,Structural Concrete - Bowl & Concourse,critical,2024-10-01,2025-03-31,100,false,true,Hard Rock Legacy Stadium
+Level 3 concourse concrete complete,Structural Concrete - Bowl & Concourse,critical,2024-12-01,2025-05-31,90,false,true,Hard Rock Legacy Stadium
+Level 4 grandstand concrete complete,Structural Concrete - Bowl & Concourse,critical,2025-02-01,2025-08-31,65,false,true,Hard Rock Legacy Stadium
+Level 5 premium club level slab,Structural Concrete - Bowl & Concourse,high,2025-04-01,2025-10-31,40,false,false,Hard Rock Legacy Stadium
+Lower bowl seating riser concrete rows 1-42,Structural Concrete - Bowl & Concourse,critical,2025-01-01,2025-09-30,55,false,true,Hard Rock Legacy Stadium
+Structural steel columns Level 3-6 erect,Structural Steel & Superstructure,critical,2024-10-01,2025-04-30,100,false,true,Hard Rock Legacy Stadium
+Primary roof truss set T-1 through T-16,Roof Structure & Enclosure,critical,2025-01-13,2025-06-30,100,false,true,Hard Rock Legacy Stadium
+Secondary roof purlins and metal deck,Roof Structure & Enclosure,critical,2025-03-01,2025-08-31,85,false,true,Hard Rock Legacy Stadium
+Roofing membrane and insulation,Roof Structure & Enclosure,critical,2025-05-01,2025-10-31,45,false,true,Hard Rock Legacy Stadium
+Roof structure complete milestone,Roof Structure & Enclosure,critical,2025-02-10,2025-02-10,100,true,true,Hard Rock Legacy Stadium
+MEP underground and below slab,MEP Rough-in & Systems,high,2024-10-01,2025-03-31,100,false,true,Hard Rock Legacy Stadium
+MEP rough-in Level 1-2 concourse,MEP Rough-in & Systems,critical,2025-01-01,2025-06-30,80,false,true,Hard Rock Legacy Stadium
+MEP rough-in Level 3-4 concourse,MEP Rough-in & Systems,critical,2025-04-01,2025-10-31,40,false,true,Hard Rock Legacy Stadium
+MEP rough-in Level 5-6 club and press,MEP Rough-in & Systems,high,2025-07-01,2026-02-28,10,false,false,Hard Rock Legacy Stadium
+Precast facade panels east elevation,Exterior Facade & Enclosure,high,2025-08-01,2026-02-28,15,false,false,Hard Rock Legacy Stadium
+Press box curtain wall,Exterior Facade & Enclosure,high,2025-10-01,2026-04-30,5,false,false,Hard Rock Legacy Stadium
+Suite Level 6 drywall and framing,Interior Finishes & Fit-out,high,2025-09-01,2026-03-31,8,false,false,Hard Rock Legacy Stadium
+Suites 101-175 rough MEP and framing,Interior Finishes & Fit-out,high,2025-08-01,2026-05-31,20,false,false,Hard Rock Legacy Stadium
+Premium club lounge finishes Level 5,Interior Finishes & Fit-out,medium,2025-11-01,2026-06-30,3,false,false,Hard Rock Legacy Stadium
+Concourse flooring Level 1-2,Interior Finishes & Fit-out,medium,2025-10-01,2026-04-30,5,false,false,Hard Rock Legacy Stadium
+Scoreboard steel and primary structure,Specialty Systems & Technology,high,2025-10-01,2026-04-30,10,false,false,Hard Rock Legacy Stadium
+Hussey seating installation rows 1-65000,Specialty Systems & Technology,critical,2026-01-01,2026-10-31,0,false,true,Hard Rock Legacy Stadium
+Natural grass installation and grow-in,Specialty Systems & Technology,critical,2026-08-01,2027-04-30,0,false,true,Hard Rock Legacy Stadium
+Daktronics video board installation,Specialty Systems & Technology,high,2026-06-01,2026-11-30,0,false,false,Hard Rock Legacy Stadium
+Elara AV and technology systems,Specialty Systems & Technology,high,2026-04-01,2027-02-28,0,false,false,Hard Rock Legacy Stadium
+Systems commissioning kickoff,Commissioning & Turnover,critical,2026-10-01,2026-10-01,0,true,true,Hard Rock Legacy Stadium
+MEP commissioning and testing,Commissioning & Turnover,critical,2026-10-01,2027-03-31,0,false,true,Hard Rock Legacy Stadium
+Owner training and turnover,Commissioning & Turnover,high,2027-04-01,2027-06-30,0,false,false,Hard Rock Legacy Stadium
+Substantial completion and CO,Commissioning & Turnover,critical,2027-07-15,2027-07-15,0,true,true,Hard Rock Legacy Stadium
+First game - Hard Rock Legacy Stadium,Commissioning & Turnover,critical,2027-08-30,2027-08-30,0,true,true,Hard Rock Legacy Stadium
+GMP executed and NTP issued,Preconstruction & Permitting,critical,2024-03-01,2024-03-01,100,true,true,Hurricane Football Performance Center
+Site grading and utility demo,Site Preparation & Foundation,high,2024-03-01,2024-05-31,100,false,true,Hurricane Football Performance Center
+Drilled piers main building,Site Preparation & Foundation,critical,2024-04-01,2024-07-31,100,false,true,Hurricane Football Performance Center
+Mat slab and grade beams poured,Site Preparation & Foundation,critical,2024-06-01,2024-08-31,100,false,true,Hurricane Football Performance Center
+Steel erection Level 1-2 main building,Structural Frame & Enclosure,critical,2024-07-01,2024-11-30,100,false,true,Hurricane Football Performance Center
+Weight room structural slab Level 1,Structural Frame & Enclosure,high,2024-08-01,2024-10-31,100,false,false,Hurricane Football Performance Center
+Steel erection Level 3 film and offices,Structural Frame & Enclosure,high,2024-10-01,2025-02-28,100,false,false,Hurricane Football Performance Center
+Roof structure and metal deck,Structural Frame & Enclosure,critical,2024-11-01,2025-04-30,85,false,true,Hurricane Football Performance Center
+Practice bubble arch rib erection 1-24,Practice Bubble Air Structure,critical,2024-09-01,2025-01-31,100,false,true,Hurricane Football Performance Center
+Bubble air membrane installation,Practice Bubble Air Structure,critical,2024-12-01,2025-02-28,100,false,true,Hurricane Football Performance Center
+Bubble pressurization and testing,Practice Bubble Air Structure,critical,2025-02-24,2025-02-24,100,true,true,Hurricane Football Performance Center
+Indoor turf subbase and drainage,Practice Bubble Air Structure,high,2025-03-01,2025-05-31,60,false,false,Hurricane Football Performance Center
+FieldTurf indoor practice field install,Practice Bubble Air Structure,critical,2025-05-01,2025-07-31,0,false,true,Hurricane Football Performance Center
+MEP underground and slab rough-in,MEP Systems & Infrastructure,high,2024-08-01,2025-01-31,100,false,false,Hurricane Football Performance Center
+MEP above ceiling rough-in Level 1-2,MEP Systems & Infrastructure,high,2025-01-01,2025-08-31,50,false,false,Hurricane Football Performance Center
+HVAC and controls installation,MEP Systems & Infrastructure,high,2025-04-01,2026-03-31,15,false,false,Hurricane Football Performance Center
+Player locker room tile and finishes,Interior Fit-out & Finishes,high,2025-08-01,2026-03-31,20,false,false,Hurricane Football Performance Center
+Coaches offices drywall and finishes,Interior Fit-out & Finishes,medium,2025-07-01,2026-04-30,35,false,false,Hurricane Football Performance Center
+Recruiting lounge premium finishes,Interior Fit-out & Finishes,medium,2025-10-01,2026-06-30,5,false,false,Hurricane Football Performance Center
+Nutrition center kitchen installation,Interior Fit-out & Finishes,high,2025-11-01,2026-07-31,0,false,false,Hurricane Football Performance Center
+Outdoor practice field 1 and 2 grading,Outdoor Practice Fields,high,2025-08-01,2026-02-28,0,false,false,Hurricane Football Performance Center
+Outdoor practice field synthetic turf,Outdoor Practice Fields,high,2026-01-01,2026-06-30,0,false,false,Hurricane Football Performance Center
+Catapult GPS and sports science install,Technology & AV Systems,medium,2026-04-01,2026-10-31,0,false,false,Hurricane Football Performance Center
+Film room AV systems installation,Technology & AV Systems,high,2026-03-01,2026-09-30,0,false,false,Hurricane Football Performance Center
+Substantial completion milestone,Commissioning & Punch List,critical,2026-12-15,2026-12-15,0,true,true,Hurricane Football Performance Center
+First team use - Football Performance Center,Commissioning & Punch List,critical,2026-12-31,2026-12-31,0,true,true,Hurricane Football Performance Center
+Design development and owner programming,Preconstruction & Design,critical,2023-06-01,2024-01-31,100,false,true,Coral Gables Athlete Village
+100% construction documents issued,Preconstruction & Design,critical,2024-02-01,2024-05-31,100,true,true,Coral Gables Athlete Village
+Site clearing and mass earthwork all towers,Site Work & Foundation - All Towers,high,2024-06-01,2024-09-30,100,false,true,Coral Gables Athlete Village
+Drilled piers Tower 1 and Tower 2,Site Work & Foundation - All Towers,critical,2024-08-01,2024-12-31,100,false,true,Coral Gables Athlete Village
+Drilled piers Tower 3 and Tower 4,Site Work & Foundation - All Towers,critical,2024-10-01,2025-03-31,80,false,true,Coral Gables Athlete Village
+Tower 1 structural frame erection,Structural Frame - Towers 1 & 2,critical,2024-09-01,2025-05-31,100,false,true,Coral Gables Athlete Village
+Tower 2 structural frame erection,Structural Frame - Towers 1 & 2,critical,2025-01-01,2025-09-30,60,false,true,Coral Gables Athlete Village
+Tower 1 topped out milestone,Structural Frame - Towers 1 & 2,critical,2025-05-31,2025-05-31,100,true,true,Coral Gables Athlete Village
+Tower 3 structural frame erection,Structural Frame - Towers 3 & 4,critical,2025-01-01,2025-10-31,40,false,true,Coral Gables Athlete Village
+Tower 4 structural frame erection,Structural Frame - Towers 3 & 4,critical,2025-04-01,2026-03-31,15,false,true,Coral Gables Athlete Village
+Tower 4 topped out milestone,Structural Frame - Towers 3 & 4,critical,2026-03-31,2026-03-31,0,true,true,Coral Gables Athlete Village
+MEP rough-in Tower 1 floors 1-6,MEP Rough-in All Towers,high,2025-04-01,2025-12-31,30,false,false,Coral Gables Athlete Village
+MEP rough-in Tower 2 floors 1-6,MEP Rough-in All Towers,high,2025-07-01,2026-03-31,10,false,false,Coral Gables Athlete Village
+MEP rough-in Towers 3 and 4,MEP Rough-in All Towers,high,2025-10-01,2026-06-30,0,false,false,Coral Gables Athlete Village
+Exterior window installation Tower 1,Exterior Enclosure & Windows,high,2025-09-01,2026-02-28,20,false,false,Coral Gables Athlete Village
+Exterior cladding and windows Tower 2,Exterior Enclosure & Windows,high,2025-12-01,2026-06-30,5,false,false,Coral Gables Athlete Village
+Exterior enclosure Towers 3 and 4,Exterior Enclosure & Windows,high,2026-03-01,2026-08-31,0,false,false,Coral Gables Athlete Village
+Unit finishes Tower 1 floors 1-3,Interior Finishes - Towers 1 & 2,medium,2025-12-01,2026-05-31,10,false,false,Coral Gables Athlete Village
+Unit finishes Tower 1 floors 4-6,Interior Finishes - Towers 1 & 2,medium,2026-02-01,2026-07-31,0,false,false,Coral Gables Athlete Village
+Unit finishes Tower 2 all floors,Interior Finishes - Towers 1 & 2,medium,2026-04-01,2026-10-31,0,false,false,Coral Gables Athlete Village
+Unit finishes Tower 3 all floors,Interior Finishes - Towers 3 & 4,medium,2026-04-01,2026-10-31,0,false,false,Coral Gables Athlete Village
+Unit finishes Tower 4 all floors,Interior Finishes - Towers 3 & 4,medium,2026-07-01,2027-01-31,0,false,false,Coral Gables Athlete Village
+Dining hall commercial kitchen installation,Dining Hall & Amenities,high,2026-06-01,2026-11-30,0,false,false,Coral Gables Athlete Village
+Rooftop pool and amenity deck construction,Dining Hall & Amenities,high,2026-08-01,2027-01-31,0,false,false,Coral Gables Athlete Village
+Sports medicine center fit-out,Dining Hall & Amenities,medium,2026-09-01,2027-01-31,0,false,false,Coral Gables Athlete Village
+Substantial completion milestone,Commissioning & Punch List,critical,2027-03-15,2027-03-15,0,true,true,Coral Gables Athlete Village
+First occupancy - Athlete Village,Commissioning & Punch List,critical,2027-03-31,2027-03-31,0,true,true,Coral Gables Athlete Village
+Schematic design and programming,Preconstruction & Design,critical,2023-09-01,2024-04-30,100,false,true,Hurricane Athletic Administration Tower
+Construction documents and GMP,Preconstruction & Design,critical,2024-05-01,2024-08-31,100,true,true,Hurricane Athletic Administration Tower
+Mass excavation and dewatering,Foundation & Below Grade,high,2024-09-01,2025-01-31,100,false,true,Hurricane Athletic Administration Tower
+Drilled caissons 40 piers,Foundation & Below Grade,critical,2024-11-01,2025-04-30,80,false,true,Hurricane Athletic Administration Tower
+Mat slab pour and waterproofing,Foundation & Below Grade,critical,2025-02-01,2025-06-30,50,false,true,Hurricane Athletic Administration Tower
+Core walls and elevator shafts,Core & Shell Structural Frame,critical,2025-01-01,2025-09-30,30,false,true,Hurricane Athletic Administration Tower
+Structural steel erection floors 1-6,Core & Shell Structural Frame,critical,2025-04-01,2025-12-31,15,false,true,Hurricane Athletic Administration Tower
+Structural steel erection floors 7-12,Core & Shell Structural Frame,critical,2025-08-01,2026-03-31,0,false,true,Hurricane Athletic Administration Tower
+Tower topped out milestone,Core & Shell Structural Frame,critical,2026-03-31,2026-03-31,0,true,true,Hurricane Athletic Administration Tower
+MEP risers and main distribution,MEP Rough-in & Infrastructure,high,2025-06-01,2026-02-28,10,false,false,Hurricane Athletic Administration Tower
+MEP rough-in floors 1-6,MEP Rough-in & Infrastructure,high,2025-09-01,2026-05-31,5,false,false,Hurricane Athletic Administration Tower
+MEP rough-in floors 7-12,MEP Rough-in & Infrastructure,high,2026-01-01,2026-08-31,0,false,false,Hurricane Athletic Administration Tower
+Curtain wall fabrication and installation,Exterior Facade & Curtain Wall,high,2026-01-01,2026-09-30,0,false,false,Hurricane Athletic Administration Tower
+Lobby and ground floor facade,Exterior Facade & Curtain Wall,high,2026-04-01,2026-12-31,0,false,false,Hurricane Athletic Administration Tower
+Office fit-out floors 1-6,Interior Fit-out & Finishes,medium,2026-06-01,2026-12-31,0,false,false,Hurricane Athletic Administration Tower
+BOA Club event space floors 10-12,Interior Fit-out & Finishes,high,2026-08-01,2027-02-28,0,false,false,Hurricane Athletic Administration Tower
+Executive suites and boardroom,Interior Fit-out & Finishes,medium,2026-09-01,2027-03-31,0,false,false,Hurricane Athletic Administration Tower
+Sky bridge steel erection and glazing,Sky Bridge to Stadium,critical,2026-09-01,2027-01-31,0,false,true,Hurricane Athletic Administration Tower
+Sky bridge MEP and finishes,Sky Bridge to Stadium,high,2027-01-01,2027-02-28,0,false,false,Hurricane Athletic Administration Tower
+Substantial completion milestone,Commissioning & Punch List,critical,2027-06-15,2027-06-15,0,true,true,Hurricane Athletic Administration Tower
+First occupancy - Admin Tower,Commissioning & Punch List,critical,2027-06-30,2027-06-30,0,true,true,Hurricane Athletic Administration Tower
+Site mobilization and clearing,Site Mobilization & Earthwork,high,2024-01-08,2024-03-31,100,false,true,Stadium District Site & Infrastructure
+Mass earthwork and grading,Site Mobilization & Earthwork,critical,2024-02-01,2024-06-30,100,false,true,Stadium District Site & Infrastructure
+Sanitary sewer main installation,Underground Utilities & Storm,critical,2024-03-01,2024-08-31,100,false,true,Stadium District Site & Infrastructure
+Storm drainage and detention system,Underground Utilities & Storm,critical,2024-05-01,2024-12-31,100,false,true,Stadium District Site & Infrastructure
+Water main and fire loop,Underground Utilities & Storm,high,2024-06-01,2024-10-31,100,false,false,Stadium District Site & Infrastructure
+Parking garage P1 structure,Parking Structure Construction,critical,2024-06-01,2025-01-31,100,false,true,Stadium District Site & Infrastructure
+Parking garage P2 structure,Parking Structure Construction,critical,2024-09-01,2025-04-30,100,false,true,Stadium District Site & Infrastructure
+Parking garage MEP and striping,Parking Structure Construction,high,2025-02-01,2025-06-30,90,false,false,Stadium District Site & Infrastructure
+Main campus roadway subbase and paving,Campus Roads & Paving,critical,2024-09-01,2025-05-31,100,false,true,Stadium District Site & Infrastructure
+Service road and emergency access,Campus Roads & Paving,high,2025-01-01,2025-08-31,80,false,false,Stadium District Site & Infrastructure
+Main pedestrian spine hardscape,Pedestrian Spine & Plaza,critical,2025-01-01,2025-07-31,85,false,true,Stadium District Site & Infrastructure
+North tailgate plaza construction,Pedestrian Spine & Plaza,high,2025-04-01,2025-10-31,60,false,false,Stadium District Site & Infrastructure
+Fan experience zone hardscape,Pedestrian Spine & Plaza,medium,2025-06-01,2025-10-31,40,false,false,Stadium District Site & Infrastructure
+Primary electrical switchgear installation,Electrical Distribution & 5G DAS,critical,2024-08-01,2025-03-31,100,false,true,Stadium District Site & Infrastructure
+5G DAS tower and antenna installation,Electrical Distribution & 5G DAS,high,2025-01-01,2025-09-30,70,false,false,Stadium District Site & Infrastructure
+Campus lighting poles and fixtures,Electrical Distribution & 5G DAS,medium,2025-04-01,2025-09-30,55,false,false,Stadium District Site & Infrastructure
+Tree and landscape installation,Landscape & Wayfinding,high,2025-06-01,2025-10-31,45,false,false,Stadium District Site & Infrastructure
+Wayfinding signage and monument signs,Landscape & Wayfinding,medium,2025-08-01,2025-11-30,20,false,false,Stadium District Site & Infrastructure
+Site substantial completion,Final Punchlist & Closeout,critical,2025-12-15,2025-12-15,0,true,true,Stadium District Site & Infrastructure
+Final punchlist walkthrough,Final Punchlist & Closeout,high,2025-10-01,2025-12-31,0,false,false,Stadium District Site & Infrastructure

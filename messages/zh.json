@@ -200,6 +200,11 @@
       "fullName": "全名",
       "phone": "电话",
       "saveChanges": "保存更改"
+    },
+    "portalLabel": {
+      "tenant": "租户门户",
+      "vendor": "供应商门户",
+      "employee": "员工门户"
     }
   },
   "mobile": {

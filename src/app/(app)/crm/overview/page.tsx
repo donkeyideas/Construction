@@ -5,8 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getCRMOverview } from "@/lib/queries/crm";
 import { formatCompactCurrency, formatPercent, formatDateShort } from "@/lib/utils/format";
-import PipelineFunnelChart from "@/components/charts/PipelineFunnelChart";
-import BidPerformanceChart from "@/components/charts/BidPerformanceChart";
+import dynamic from "next/dynamic";
+
+const PipelineFunnelChart = dynamic(() => import("@/components/charts/PipelineFunnelChart"), { loading: () => <div style={{ height: 260 }} /> });
+const BidPerformanceChart = dynamic(() => import("@/components/charts/BidPerformanceChart"), { loading: () => <div style={{ height: 260 }} /> });
 
 export const metadata = {
   title: "CRM Overview - Buildwrk",

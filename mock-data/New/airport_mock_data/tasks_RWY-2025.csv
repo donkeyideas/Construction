@@ -1,0 +1,16 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Runway closure NOTAM coordination with FAA,Preconstruction & FAA Coordination,critical,2024-09-01,2025-03-31,100,false,true,Runway 17-35 Rehabilitation
+Pavement condition index survey and design,Preconstruction & FAA Coordination,critical,2024-09-01,2024-12-31,100,false,false,Runway 17-35 Rehabilitation
+Traffic control plan and phasing approved,Mobilization & Traffic Control,critical,2025-04-01,2025-04-15,100,true,true,Runway 17-35 Rehabilitation
+Site mobilization and set-up,Mobilization & Traffic Control,high,2025-04-01,2025-04-30,100,false,true,Runway 17-35 Rehabilitation
+FDR Runway 17 Sta 0+00 to 24+00,Full Depth Reclamation,critical,2025-05-01,2025-07-31,100,false,true,Runway 17-35 Rehabilitation
+FDR Runway 35 Sta 24+00 to 48+00,Full Depth Reclamation,critical,2025-07-01,2025-09-30,100,false,true,Runway 17-35 Rehabilitation
+Subgrade proof roll and acceptance,Full Depth Reclamation,high,2025-09-01,2025-10-15,100,false,false,Runway 17-35 Rehabilitation
+PCC paving Runway 17 half Sta 0+00 to 24+00,PCC Paving,critical,2025-08-01,2025-12-31,100,false,true,Runway 17-35 Rehabilitation
+PCC paving Runway 35 half Sta 24+00 to 48+00,PCC Paving,critical,2025-11-01,2026-06-30,22,false,true,Runway 17-35 Rehabilitation
+Joint sawing and sealing full length,PCC Paving,high,2025-10-01,2026-07-31,15,false,false,Runway 17-35 Rehabilitation
+Edge light conduit and fixture installation,Airfield Lighting & NAVAID,critical,2025-10-01,2026-09-30,20,false,true,Runway 17-35 Rehabilitation
+ILS relocation and commissioning,Airfield Lighting & NAVAID,critical,2026-03-01,2026-09-30,0,false,true,Runway 17-35 Rehabilitation
+Blast pad demolition and grading,Blast Pad Reconstruction,high,2026-04-01,2026-06-30,0,false,false,Runway 17-35 Rehabilitation
+Blast pad PCC paving,Blast Pad Reconstruction,high,2026-05-01,2026-08-31,0,false,false,Runway 17-35 Rehabilitation
+FAA inspection and runway reopening,Commissioning & FAA Inspection,critical,2026-11-30,2026-11-30,0,true,true,Runway 17-35 Rehabilitation

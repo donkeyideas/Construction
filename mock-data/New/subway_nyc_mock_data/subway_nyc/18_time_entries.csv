@@ -1,0 +1,18 @@
+entry_date,hours,overtime_hours,description,cost_code
+2026-01-05,8,0,Diana Chen - Store Manager opening shift. Inventory receiving Sysco delivery. Catering order prep for Morgan Stanley.,MGT-001
+2026-01-05,8,1,Tyrone Jackson - Assistant Manager closing shift. Cash reconciliation. End of day cleaning supervision.,MGT-002
+2026-01-05,7,0,Priya Patel - Shift Leader. Lunch rush 11-6pm sandwich line.,OPS-001
+2026-01-05,7,0,Carlos Mendoza - Sandwich Artist. Morning prep and lunch shift.,OPS-002
+2026-01-05,7,0,Aisha Williams - Sandwich Artist. Lunch and afternoon shift.,OPS-003
+2026-01-06,8,0,Diana Chen - Store Manager. Staff training new veggie patty product.,MGT-001
+2026-01-06,8,0,Tyrone Jackson - Assistant Manager. Opening. Delivery order management.,MGT-002
+2026-01-06,7,0,Kevin Park - Sandwich Artist. Full day shift.,OPS-004
+2026-01-06,7,0,Fatima Osei - Sandwich Artist. Afternoon and evening shift.,OPS-005
+2026-01-07,8,1,Diana Chen - Store Manager. Health inspection oversight. Rainy day ops.,MGT-001
+2026-01-07,7,0,Priya Patel - Shift Leader. All day shift.,OPS-001
+2026-01-07,7,0,Carlos Mendoza - Sandwich Artist. Full day.,OPS-002
+2026-01-07,7,0,Aisha Williams - Sandwich Artist. Full day.,OPS-003
+2026-01-08,8,0,Diana Chen - Store Manager. WeWork catering prep and delivery coordination.,MGT-001
+2026-01-08,8,0,Tyrone Jackson - Assistant Manager. Monthly supply order management.,MGT-002
+2026-01-08,7,0,Kevin Park - Sandwich Artist. Opening shift.,OPS-004
+2026-01-08,7,0,Fatima Osei - Sandwich Artist. Lunch through close.,OPS-005

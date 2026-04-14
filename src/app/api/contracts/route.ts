@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (error) {
-      return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ error }, { status: 500 });
     }
 
     try {

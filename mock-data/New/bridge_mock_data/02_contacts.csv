@@ -1,0 +1,24 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Marcus,Thibodeau,employee,m.thibodeau@cascadebridge.com,206-555-0101,,CEO & Principal
+Renata,Yuen,employee,r.yuen@cascadebridge.com,206-555-0102,,CFO
+Derek,Sommers,employee,d.sommers@cascadebridge.com,206-555-0103,,COO
+Patricia,Nakamura,employee,p.nakamura@cascadebridge.com,206-555-0104,,VP of Engineering
+James,Okafor,employee,j.okafor@cascadebridge.com,206-555-0105,,Chief Estimator
+Lindsey,Brewer,employee,l.brewer@cascadebridge.com,206-555-0106,,Controller
+Craig,Harmon,employee,c.harmon@cascadebridge.com,206-555-0107,,Safety & Environmental Director
+Erin,MacPherson,employee,e.macpherson@cascadebridge.com,206-555-0108,,Project Manager – West Seattle Bridge
+Thomas,Regan,employee,t.regan@cascadebridge.com,206-555-0109,,Project Manager – SR-520 Lid
+Soren,Dahl,employee,s.dahl@cascadebridge.com,206-555-0110,,Project Manager – Montlake
+Bev,Townsend,employee,b.townsend@cascadebridge.com,206-555-0111,,Senior Bridge Superintendent
+Kwame,Asante,employee,k.asante@cascadebridge.com,206-555-0112,,Marine Operations Superintendent
+Donna,Frederickson,client,d.frederickson@seattle.gov,206-555-0201,Seattle Department of Transportation,Director of Major Projects
+Neil,Whitmore,client,n.whitmore@seattle.gov,206-555-0202,Seattle Department of Transportation,Resident Engineer – West Seattle
+Tamara,Lin,client,t.lin@wsdot.wa.gov,206-555-0203,Washington State DOT,Project Engineer – SR-520
+Greg,Fontaine,client,g.fontaine@wsdot.wa.gov,360-555-0204,Washington State DOT,Construction Administrator
+Rachel,Adeyemi,subcontractor,r.adeyemi@pacificsounddiving.com,206-555-0301,Pacific Sound Diving Services,Operations Manager
+Bruce,Watanabe,subcontractor,b.watanabe@pugetsoundsteel.com,253-555-0302,Puget Sound Structural Steel,VP Estimating
+Carla,Stein,subcontractor,c.stein@nwelectrical.com,206-555-0303,Northwest Electrical Contractors,Account Manager
+Pablo,Reyes,subcontractor,p.reyes@reyesconcrete.com,253-555-0304,Reyes Concrete & Formwork,Project Executive
+Diane,Kopp,subcontractor,d.kopp@cascademep.com,206-555-0305,Cascade MEP Systems,Estimating Manager
+Frank,Larrabee,vendor,f.larrabee@pacificsteel.com,253-555-0306,Pacific Steel & Wire,Regional Sales Manager
+Ingrid,Holmberg,vendor,i.holmberg@westerncement.com,206-555-0307,Western Cement & Aggregate,Account Manager

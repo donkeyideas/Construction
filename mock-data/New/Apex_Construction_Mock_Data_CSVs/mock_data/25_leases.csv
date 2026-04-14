@@ -1,0 +1,4 @@
+tenant_name,property_name,tenant_email,tenant_phone,monthly_rent,security_deposit,lease_start,lease_end
+Apex Construction Group LLC - HQ,Apex Construction Group HQ,m.rivera@apexconstructiongrp.com,512-555-0101,28000,56000,2023-01-01,2028-01-01
+Apex Construction Group LLC - Dallas,Apex Regional Office - Dallas,d.nguyen@apexconstructiongrp.com,512-555-0103,12000,24000,2022-06-01,2027-06-01
+Apex Construction Group LLC - Denver,Apex Regional Office - Denver,r.kozlowski@apexconstructiongrp.com,720-555-0114,9500,19000,2023-03-01,2028-03-01

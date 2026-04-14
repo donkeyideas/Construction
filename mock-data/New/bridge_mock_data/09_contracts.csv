@@ -1,0 +1,11 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+West Seattle Bridge – Structural Steel Fabrication & Erection,subcontractor,Puget Sound Structural Steel,b.watanabe@pugetsoundsteel.com,68500000,2023-06-01,2027-03-31,net_30
+West Seattle Bridge – Marine & Diving Operations,subcontractor,Pacific Sound Diving Services,r.adeyemi@pacificsounddiving.com,18200000,2023-03-01,2027-09-30,net_30
+West Seattle Bridge – Electrical & Lighting,subcontractor,Northwest Electrical Contractors,c.stein@nwelectrical.com,9800000,2024-06-01,2027-06-30,net_30
+West Seattle Bridge – Concrete Formwork & Placement,subcontractor,Reyes Concrete & Formwork,p.reyes@reyesconcrete.com,42000000,2023-05-01,2027-05-31,net_30
+SR-520 Lid – MEP Systems,subcontractor,Cascade MEP Systems,d.kopp@cascademep.com,14200000,2024-03-01,2027-01-31,net_30
+SR-520 Lid – Structural Concrete,subcontractor,Reyes Concrete & Formwork,p.reyes@reyesconcrete.com,28500000,2024-01-15,2027-01-31,net_30
+SR-520 Lid – Landscape & Hardscape,subcontractor,Emerald City Landscape,bids@emeraldcitylandscape.com,8800000,2025-09-01,2027-03-31,net_30
+Ballard Bridge Seismic – Isolation System,subcontractor,Earthquake Protection Systems,contracts@eqps.com,11200000,2025-02-01,2026-10-31,net_30
+Ballard Bridge Seismic – Pile Driving,subcontractor,Pacific Pile & Marine,bids@pacificpile.com,6400000,2025-03-01,2026-08-31,net_30
+Everett I-5 Ramp – Precast Girder Supply,subcontractor,Concrete Technology Corporation,sales@ctcprecast.com,7200000,2024-01-01,2025-08-31,net_30

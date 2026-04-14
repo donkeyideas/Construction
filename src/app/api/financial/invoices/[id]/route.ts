@@ -9,6 +9,7 @@ import {
   generateInvoiceJournalEntry,
   generateInvoiceDeferralSchedule,
 } from "@/lib/utils/invoice-accounting";
+import { parseJsonBody, isErrorResponse } from "@/lib/utils/api-response";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -77,7 +78,9 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = await parseJsonBody<Record<string, any>>(request);
+    if (isErrorResponse(body)) return body;
 
     // Note: balance_due is a Postgres GENERATED COLUMN (total_amount - amount_paid)
     // It auto-recomputes when total_amount or amount_paid change. Do NOT set it directly.

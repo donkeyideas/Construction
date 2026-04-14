@@ -1,0 +1,7 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+General Operating,Bank of America,checking,4421,0560,3850000.00
+Payroll Account,Bank of America,checking,4422,0560,925000.00
+Federal Grant Restricted - GSA,Bank of America,checking,4423,0560,8200000.00
+State Appropriation Restricted,Wells Fargo,checking,7751,1210,4100000.00
+CDBG Grant Restricted,Wells Fargo,checking,7752,1210,1850000.00
+Retainage Reserve,Bank of America,savings,4424,0560,2340000.00

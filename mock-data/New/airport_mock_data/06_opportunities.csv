@@ -1,0 +1,5 @@
+name,client_name,stage,estimated_value,probability_pct,expected_close_date,source
+MSP Terminal 1 Concourse G Extension,Metropolitan Airports Commission,negotiation,220000000,80,2026-05-01,existing_client
+St. Cloud Regional Airport Runway 30 Extension,St. Cloud Airport Commission,proposal,34000000,60,2026-07-15,referral
+Mankato Regional Airport New Terminal,City of Mankato,qualification,18500000,40,2026-09-01,open_bid
+Minneapolis-Crystal Airport GA Hangar Complex,Three Rivers Park District,prospecting,9200000,25,2027-01-01,existing_client

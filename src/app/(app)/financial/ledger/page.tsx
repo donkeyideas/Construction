@@ -24,14 +24,6 @@ export default async function GeneralLedgerPage({
   const currentPage = parseInt(params.page || "1", 10);
   const pageSize = 50;
 
-  // Fetch chart of accounts
-  const { data: accounts } = await supabase
-    .from("chart_of_accounts")
-    .select("id, account_number, name, account_type, sub_type, normal_balance")
-    .eq("company_id", userCompany.companyId)
-    .eq("is_active", true)
-    .order("account_number");
-
   // Build query for journal entry lines
   let linesQuery = supabase
     .from("journal_entry_lines")
@@ -51,16 +43,23 @@ export default async function GeneralLedgerPage({
   const to = from + pageSize - 1;
   linesQuery = linesQuery.range(from, to);
 
-  const { data: lines, count: totalLines } = await linesQuery;
-
-  // Also get total debits/credits for summary
-  const { data: summaryLines } = await supabase
-    .from("journal_entry_lines")
-    .select("debit, credit, journal_entries!inner(status, entry_date)")
-    .eq("company_id", userCompany.companyId)
-    .eq("journal_entries.status", "posted")
-    .gte("journal_entries.entry_date", startDate)
-    .lte("journal_entries.entry_date", endDate);
+  // Fetch accounts, paginated lines, and summary in parallel
+  const [{ data: accounts }, { data: lines, count: totalLines }, { data: summaryLines }] = await Promise.all([
+    supabase
+      .from("chart_of_accounts")
+      .select("id, account_number, name, account_type, sub_type, normal_balance")
+      .eq("company_id", userCompany.companyId)
+      .eq("is_active", true)
+      .order("account_number"),
+    linesQuery,
+    supabase
+      .from("journal_entry_lines")
+      .select("debit, credit, journal_entries!inner(status, entry_date)")
+      .eq("company_id", userCompany.companyId)
+      .eq("journal_entries.status", "posted")
+      .gte("journal_entries.entry_date", startDate)
+      .lte("journal_entries.entry_date", endDate),
+  ]);
 
   const totalDebits = (summaryLines ?? []).reduce((sum, l) => sum + (Number(l.debit) || 0), 0);
   const totalCredits = (summaryLines ?? []).reduce((sum, l) => sum + (Number(l.credit) || 0), 0);

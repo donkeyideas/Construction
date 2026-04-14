@@ -1,0 +1,8 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+MSP North Terminal – Structural Steel Package,subcontractor,Prairie Structural Steel,a.irons@prairiestructural.com,22500000,2024-06-01,2026-08-30,net_30
+MSP North Terminal – Mechanical & Plumbing Package,subcontractor,Ironclad Mechanical Inc.,m.bell@ironcladsub.com,18800000,2024-08-01,2027-02-28,net_30
+MSP North Terminal – Electrical Package,subcontractor,Northern States Electrical,d.tran@northernelectric.com,16400000,2024-08-01,2027-02-28,net_30
+MSP North Terminal – Concrete Package,subcontractor,Glacier Concrete Co.,g.schaefer@glacierconcrete.com,14200000,2024-04-01,2026-06-30,net_30
+MSP North Terminal – Glazing & Curtain Wall,subcontractor,Midwest Glass Systems,sales@midwestglass.com,8600000,2025-03-01,2026-12-31,net_30
+Runway 17-35 Rehab – Paving Package,subcontractor,Great Lakes Asphalt Inc.,contracts@greatlakesasphalt.com,19500000,2025-04-01,2026-10-31,net_30
+Rochester Cargo – Structural Package,subcontractor,Precision Steel Erectors,bids@precisionsteel.com,6200000,2025-07-01,2026-09-30,net_30

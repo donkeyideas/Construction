@@ -11,6 +11,7 @@ import {
   generateContractJournalEntry,
 } from "@/lib/utils/invoice-accounting";
 import { ensureRequiredAccounts } from "@/lib/utils/backfill-journal-entries";
+import { parseJsonBody, isErrorResponse } from "@/lib/utils/api-response";
 
 // ---------------------------------------------------------------------------
 // GET /api/contracts/[id] — Get contract detail
@@ -91,12 +92,14 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = await parseJsonBody<Record<string, any>>(request);
+    if (isErrorResponse(body)) return body;
 
     const { contract, error } = await updateContract(supabase, id, body);
 
     if (error) {
-      return NextResponse.json({ error }, { status: 400 });
+      return NextResponse.json({ error }, { status: 500 });
     }
 
     // Auto-generate contract JE if contract_amount > 0 (idempotent — won't duplicate)
@@ -166,7 +169,7 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

@@ -1,0 +1,36 @@
+account_number,name,account_type,sub_type,description
+1000,Cash & Equivalents,asset,Current Asset,Operating cash and POS deposits
+1010,Accounts Receivable,asset,Current Asset,Catering and third-party delivery receivables
+1020,Inventory,asset,Current Asset,Food ingredients and supplies on hand
+1030,Prepaid Expenses,asset,Current Asset,Prepaid insurance and deposits
+1500,Leasehold Improvements,asset,Fixed Asset,Build-out costs for 42nd Street location
+1510,Equipment & Fixtures,asset,Fixed Asset,Ovens sandwich prep equipment and POS systems
+1520,Accumulated Depreciation,asset,Fixed Asset,Accumulated depreciation on fixed assets
+2000,Accounts Payable,liability,Current Liability,Amounts owed to Subway IPC and vendors
+2010,Accrued Liabilities,liability,Current Liability,Accrued wages and utilities
+2020,Sales Tax Payable,liability,Current Liability,NY State and NYC sales tax collected
+2030,Royalties Payable,liability,Current Liability,Subway royalties payable (8% of sales)
+2040,Short-Term Loan,liability,Current Liability,Current portion of SBA loan
+2500,Long-Term Loan,liability,Long-Term Liability,SBA loan for franchise build-out
+3000,Owner Equity,equity,Equity,Owner capital contributions
+3010,Retained Earnings,equity,Equity,Accumulated net income
+4000,Food & Beverage Sales,revenue,Revenue,In-store sandwich and beverage sales
+4010,Catering Revenue,revenue,Revenue,Corporate catering orders
+4020,Third-Party Delivery Revenue,revenue,Revenue,DoorDash UberEats GrubHub revenue
+5000,Food & Paper Cost,expense,COGS,Cost of ingredients and packaging
+5100,Labor - Wages,expense,Operating,Hourly employee wages
+5110,Labor - Payroll Taxes,expense,Operating,FICA FUTA SUTA employer share
+5120,Labor - Benefits,expense,Operating,Health insurance and paid leave
+5200,Royalty Expense,expense,Operating,Subway franchise royalty 8% of gross sales
+5210,Advertising Fund,expense,Operating,Subway national advertising fund 4.5% of sales
+5300,Rent Expense,expense,Operating,Monthly base rent - 42nd Street
+5310,Common Area Maintenance,expense,Operating,CAM charges from landlord
+5400,Utilities,expense,Operating,Electric gas water
+5410,Internet & Phone,expense,Operating,POS connectivity and phone
+5500,Supplies,expense,Operating,Cleaning and non-food supplies
+5510,Uniforms,expense,Operating,Employee uniforms
+5600,Insurance,expense,Operating,General liability and workers comp
+5700,Depreciation,expense,Operating,Depreciation on leasehold improvements and equipment
+5800,Delivery Platform Fees,expense,Operating,Third-party app commissions (30%)
+5900,Miscellaneous,expense,Operating,Other operating expenses
+6000,Interest Expense,expense,Other,Interest on SBA loan

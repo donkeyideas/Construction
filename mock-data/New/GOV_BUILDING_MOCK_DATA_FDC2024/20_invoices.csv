@@ -1,0 +1,33 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2025-03-01,2800000,0,2025-04-01,Progress Payment #01 - Mobilization and site preparation,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2025-04-01,2600000,0,2025-05-01,Progress Payment #02 - Earthwork and underground utilities,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2025-05-01,3100000,0,2025-06-01,Progress Payment #03 - Foundation caissons and pile caps,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2025-06-01,3400000,0,2025-07-01,Progress Payment #04 - Level B1 slab on grade and walls,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2025-07-01,3200000,0,2025-08-01,Progress Payment #05 - Level 1-2 structural concrete,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2025-08-01,3500000,0,2025-09-01,Progress Payment #06 - Level 3-5 structural concrete and steel begins,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2025-09-01,3800000,0,2025-10-01,Progress Payment #07 - Level 6-7 structure and masonry begins,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2025-10-01,3600000,0,2025-11-01,Progress Payment #08 - Level 8-9 structure and curtain wall begins,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2025-11-01,3900000,0,2025-12-01,Progress Payment #09 - Level 10-11 structure and MEP rough-in starts,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2025-12-01,4100000,0,2026-01-01,Progress Payment #10 - Level 12 structure and curtain wall floors 1-6,paid,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2026-01-01,2900000,0,2026-01-31,Progress Payment #11 - Curtain wall floors 7-10 and interior finishes start,pending,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+receivable,2026-01-15,3500000,0,2026-02-14,Progress Payment #12 - MEP rough-in floors 1-6 and approved change orders CO-001 through CO-006,pending,,U.S. General Services Administration,Federal District Courthouse & Public Safety Complex
+payable,2025-02-28,3800000,0,2025-03-30,Final Payment - Earthwork and site utilities complete,paid,Eagle Excavation LLC,,Federal District Courthouse & Public Safety Complex
+payable,2025-05-31,1440000,0,2025-06-30,Payment Application #1 - Concrete Level B1 foundation,paid,Nationwide Concrete Inc,,Federal District Courthouse & Public Safety Complex
+payable,2025-07-31,1440000,0,2025-08-30,Payment Application #2 - Concrete Level 1-3,paid,Nationwide Concrete Inc,,Federal District Courthouse & Public Safety Complex
+payable,2025-09-30,1440000,0,2025-10-30,Payment Application #3 - Concrete Level 4-6,paid,Nationwide Concrete Inc,,Federal District Courthouse & Public Safety Complex
+payable,2025-11-30,880000,0,2025-12-30,Payment Application #4 - Concrete Level 7-8 partial,paid,Nationwide Concrete Inc,,Federal District Courthouse & Public Safety Complex
+payable,2025-06-30,2550000,0,2025-07-30,Payment Application #1 - Steel Level B1 through Level 5,paid,Federal Steel Erectors,,Federal District Courthouse & Public Safety Complex
+payable,2025-09-30,2550000,0,2025-10-30,Payment Application #2 - Steel Level 6 through Level 10,paid,Federal Steel Erectors,,Federal District Courthouse & Public Safety Complex
+payable,2025-12-31,2550000,0,2026-01-30,Payment Application #3 - Steel Level 11-12 and roof framing,pending,Federal Steel Erectors,,Federal District Courthouse & Public Safety Complex
+payable,2025-10-31,1700000,0,2025-11-30,Payment Application #1 - Electrical Level B1 through Level 4,paid,Patriot Electrical Contractors,,Federal District Courthouse & Public Safety Complex
+payable,2025-12-31,1700000,0,2026-01-30,Payment Application #2 - Electrical Level 5 through Level 8,pending,Patriot Electrical Contractors,,Federal District Courthouse & Public Safety Complex
+payable,2025-10-31,1850000,0,2025-11-30,Payment Application #1 - MEP Level B1 through Level 4,paid,Capital MEP Group,,Federal District Courthouse & Public Safety Complex
+payable,2025-12-31,1850000,0,2026-01-30,Payment Application #2 - MEP Level 5 through Level 8,pending,Capital MEP Group,,Federal District Courthouse & Public Safety Complex
+payable,2025-11-30,1566000,0,2025-12-30,Payment Application #1 - Masonry Level 2 through Level 5,paid,Monument Masonry Corp,,Federal District Courthouse & Public Safety Complex
+payable,2025-10-31,832500,0,2025-11-30,Payment Application #1 - Roofing west wing and waterproofing,paid,Capitol Roofing Systems,,Federal District Courthouse & Public Safety Complex
+payable,2025-12-31,864000,0,2026-01-30,Payment Application #1 - Drywall framing Level 1-3,pending,Union Drywall & Framing,,Federal District Courthouse & Public Safety Complex
+payable,2025-12-31,432000,0,2026-01-30,Payment Application #1 - Security rough-in Level B1,pending,SafeGuard Security Integration,,Federal District Courthouse & Public Safety Complex
+payable,2025-12-31,288000,0,2026-01-30,Payment Application #1 - Fire protection rough-in Level 1-4,pending,Apex Fire Protection LLC,,Federal District Courthouse & Public Safety Complex
+payable,2025-12-31,432000,0,2026-01-30,Q4 2025 Structural Engineering Services,paid,Huang Structural Engineering,,Federal District Courthouse & Public Safety Complex
+payable,2025-12-31,46250,0,2026-01-30,Q4 2025 Davis-Bacon Compliance Monitoring,paid,Davis-Bacon Compliance Consulting,,Federal District Courthouse & Public Safety Complex
+payable,2025-12-31,80000,0,2026-01-30,Q4 2025 Special Inspections and Testing,paid,National Testing Laboratory,,Federal District Courthouse & Public Safety Complex

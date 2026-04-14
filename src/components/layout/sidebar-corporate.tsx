@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, HardHat, Building2, DollarSign, FolderOpen,
@@ -284,12 +285,13 @@ export function CorporateSidebar({ isOpen, onClose }: SidebarProps) {
           {companyName ? (
             <>
               {logoUrl ? (
-                <img
+                <Image
                   src={logoUrl}
                   alt=""
+                  width={32}
+                  height={32}
+                  unoptimized
                   style={{
-                    width: "32px",
-                    height: "32px",
                     objectFit: "contain",
                     borderRadius: "8px",
                   }}

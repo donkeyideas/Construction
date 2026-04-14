@@ -66,7 +66,7 @@ export async function PATCH(
     const result = await updateOpportunity(supabase, id, body);
 
     if (result.error) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+      return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
     return NextResponse.json(result.opportunity);
@@ -116,7 +116,7 @@ export async function DELETE(
     if (error) {
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: 500 }
       );
     }
 

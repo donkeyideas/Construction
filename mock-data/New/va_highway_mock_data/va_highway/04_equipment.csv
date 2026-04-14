@@ -1,0 +1,19 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+CAT 140M3 Motor Grader,grader,Caterpillar,140M3,CAT140M3-88421,385000,195.00,2021-03-15
+CAT D6T Dozer,dozer,Caterpillar,D6T XL,CATD6T-77102,385000,210.00,2020-08-10
+CAT D8T Dozer,dozer,Caterpillar,D8T,CATD8T-77103,650000,285.00,2019-05-20
+Komatsu PC360 Excavator,excavator,Komatsu,PC360LC-11,KOM360-44201,410000,235.00,2021-11-01
+CAT 336 Next Gen Excavator,excavator,Caterpillar,336 GC,CAT336-92110,365000,225.00,2022-04-15
+Volvo A40G Articulated Truck,haul truck,Volvo,A40G,VOL-A40G-11002,720000,195.00,2020-06-01
+Volvo A40G Articulated Truck 2,haul truck,Volvo,A40G,VOL-A40G-11003,720000,195.00,2020-06-01
+CAT AP1000F Asphalt Paver,paver,Caterpillar,AP1000F,CATAP1000-55221,480000,275.00,2021-09-15
+Roadtec SC-350C Milling Machine,milling machine,Roadtec,SC-350C,RTC350-88841,890000,450.00,2022-01-20
+CAT CB10 Vibratory Compactor,compactor,Caterpillar,CB10,CATCB10-33401,185000,125.00,2021-06-10
+Dynapac CC6200 Pneumatic Roller,roller,Dynapac,CC6200,DYN6200-22801,165000,115.00,2020-11-05
+Wirtgen W 200 Cold Planer,cold planer,Wirtgen,W 200,WRT200-77441,1150000,550.00,2023-02-28
+Truck - Ford F-550 Service 1,service truck,Ford,F-550,FRD550-10041,65000,0.00,2022-07-01
+Truck - Ford F-550 Service 2,service truck,Ford,F-550,FRD550-10042,65000,0.00,2022-07-01
+Truck - RAM 3500 Pickup 1,pickup truck,RAM,3500 Laramie,RAM3500-20011,58000,0.00,2023-03-15
+Truck - RAM 3500 Pickup 2,pickup truck,RAM,3500 Laramie,RAM3500-20012,58000,0.00,2023-03-15
+Truck - RAM 3500 Pickup 3,pickup truck,RAM,3500 Laramie,RAM3500-20013,58000,0.00,2024-01-10
+Water Truck - International HV,water truck,International,HV607,INT-HV607-5541,185000,95.00,2021-04-20

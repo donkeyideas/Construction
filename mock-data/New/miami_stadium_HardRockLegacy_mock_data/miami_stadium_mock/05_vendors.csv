@@ -1,0 +1,35 @@
+company_name,first_name,last_name,email,phone,job_title
+PCL Construction,Thomas,Granger,t.granger@pcl.com,305-555-0300,JV Project Director
+HOK Sport + Venue + Event,Stephanie,Wu,s.wu@hok.com,305-555-0301,Principal Architect
+Walter P Moore,David,Castillo,d.castillo@walterpmoore.com,305-555-0302,Principal Structural Engineer
+WSP Global,Aaron,Patel,a.patel@wsp.com,305-555-0303,MEP Project Manager
+Kimley-Horn & Associates,Maria,Henderson,m.henderson@kimley-horn.com,305-555-0305,Civil Project Manager
+Barton Malow Company,Eddie,Kowalski,e.kowalski@bartonmalow.com,305-555-0306,VP - Structural Steel
+Bechtel Infrastructure,Rosa,Delgado,r.delgado@bechtel.com,305-555-0307,Project Manager - MEP
+Ajax Paving Industries,Larry,Webb,l.webb@ajaxpaving.com,305-555-0308,VP Sales & Operations
+Kiewit Foundation Co.,Jack,Hendricks,j.hendricks@kiewit.com,305-555-0309,Project Manager
+Hensel Phelps Construction,Gregory,Staley,g.staley@henselphelps.com,305-555-0310,Project Manager - Concrete
+Elara Systems,Chris,Nakamura,c.nakamura@elarasystems.com,305-555-0311,Project Director - Technology
+Daktronics Inc.,Brad,Johannsen,b.johannsen@daktronics.com,605-555-0312,Stadium Project Manager
+Hussey Seating Company,Paul,Hussey,p.hussey@husseyseating.com,207-555-0313,VP - Stadium Projects
+FieldTurf USA,Renee,Moreau,r.moreau@fieldturf.com,800-555-0314,Project Manager
+Otis Elevator Company,George,Tanaka,g.tanaka@otis.com,305-555-0315,Project Manager
+Johnson Controls,Sarah,Fitzgerald,s.fitzgerald@johnsoncontrols.com,305-555-0316,Project Manager - BAS
+Hargreaves Jones,Claire,Hargreaves,c.hargreaves@hargreavesjones.com,305-555-0317,Principal Landscape Architect
+Turner Industries Group,Michael,Boudreaux,m.boudreaux@turnerindustries.com,305-555-0318,Project Manager - Plumbing
+Southeast Waterproofing,Tony,Garza,t.garza@sewtproof.com,305-555-0319,Project Manager
+Florida Power & Light,,,commercial@fpl.com,305-555-0320,Utility Provider
+AT&T Enterprise,,,enterprise@att.com,305-555-0321,Telecommunications
+Bank of America,Robert,Haines,r.haines@bofa.com,212-555-0330,Construction Finance Director
+Zurich Insurance Group,Patricia,Lee,p.lee@zurich.com,212-555-0331,Construction Risk Manager
+Travelers Surety,James,Whitmore,j.whitmore@travelers.com,212-555-0332,Surety Bond Manager
+Florida Ready Mix Concrete,Sandra,Cruz,s.cruz@flreadymix.com,305-555-0340,Commercial Account Manager
+Nucor Steel,,,miami@nucor.com,800-555-0341,Structural Steel Supplier
+Vulcan Materials,,,miami@vulcanmaterials.com,305-555-0342,Aggregate & Materials Supplier
+Oldcastle Infrastructure,,,miami@oldcastle.com,305-555-0343,Precast Concrete Supplier
+Grainger Industrial Supply,,,miami@grainger.com,305-555-0344,Industrial Supply
+Fastenal,,,miami@fastenal.com,305-555-0345,Hardware & Fasteners
+Miami-Dade County Permits,,,permits@miamidade.gov,305-555-0400,Permitting Authority
+Florida DOT,,,construction@fdot.gov,850-555-0401,Transportation Agency
+South Florida Water Management,,,construction@sfwmd.gov,561-555-0402,Water Management District
+US Army Corps of Engineers,,,saj@usace.army.mil,904-555-0403,Federal Permitting Agency

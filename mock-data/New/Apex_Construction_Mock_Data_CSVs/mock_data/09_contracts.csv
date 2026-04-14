@@ -1,0 +1,22 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+AUS-2024 - Structural Steel Package,subcontractor,Texas Steelworks,g.harmon@texassteelworks.com,4200000,2024-04-01,2025-04-30,net_30
+AUS-2024 - MEP Package,subcontractor,Lone Star MEP Group,f.cruz@lonestarmep.com,6800000,2024-05-01,2025-10-30,net_30
+AUS-2024 - Exterior Glass & Glazing,subcontractor,Precision Glass & Glazing - TX,a.morse@precisionglass-tx.com,2100000,2024-08-01,2025-09-30,net_30
+AUS-2024 - Drywall & Framing,subcontractor,Hillcrest Drywall & Framing,t.jenkins@hillcrestdrywall.com,3400000,2024-09-01,2025-10-30,net_30
+AUS-2024 - Electrical,subcontractor,Austin Electrical Contractors,b.stephens@austelec.com,3900000,2024-05-01,2025-10-30,net_30
+DFW-2023 - Concrete Package,subcontractor,Southwest Concrete Supply,d.fox@southwest-concrete.com,3100000,2023-03-01,2024-07-31,net_30
+DFW-2023 - Structural Steel,subcontractor,Texas Steelworks,g.harmon@texassteelworks.com,3800000,2023-02-01,2024-06-30,net_30
+DFW-2023 - MEP Package,subcontractor,Lone Star MEP Group,f.cruz@lonestarmep.com,5400000,2023-05-01,2024-08-31,net_30
+DFW-2023 - Curtain Wall,subcontractor,Metroplex Roofing Systems,s.bridges@metroplexroofing.com,1900000,2023-08-01,2024-07-31,net_30
+DFW-2023 - Electrical,subcontractor,Austin Electrical Contractors,b.stephens@austelec.com,2800000,2023-05-01,2024-08-31,net_30
+MIA-2025 - Foundation & Marine Pilings,subcontractor,Sunshine MEP - South Florida,c.reyes@sunshinemep.com,8200000,2025-03-01,2025-12-31,net_30
+MIA-2025 - Structural Concrete,subcontractor,Chicago Concrete Specialists,o.williams@chicagoconcrete.com,12400000,2025-04-01,2027-02-28,net_30
+MIA-2025 - MEP Systems,subcontractor,Sunshine MEP - South Florida,c.reyes@sunshinemep.com,14500000,2025-06-01,2027-06-30,net_30
+MIA-2025 - Glass Facade & Curtain Wall,subcontractor,FL Glass & Glazing Inc,m.tanaka@flglass-glazing.com,6800000,2026-01-01,2027-04-30,net_30
+DEN-2024 - Site Work & Grading,subcontractor,Frontier Site Services,h.dupree@frontiersite.com,1800000,2024-05-15,2024-09-30,net_30
+DEN-2024 - Structural Steel & Precast,subcontractor,High Plains Structural Steel,d.kimura@highplainssteel.com,5200000,2024-06-01,2025-03-31,net_30
+DEN-2024 - Concrete Tilt-Up Panels,subcontractor,Colorado Concrete Inc,p.mcgrath@coloradoconcrete.com,2400000,2024-07-01,2024-12-31,net_30
+DEN-2024 - MEP Package,subcontractor,Rocky Mountain MEP Solutions,s.laurent@rockymtn-mep.com,3800000,2024-08-01,2025-07-31,net_30
+CHI-2025 - Owner Contract - Northside Medical Arts Campus,owner,Midwest Medical Properties,h.sung@midwestmedical.com,95000000,2025-09-01,2028-06-30,net_30
+CHI-2025 - Design-Assist MEP,subcontractor,Midwest Mechanical LLC,r.castillo@midwestmechanical.com,18000000,2025-09-01,2028-04-30,net_30
+CHI-2025 - Design-Assist Electrical,subcontractor,Great Lakes Electrical Corp,w.bauer@greatlakes-electrical.com,14500000,2025-09-01,2028-04-30,net_30

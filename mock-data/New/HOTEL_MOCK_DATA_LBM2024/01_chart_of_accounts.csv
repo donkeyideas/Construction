@@ -1,0 +1,49 @@
+account_number,name,account_type,sub_type,description
+1000,Cash & Equivalents,asset,Current Asset,Operating cash and short-term deposits
+1010,Accounts Receivable,asset,Current Asset,Amounts owed by hotel developer client
+1015,Hotel Developer Contract Receivable,asset,Current Asset,Amounts due under hotel prime contract
+1020,Retainage Receivable,asset,Current Asset,10% retainage withheld by hotel developer
+1030,Costs in Excess of Billings,asset,Current Asset,Underbillings on hotel contract
+1040,Prepaid Expenses,asset,Current Asset,Prepaid insurance bonds and permits
+1050,Inventory & Materials on Site,asset,Current Asset,Stored materials - FF&E and finishes on site
+1060,Deposits - FF&E Vendor Prepayments,asset,Current Asset,Deposits paid to FF&E suppliers for long-lead items
+1100,Property & Equipment,asset,Fixed Asset,Construction equipment and vehicles
+1110,Accumulated Depreciation,asset,Fixed Asset,Contra account for accumulated depreciation
+1200,Deposits & Other Assets,asset,Other Asset,Security deposits and bid bonds
+2000,Accounts Payable - Trade,liability,Current Liability,Amounts owed to vendors and material suppliers
+2010,Subcontractor Payable,liability,Current Liability,Amounts owed to subcontractors
+2020,Retainage Payable,liability,Current Liability,Retainage withheld from subcontractors
+2030,Billings in Excess of Costs,liability,Current Liability,Overbillings on hotel contract
+2040,Accrued Wages & Benefits,liability,Current Liability,Payroll and benefits accrued not yet paid
+2050,Accrued Taxes,liability,Current Liability,Federal state and payroll taxes payable
+2060,FF&E Vendor Deposits Payable,liability,Current Liability,Deposits received for FF&E coordination
+2070,Workers Comp Reserve,liability,Current Liability,Self-insured workers compensation reserve
+2080,Notes Payable - Equipment,liability,Long-term Liability,Equipment financing notes
+2090,Construction Loan Payable,liability,Long-term Liability,Hotel developer construction loan pass-through
+3000,Common Stock,equity,Equity,Common stock issued
+3010,Retained Earnings,equity,Equity,Cumulative retained earnings
+3020,Current Year Net Income,equity,Equity,Current year net income
+4000,Contract Revenue - Hotel,income,Revenue,Prime contract revenue from hotel developer
+4010,FF&E Procurement Revenue,income,Revenue,Revenue from FF&E procurement management fee
+4020,Change Order Revenue,income,Revenue,Approved change order revenue
+4030,Bond Premium Revenue,income,Revenue,Revenue from performance and payment bonds
+4040,Value Engineering Savings Share,income,Revenue,Shared savings on GMP contract
+5000,Direct Labor,expense,Cost of Revenue,Field labor wages and burden
+5010,Subcontractor Costs,expense,Cost of Revenue,Payments to subcontractors
+5020,Materials & Supplies,expense,Cost of Revenue,Direct materials incorporated into project
+5030,Equipment Costs,expense,Cost of Revenue,Equipment rental and depreciation on project
+5040,FF&E Procurement Costs,expense,Cost of Revenue,Cost of furniture fixtures and equipment
+5050,Other Direct Costs,expense,Cost of Revenue,Permits fees testing and inspections
+5060,Hospitality Specialty Costs,expense,Cost of Revenue,Pool spa kitchen and AV specialty systems
+6000,Project Management,expense,Operating Expense,PM superintendent and field staff salaries
+6010,General & Administrative,expense,Operating Expense,Office salaries overhead and admin
+6020,Insurance,expense,Operating Expense,General liability umbrella workers comp premiums
+6030,Bonds,expense,Operating Expense,Performance payment and bid bond premiums
+6040,Depreciation,expense,Operating Expense,Depreciation on company owned equipment
+6050,Professional Fees,expense,Operating Expense,Legal accounting and consulting
+6060,Marketing & Business Development,expense,Operating Expense,Proposal costs and business development
+6070,Office & Facilities,expense,Operating Expense,Rent utilities office expenses
+6080,Vehicle & Travel,expense,Operating Expense,Company vehicles and travel expenses
+6090,IT & Software,expense,Operating Expense,Technology and software subscriptions
+7000,Interest Expense,expense,Other Expense,Interest on equipment notes and credit lines
+7010,Other Income,income,Other Income,Miscellaneous non-operating income

@@ -1,0 +1,6 @@
+name,client_name,stage,estimated_value,probability_pct,expected_close_date,source
+VA Medical Center Expansion - Building 4,U.S. Dept of Veterans Affairs,proposal,95000000,70,2026-05-15,rfp_response
+FEMA Regional Operations Center,Federal Emergency Management Agency,negotiation,42000000,88,2026-03-30,existing_client
+Department of Labor Headquarters Renovation,U.S. Dept of Labor,qualification,28500000,55,2026-08-01,rfp_response
+State Police Headquarters Facility,State Dept of Public Safety,proposal,34000000,65,2026-06-15,existing_client
+HUD Community Development Block Grant - Civic Center,U.S. Dept of Housing & Urban Development,negotiation,18500000,90,2026-04-01,existing_client

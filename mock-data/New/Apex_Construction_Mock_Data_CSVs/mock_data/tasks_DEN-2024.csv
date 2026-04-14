@@ -1,0 +1,24 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design and permit approval,Preconstruction,high,2024-03-01,2024-05-14,100,false,true,Aurora Commerce Park - Building A
+Building permit issued,Preconstruction,critical,2024-05-14,2024-05-14,100,true,true,Aurora Commerce Park - Building A
+Mass grading and site preparation,Site Work & Earthwork,critical,2024-05-15,2024-07-15,100,false,true,Aurora Commerce Park - Building A
+Underground utilities - storm sanitary and water,Site Work & Earthwork,high,2024-06-01,2024-08-15,100,false,false,Aurora Commerce Park - Building A
+Paving - truck courts and perimeter,Site Work & Earthwork,medium,2024-08-01,2024-08-31,100,false,false,Aurora Commerce Park - Building A
+Concrete tilt-up panel casting and erection,Structural Steel & Precast,critical,2024-06-15,2024-10-31,100,false,true,Aurora Commerce Park - Building A
+Steel joist and deck roof structure,Structural Steel & Precast,critical,2024-09-01,2024-12-31,100,false,true,Aurora Commerce Park - Building A
+Dock pit construction and forming,Structural Steel & Precast,high,2024-08-01,2024-09-30,100,false,false,Aurora Commerce Park - Building A
+Warehouse floor slab - 8 inch post-tensioned,Structural Steel & Precast,critical,2024-10-01,2025-01-31,100,false,true,Aurora Commerce Park - Building A
+ESFR roof deck insulation and membrane,Roofing & Skin,critical,2024-10-01,2024-12-31,100,false,true,Aurora Commerce Park - Building A
+Insulated metal wall panels - all elevations,Roofing & Skin,high,2024-11-01,2025-01-31,100,false,false,Aurora Commerce Park - Building A
+Storefront and dock door openings,Roofing & Skin,high,2025-01-01,2025-03-31,100,false,false,Aurora Commerce Park - Building A
+ESFR fire sprinkler system,MEP & Fire Protection,critical,2024-10-01,2025-04-30,100,false,true,Aurora Commerce Park - Building A
+Electrical service and distribution,MEP & Fire Protection,critical,2024-10-01,2025-05-31,100,false,false,Aurora Commerce Park - Building A
+HVAC - warehouse radiant heat and ventilation,MEP & Fire Protection,high,2025-01-01,2025-05-31,100,false,false,Aurora Commerce Park - Building A
+HVAC - office units and ERVs,MEP & Fire Protection,high,2025-02-01,2025-06-30,95,false,false,Aurora Commerce Park - Building A
+Dock levelers seals and shelters - all 68 docks,Interior Tenant Finish & Systems,critical,2025-08-01,2026-01-15,98,false,true,Aurora Commerce Park - Building A
+Drive-in doors all 6 locations,Interior Tenant Finish & Systems,high,2025-10-01,2025-12-31,100,false,false,Aurora Commerce Park - Building A
+Office tenant improvement - premium package,Interior Tenant Finish & Systems,high,2025-10-01,2026-01-31,65,false,false,Aurora Commerce Park - Building A
+Floor sealer and concrete treatment,Interior Tenant Finish & Systems,high,2025-11-01,2026-01-15,80,false,false,Aurora Commerce Park - Building A
+Fire alarm and life safety system test,Commissioning & Closeout,critical,2025-07-01,2025-08-15,100,false,true,Aurora Commerce Park - Building A
+Certificate of Occupancy - Warehouse,Commissioning & Closeout,critical,2025-08-31,2025-08-31,100,true,true,Aurora Commerce Park - Building A
+Office punch list completion,Commissioning & Closeout,high,2026-01-15,2026-01-31,50,false,false,Aurora Commerce Park - Building A

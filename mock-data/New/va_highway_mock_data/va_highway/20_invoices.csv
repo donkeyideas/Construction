@@ -1,0 +1,51 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2025-01-31,1850000,0,2025-03-02,I-81 SVA Progress Billing #11 - Earthwork MM 264-270 complete,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-02-28,1950000,0,2025-03-30,I-81 SVA Progress Billing #12 - Drainage & base course MM 264-272,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-03-31,2100000,0,2025-04-30,I-81 SVA Progress Billing #13 - Earthwork MM 270-276 and paving MM 264-268,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-04-30,1750000,0,2025-05-30,I-81 SVA Progress Billing #14 - Soft subgrade CO and base course MM 272-276,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-05-31,1680000,0,2025-06-30,I-81 SVA Progress Billing #15 - Paving MM 268-274 and guardrail,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-06-30,1580000,0,2025-07-30,I-81 SVA Progress Billing #16 - Earthwork MM 276-280 and utility CO,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-07-31,1720000,0,2025-08-30,I-81 SVA Progress Billing #17 - Base course and drainage MM 276-282,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-08-31,1650000,0,2025-09-30,I-81 SVA Progress Billing #18 - Paving MM 274-280 and cable barrier CO,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-09-30,1580000,0,2025-10-30,I-81 SVA Progress Billing #19 - Earthwork and drainage MM 280-285,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-10-31,1480000,0,2025-11-30,I-81 SVA Progress Billing #20 - Base and guardrail MM 280-286,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-11-30,1420000,0,2025-12-30,I-81 SVA Progress Billing #21 - Paving MM 280-284 and grading,paid,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-12-31,1440000,0,2026-01-30,I-81 SVA Progress Billing #22 - Earthwork drainage MM 285-290,pending,,Virginia Department of Transportation,I-81 Widening - Shenandoah Valley Corridor
+receivable,2025-04-30,820000,0,2025-05-30,US-11 Overlay Progress Billing #1 - Mobilization and milling MP 12.4-18,paid,,Virginia Department of Transportation,US-11 Overlay & Drainage Improvement
+receivable,2025-05-31,980000,0,2025-06-30,US-11 Overlay Progress Billing #2 - Milling and FDR MP 18-22 base course,paid,,Virginia Department of Transportation,US-11 Overlay & Drainage Improvement
+receivable,2025-06-30,1050000,0,2025-07-30,US-11 Overlay Progress Billing #3 - Overlay MP 12.4-18 drainage CO,paid,,Virginia Department of Transportation,US-11 Overlay & Drainage Improvement
+receivable,2025-07-31,1120000,0,2025-08-30,US-11 Overlay Progress Billing #4 - Overlay MP 18-24 FDR expansion CO,paid,,Virginia Department of Transportation,US-11 Overlay & Drainage Improvement
+receivable,2025-08-31,980000,0,2025-09-30,US-11 Overlay Progress Billing #5 - Overlay MP 24-28.6 ADA ramps,paid,,Virginia Department of Transportation,US-11 Overlay & Drainage Improvement
+receivable,2025-09-30,920000,0,2025-10-30,US-11 Overlay Progress Billing #6 - Striping signage and punch list,paid,,Virginia Department of Transportation,US-11 Overlay & Drainage Improvement
+receivable,2025-10-31,780000,0,2025-11-30,US-11 Overlay Progress Billing #7 - Final overlay and inspection,paid,,Virginia Department of Transportation,US-11 Overlay & Drainage Improvement
+receivable,2025-11-30,650000,0,2025-12-30,US-11 Overlay Progress Billing #8 - Punch list resolution and completion,paid,,Virginia Department of Transportation,US-11 Overlay & Drainage Improvement
+receivable,2025-12-31,420000,0,2026-01-30,US-11 Overlay Progress Billing #9 - Final quantities and CO reconciliation,pending,,Virginia Department of Transportation,US-11 Overlay & Drainage Improvement
+receivable,2025-06-30,380000,0,2025-07-30,VA-259 Bridge Approach Progress Billing #1 - Mobilization and FDR north,paid,,Virginia Department of Transportation,VA-259 Bridge Approach Reconstruction
+receivable,2025-07-31,420000,0,2025-08-30,VA-259 Bridge Approach Progress Billing #2 - Micro-piling south approach,paid,,Virginia Department of Transportation,VA-259 Bridge Approach Reconstruction
+receivable,2025-08-31,280000,0,2025-09-30,VA-259 Bridge Approach Progress Billing #3 - Approach slabs and drainage,paid,,Virginia Department of Transportation,VA-259 Bridge Approach Reconstruction
+receivable,2025-09-30,180000,0,2025-10-30,VA-259 Bridge Approach Progress Billing #4 - Guardrail and pavement,paid,,Virginia Department of Transportation,VA-259 Bridge Approach Reconstruction
+receivable,2025-10-31,120000,0,2025-11-30,VA-259 Bridge Approach Progress Billing #5 - CO rebar and punch list,paid,,Virginia Department of Transportation,VA-259 Bridge Approach Reconstruction
+receivable,2025-11-30,98000,0,2025-12-30,VA-259 Bridge Approach Progress Billing #6 - Misc work and quantity adjustments,paid,,Virginia Department of Transportation,VA-259 Bridge Approach Reconstruction
+receivable,2025-12-31,85000,0,2026-01-30,VA-259 Bridge Approach Progress Billing #7 - Balance through December,pending,,Virginia Department of Transportation,VA-259 Bridge Approach Reconstruction
+payable,2025-01-31,580000,0,2025-03-02,Appalachian Paving - Payment Application #8 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-02-28,620000,0,2025-03-30,Appalachian Paving - Payment Application #9 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-03-31,680000,0,2025-04-30,Appalachian Paving - Payment Application #10 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-04-30,550000,0,2025-05-30,Appalachian Paving - Payment Application #11 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-05-31,540000,0,2025-06-30,Appalachian Paving - Payment Application #12 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-06-30,510000,0,2025-07-30,Appalachian Paving - Payment Application #13 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-07-31,560000,0,2025-08-30,Appalachian Paving - Payment Application #14 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-08-31,535000,0,2025-09-30,Appalachian Paving - Payment Application #15 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-09-30,510000,0,2025-10-30,Appalachian Paving - Payment Application #16 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-10-31,480000,0,2025-11-30,Appalachian Paving - Payment Application #17 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-11-30,460000,0,2025-12-30,Appalachian Paving - Payment Application #18 I-81 SVA,paid,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-12-31,470000,0,2026-01-30,Appalachian Paving - Payment Application #19 I-81 SVA,pending,Appalachian Paving Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-01-31,320000,0,2025-03-02,Shenandoah Grading - Payment Application #8 I-81 SVA,paid,Shenandoah Grading LLC,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-02-28,340000,0,2025-03-30,Shenandoah Grading - Payment Application #9 I-81 SVA,paid,Shenandoah Grading LLC,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-03-31,360000,0,2025-04-30,Shenandoah Grading - Payment Application #10 I-81 SVA,paid,Shenandoah Grading LLC,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-04-30,310000,0,2025-05-30,Shenandoah Grading - Payment Application #11 I-81 SVA,paid,Shenandoah Grading LLC,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-05-31,290000,0,2025-06-30,Shenandoah Grading - Payment Application #12 I-81 SVA,paid,Shenandoah Grading LLC,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-06-30,0,0,2025-07-30,Shenandoah Grading - Earthwork scope complete - final payment processed,paid,Shenandoah Grading LLC,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-04-30,185000,0,2025-05-30,Valley Traffic Control - Payment Application #4 I-81 SVA,paid,Valley Traffic Control Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-07-31,185000,0,2025-08-30,Valley Traffic Control - Payment Application #5 I-81 SVA,paid,Valley Traffic Control Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-10-31,185000,0,2025-11-30,Valley Traffic Control - Payment Application #6 I-81 SVA,paid,Valley Traffic Control Inc,,I-81 Widening - Shenandoah Valley Corridor
+payable,2025-12-31,185000,0,2026-01-30,Valley Traffic Control - Payment Application #7 I-81 SVA,pending,Valley Traffic Control Inc,,I-81 Widening - Shenandoah Valley Corridor

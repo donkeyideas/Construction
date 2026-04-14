@@ -153,24 +153,17 @@
 
 .import-progress-sheet-badge {
   font-size: 0.78rem;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   gap: 5px;
+  color: var(--muted);
 }
 
 .import-progress-sheet-badge.success {
-  background: var(--color-green-light);
-  border-color: var(--color-green);
   color: var(--color-green);
 }
 
 .import-progress-sheet-badge.error {
-  background: var(--color-red-light, #fef2f2);
-  border-color: var(--color-red);
   color: var(--color-red);
 }
 
@@ -311,22 +304,17 @@
   gap: 5px;
   font-size: 0.78rem;
   font-weight: 500;
-  padding: 3px 10px;
-  border-radius: 12px;
 }
 
 .import-history-status.completed {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
 .import-history-status.processing {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
 .import-history-status.failed {
-  background: var(--color-red-light, #fef2f2);
   color: var(--color-red);
 }
 

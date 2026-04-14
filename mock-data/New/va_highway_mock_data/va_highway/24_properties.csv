@@ -1,0 +1,4 @@
+name,property_type,address_line1,city,state,zip,year_built,total_sqft,total_units,purchase_price,current_value
+Company Yard & Office - Woodstock,commercial,1840 Stony Creek Rd,Woodstock,VA,22664,1995,12000,1,1850000,2400000
+Field Office Trailer - I-81 SVA,commercial_lease,I-81 MM 272 Service Road,Woodstock,VA,22664,2024,960,1,0,0
+Field Office Trailer - US-11,commercial_lease,US-11 MP 15.0 Right of Way,Strasburg,VA,22657,2025,480,1,0,0

@@ -1,0 +1,23 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Robert,Stafford,employee,r.stafford@pinnaclebuilds.com,305-555-0101,,CEO & Principal
+Marcus,Holloway,employee,m.holloway@pinnaclebuilds.com,305-555-0103,,VP of Construction
+Gennaro,Vitale,employee,g.vitale@pinnaclebuilds.com,312-555-0201,,Senior Project Manager - CTA-RLX
+Kathleen,Nowak,employee,k.nowak@pinnaclebuilds.com,312-555-0202,,Tunnel Superintendent
+Deshawn,Freeman,employee,d.freeman@pinnaclebuilds.com,312-555-0203,,TBM Operations Manager
+Anastasia,Kowalczyk,employee,a.kowalczyk@pinnaclebuilds.com,312-555-0204,,Project Engineer - Geotechnical
+Bernardo,Salcedo,employee,b.salcedo@pinnaclebuilds.com,312-555-0205,,MEP Coordinator - Tunnel Systems
+Priya,Patel,employee,p.patel@pinnaclebuilds.com,305-555-0110,,Project Controller
+Carlos,Vega,employee,c.vega@pinnaclebuilds.com,305-555-0109,,Corporate Safety Manager
+Tyrone,Greer,employee,t.greer@pinnaclebuilds.com,312-555-0206,,Safety Manager - Underground
+Diane,Washington,client,d.washington@transitchicago.com,312-555-0901,Chicago Transit Authority,Deputy Capital Construction Officer
+Harold,Burke,client,h.burke@transitchicago.com,312-555-0902,Chicago Transit Authority,Resident Engineer
+Monica,Espinoza,client,m.espinoza@cityofchicago.org,312-555-0903,City of Chicago CDOT,Capital Projects Coordinator
+Frank,Gallegos,client,f.gallegos@cityofchicago.org,312-555-0904,City of Chicago CDOT,ROW & Utility Manager
+Sandra,Obi,client,s.obi@hntb.com,312-555-0905,HNTB Corporation (Owner's Engineer),Lead Tunnel Engineer
+James,Petroski,client,j.petroski@hntb.com,312-555-0906,HNTB Corporation,Geotechnical Engineer of Record
+Hector,Munoz,vendor,h.munoz@herrenknecht.com,312-555-1103,Herrenknecht AG (TBM OEM),Field Service Engineer
+Valeria,Strauss,vendor,v.strauss@laynechristensen.com,312-555-1104,Layne Christensen Dewatering,Project Manager
+Omar,Abdul,vendor,o.abdul@chicagoprecisegrouting.com,312-555-1105,Chicago Precise Grouting LLC,President
+Patricia,Tran,vendor,p.tran@midwestsegmental.com,312-555-1106,Midwest Segmental Lining Corp,VP Sales
+Dennis,Koby,vendor,d.koby@subwayelectrical.com,312-555-1107,Subway Electrical Contractors LLC,Division Manager
+Ray,Dombrowski,vendor,r.dombrowski@iuoe150.org,312-555-1102,Operating Engineers Local 150,Business Agent

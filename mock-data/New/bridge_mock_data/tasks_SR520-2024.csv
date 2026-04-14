@@ -1,0 +1,16 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+WSDOT design review and permit coordination,Preconstruction & WSDOT Coordination,critical,2023-06-01,2023-12-31,100,false,true,SR-520 Montlake Lid & Lid Park
+PSE gas main relocation west abutment,Utility Relocation & Early Civil,critical,2024-02-01,2024-05-31,100,false,true,SR-520 Montlake Lid & Lid Park
+Traffic control phase 1 setup,Utility Relocation & Early Civil,high,2024-01-15,2024-03-31,100,false,false,SR-520 Montlake Lid & Lid Park
+Lid foundation footings and shear walls,Lid Foundation & Walls,critical,2024-05-01,2024-10-31,100,false,true,SR-520 Montlake Lid & Lid Park
+Section A lid deck forming and rebar,Lid Deck – Section A,critical,2024-10-01,2025-02-28,100,false,true,SR-520 Montlake Lid & Lid Park
+Section A lid deck concrete pour,Lid Deck – Section A,critical,2025-02-01,2025-04-30,100,true,true,SR-520 Montlake Lid & Lid Park
+Section B lid deck forming and rebar,Lid Deck – Sections B and C,critical,2025-04-01,2025-09-30,100,false,true,SR-520 Montlake Lid & Lid Park
+Section B lid deck concrete pour,Lid Deck – Sections B and C,critical,2025-09-01,2025-12-31,100,false,true,SR-520 Montlake Lid & Lid Park
+Section C lid deck forming and rebar (active),Lid Deck – Sections B and C,critical,2025-10-01,2026-03-31,55,false,true,SR-520 Montlake Lid & Lid Park
+Section D lid deck forming and rebar,Lid Deck – Section D,high,2025-10-01,2026-04-30,20,false,false,SR-520 Montlake Lid & Lid Park
+Montlake Flap Bridge bascule leaf steel erection (active),Montlake Flap Bridge Replacement,critical,2025-09-01,2026-06-30,30,false,true,SR-520 Montlake Lid & Lid Park
+Pedestrian bridge truss installation (active),Pedestrian & Bicycle Bridge,high,2025-11-01,2026-06-30,25,false,false,SR-520 Montlake Lid & Lid Park
+MEP conduit and rough-in Sections A-B,MEP & Lighting Systems,high,2025-06-01,2026-01-31,85,false,false,SR-520 Montlake Lid & Lid Park
+MEP conduit and rough-in Sections C-D,MEP & Lighting Systems,high,2025-12-01,2026-09-30,15,false,false,SR-520 Montlake Lid & Lid Park
+Lid park planting and hardscape,Landscape & Lid Park,medium,2026-06-01,2027-04-30,0,false,false,SR-520 Montlake Lid & Lid Park

@@ -1,0 +1,20 @@
+name,phase_name,priority,start_date,end_date,completion_pct,is_milestone,is_critical_path,project_name
+Design development and permit coordination,Preconstruction & Design,high,2022-09-01,2022-12-31,100,false,true,Uptown Dallas Financial Center
+Building permit issued,Preconstruction & Design,critical,2023-01-14,2023-01-14,100,true,true,Uptown Dallas Financial Center
+Site work grading and erosion control,Site Work & Foundation,high,2023-01-15,2023-02-15,100,false,true,Uptown Dallas Financial Center
+Drilled piers and grade beams,Site Work & Foundation,critical,2023-02-01,2023-04-15,100,false,true,Uptown Dallas Financial Center
+Slab on deck - Parking levels P1-P4,Site Work & Foundation,high,2023-03-15,2023-04-30,100,false,false,Uptown Dallas Financial Center
+Steel erection floors 1-7,Structural Frame,critical,2023-03-01,2023-06-30,100,false,true,Uptown Dallas Financial Center
+Steel erection floors 8-14,Structural Frame,critical,2023-07-01,2023-10-31,100,false,true,Uptown Dallas Financial Center
+Concrete deck pours all floors,Structural Frame,critical,2023-03-15,2023-11-30,100,false,true,Uptown Dallas Financial Center
+Structural steel inspection and cert,Structural Frame,critical,2023-12-31,2023-12-31,100,true,true,Uptown Dallas Financial Center
+Curtain wall installation all floors,Exterior Envelope & MEP Rough-In,critical,2023-07-01,2024-03-31,100,false,true,Uptown Dallas Financial Center
+MEP rough-in floors 1-7,Exterior Envelope & MEP Rough-In,high,2023-07-01,2023-11-30,100,false,false,Uptown Dallas Financial Center
+MEP rough-in floors 8-14,Exterior Envelope & MEP Rough-In,high,2023-11-01,2024-04-30,100,false,false,Uptown Dallas Financial Center
+Interior framing and drywall all floors,Interior Finishes,high,2024-02-01,2024-06-30,100,false,false,Uptown Dallas Financial Center
+Elevator installation all cabs,Interior Finishes,high,2024-01-01,2024-07-31,100,false,true,Uptown Dallas Financial Center
+Interior finishes and millwork all floors,Interior Finishes,high,2024-05-01,2024-08-31,100,false,false,Uptown Dallas Financial Center
+Lobby marble and feature wall,Interior Finishes,medium,2024-06-01,2024-08-15,100,false,false,Uptown Dallas Financial Center
+LEED commissioning and documentation,Commissioning & Closeout,critical,2024-07-01,2024-09-15,100,false,true,Uptown Dallas Financial Center
+Certificate of Occupancy issued,Commissioning & Closeout,critical,2024-09-30,2024-09-30,100,true,true,Uptown Dallas Financial Center
+Final punchlist completion and closeout,Commissioning & Closeout,high,2024-09-01,2024-09-30,100,false,false,Uptown Dallas Financial Center

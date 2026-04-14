@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buildwrk Mobile App — UI Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & PAGE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #f0ebe5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', Georgia, serif;
+  line-height: 1.2;
+}
+
+/* ===== PAGE HEADER ===== */
+.page-header {
+  text-align: center;
+  margin-bottom: 32px;
+  max-width: 600px;
+}
+.page-header h1 {
+  font-size: 1.8rem;
+  color: #292524;
+  margin-bottom: 8px;
+}
+.page-header p {
+  color: #78716c;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* ===== SCREEN SELECTOR ===== */
+.screen-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.screen-nav button {
+  padding: 8px 20px;
+  border: 2px solid #d6d3d1;
+  background: #fff;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #78716c;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.screen-nav button:hover {
+  border-color: #1d4ed8;
+  color: #1d4ed8;
+}
+.screen-nav button.active {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+/* ===== THEME TOGGLE ===== */
+.theme-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+.theme-toggle span { font-size: 0.8rem; color: #78716c; font-weight: 500; }
+.theme-toggle button {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid #d6d3d1;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.theme-toggle button:hover { border-color: #1d4ed8; }
+.theme-toggle button.active { border-color: #1d4ed8; background: #eff6ff; }
+
+/* ===== PHONE FRAME ===== */
+.phone-frame {
+  width: 375px;
+  height: 812px;
+  border-radius: 44px;
+  background: #000;
+  padding: 12px;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.25), 0 0 0 2px #333;
+  position: relative;
+}
+.phone-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 34px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Notch */
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 34px;
+  background: #000;
+  border-radius: 0 0 20px 20px;
+  z-index: 100;
+}
+
+/* Status bar */
+.status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 54px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 28px 8px;
+  z-index: 99;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.status-bar .time { font-size: 0.8rem; font-weight: 700; }
+.status-bar .icons { display: flex; gap: 5px; align-items: center; font-size: 0.7rem; }
+
+/* Home indicator */
+.home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+  z-index: 100;
+}
+
+/* ===== SCREENS ===== */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: scale(0.97);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: scale(1);
+}
+.screen::-webkit-scrollbar { display: none; }
+
+/* ===== LIGHT THEME TOKENS ===== */
+:root {
+  --bg: #ffffff;
+  --surface: #f5f0eb;
+  --card-bg: #ffffff;
+  --text: #292524;
+  --muted: #78716c;
+  --border: #d6d3d1;
+  --blue: #1d4ed8;
+  --blue-light: #eff6ff;
+  --blue-dark: #1e40af;
+  --amber: #b45309;
+  --amber-light: #fef3c7;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --tab-bg: #ffffff;
+  --status-bar-color: #292524;
+}
+
+/* ===== DARK THEME (Classic) ===== */
+.dark {
+  --bg: #1c1917;
+  --surface: #292524;
+  --card-bg: #292524;
+  --text: #f5f0eb;
+  --muted: #a8a29e;
+  --border: #44403c;
+  --blue: #3b82f6;
+  --blue-light: rgba(59,130,246,0.15);
+  --blue-dark: #2563eb;
+  --tab-bg: #1c1917;
+  --status-bar-color: #f5f0eb;
+}
+
+/* ===== CORPORATE VARIANT (Light) ===== */
+.corporate {
+  --bg: #ffffff;
+  --surface: #f0f2f5;
+  --card-bg: #f8f9fb;
+  --text: #1a202c;
+  --muted: #718096;
+  --border: #d1d9e6;
+  --blue: #2c5282;
+  --blue-light: rgba(44,82,130,0.1);
+  --blue-dark: #1e3a5f;
+  --amber: #c9a84c;
+  --amber-light: rgba(201,168,76,0.12);
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --tab-bg: #ffffff;
+  --status-bar-color: #1a202c;
+  --card-radius: 8px;
+}
+/* Corporate: all sans-serif, no serif headings */
+.corporate h1, .corporate h2, .corporate h3, .corporate h4 {
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+.corporate .splash-brand {
+  font-family: 'Inter', -apple-system, sans-serif;
+  letter-spacing: -0.02em;
+}
+.corporate .kpi-value {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 800;
+}
+/* Corporate cards: flatter, no shadow on hover */
+.corporate .project-card:hover,
+.corporate .quick-item:hover,
+.corporate .more-item:hover,
+.corporate .project-list-card:hover {
+  box-shadow: none;
+  transform: none;
+}
+/* Corporate: slightly tighter border radius */
+.corporate .clock-card,
+.corporate .kpi-card,
+.corporate .task-card,
+.corporate .activity-card,
+.corporate .project-card,
+.corporate .project-list-card,
+.corporate .more-item,
+.corporate .quick-item {
+  border-radius: 8px;
+}
+/* Corporate splash: navy gradient */
+.corporate .splash-screen {
+  background: linear-gradient(160deg, #2c5282 0%, #1e3a5f 40%, #1a2332 100%);
+}
+/* Corporate login logo: navy */
+.corporate .login-logo-small {
+  background: #2c5282;
+}
+
+/* ===== CORPORATE DARK ===== */
+.corporate.dark {
+  --bg: #1a2332;
+  --surface: #243447;
+  --card-bg: #243447;
+  --text: #e2e8f0;
+  --muted: #a0aec0;
+  --border: #3a4f65;
+  --blue: #3b6ba5;
+  --blue-light: rgba(59,107,165,0.2);
+  --blue-dark: #2c5282;
+  --amber: #d4b96a;
+  --amber-light: rgba(212,185,106,0.15);
+  --tab-bg: #1a2332;
+  --status-bar-color: #e2e8f0;
+}
+
+/* =========================================================
+   SCREEN 1: SPLASH
+   ========================================================= */
+.splash-screen {
+  background: linear-gradient(160deg, #1d4ed8 0%, #1e40af 40%, #172554 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+}
+.splash-screen .status-bar { color: #fff; }
+
+.splash-logo {
+  width: 88px;
+  height: 88px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  animation: logo-pulse 2s ease-in-out infinite;
+}
+@keyframes logo-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.splash-logo svg { width: 48px; height: 48px; }
+
+.splash-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.splash-tagline {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.splash-loader {
+  position: absolute;
+  bottom: 100px;
+  display: flex;
+  gap: 8px;
+}
+.splash-loader span {
+  width: 8px;
+  height: 8px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  animation: dot-bounce 1.4s ease-in-out infinite;
+}
+.splash-loader span:nth-child(2) { animation-delay: 0.16s; }
+.splash-loader span:nth-child(3) { animation-delay: 0.32s; }
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.splash-version {
+  position: absolute;
+  bottom: 60px;
+  font-size: 0.7rem;
+  opacity: 0.5;
+}
+
+/* =========================================================
+   SCREEN 2: LOGIN
+   ========================================================= */
+.login-screen {
+  background: var(--bg);
+  padding: 54px 0 0;
+}
+
+.login-header {
+  text-align: center;
+  padding: 40px 28px 0;
+}
+.login-logo-small {
+  width: 56px;
+  height: 56px;
+  background: var(--blue);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+.login-logo-small svg { width: 30px; height: 30px; }
+.login-header h2 {
+  font-size: 1.5rem;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.login-header p {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.login-form {
+  padding: 32px 28px;
+}
+.form-group {
+  margin-bottom: 18px;
+}
+.form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--card-bg);
+  transition: border-color 0.2s;
+  outline: none;
+}
+.form-input::placeholder { color: var(--muted); opacity: 0.6; }
+.form-input:focus { border-color: var(--blue); }
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+}
+.forgot-link {
+  font-size: 0.82rem;
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 15px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+.btn-primary:hover { background: var(--blue-dark); }
+.btn-primary:active { transform: scale(0.98); }
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.login-divider::before, .login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.biometric-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.biometric-btn:hover { border-color: var(--blue); background: var(--blue-light); }
+.biometric-btn svg { width: 22px; height: 22px; }
+
+.login-footer {
+  text-align: center;
+  padding: 24px 28px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.login-footer a {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* =========================================================
+   SCREEN 3: DASHBOARD
+   ========================================================= */
+.dashboard-screen {
+  background: var(--surface);
+  padding: 54px 0 0;
+}
+
+.dash-header {
+  padding: 16px 20px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.dash-greeting h2 {
+  font-size: 1.25rem;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.dash-date {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.dash-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.notif-btn, .search-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  color: var(--text);
+}
+.notif-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.dash-body {
+  padding: 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Clock Status Card */
+.clock-card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+}
+.clock-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.clock-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.clock-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--red);
+}
+.clock-dot.active {
+  background: var(--green);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(22,163,74,0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(22,163,74,0); }
+}
+.clock-status-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.clock-hours {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.clock-hours strong {
+  color: var(--text);
+  font-size: 1.1rem;
+}
+.clock-btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.clock-in-btn {
+  flex: 1;
+  padding: 12px;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.clock-in-btn:hover { filter: brightness(1.1); }
+.clock-in-btn.out { background: var(--red); }
+.clock-project-btn {
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* KPI Row */
+.kpi-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.kpi-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+}
+.kpi-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.kpi-icon.blue { color: var(--blue); }
+.kpi-icon.amber { color: var(--amber); }
+.kpi-icon.green { color: var(--green); }
+.kpi-icon.red { color: var(--red); }
+.kpi-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.kpi-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+
+/* Quick Actions */
+.section-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: -4px;
+}
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.quick-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.quick-item:hover { border-color: var(--blue); background: var(--blue-light); }
+.quick-item svg { margin-bottom: 6px; color: var(--blue); }
+.quick-item span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Project Cards */
+.project-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.project-card:hover { border-color: var(--blue); }
+.project-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--blue);
+}
+.project-info { flex: 1; min-width: 0; }
+.project-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.project-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.project-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+.project-badge.planning {
+  color: var(--amber);
+}
+
+/* Tasks */
+.task-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+}
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+}
+.task-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+.task-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  margin-top: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.task-check:hover { border-color: var(--blue); }
+.task-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.task-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.task-priority {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  margin-left: 6px;
+  text-transform: uppercase;
+}
+.task-priority.high { color: var(--red); }
+.task-priority.medium { color: var(--amber); }
+.task-priority.low { color: var(--green); }
+
+/* Activity Feed */
+.activity-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+}
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  align-items: flex-start;
+}
+.activity-item:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blue);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+.activity-text {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+.activity-time {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ===== BOTTOM TAB BAR ===== */
+.tab-bar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 84px;
+  min-height: 84px;
+  background: var(--tab-bg);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding-top: 8px;
+  z-index: 50;
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 4px 12px;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+.tab-item.active { color: var(--blue); }
+.tab-item svg { width: 22px; height: 22px; }
+.tab-label {
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* =========================================================
+   SCREEN 4: PROJECTS LIST
+   ========================================================= */
+.projects-screen {
+  background: var(--surface);
+  padding: 54px 0 0;
+}
+
+.screen-header {
+  padding: 14px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.screen-header h2 {
+  font-size: 1.15rem;
+  color: var(--text);
+}
+.header-action {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 300;
+}
+
+.search-bar {
+  margin: 12px 16px;
+  padding: 11px 14px 11px 40px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  color: var(--text);
+  width: calc(100% - 32px);
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+}
+.search-bar::placeholder { color: var(--muted); opacity: 0.6; }
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+}
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.filter-chip.active {
+  border-color: var(--blue);
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.projects-list {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.project-list-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.project-list-card:hover { border-color: var(--blue); }
+.plc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.plc-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.plc-code {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.plc-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.plc-stats {
+  display: flex;
+  gap: 16px;
+}
+.plc-stat {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.plc-stat strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.plc-progress {
+  margin-top: 10px;
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.plc-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--blue);
+  transition: width 0.5s ease;
+}
+
+/* =========================================================
+   SCREEN 5: MORE MENU
+   ========================================================= */
+.more-screen {
+  background: var(--surface);
+  padding: 54px 0 0;
+}
+
+.more-grid {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-bottom: 100px;
+}
+.more-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.more-item:hover { border-color: var(--blue); background: var(--blue-light); }
+.more-item-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+}
+.more-item-icon.blue { color: var(--blue); }
+.more-item-icon.amber { color: var(--amber); }
+.more-item-icon.green { color: var(--green); }
+.more-item-icon.red { color: var(--red); }
+.more-item span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ===== RESPONSIVE FOR DESKTOP VIEWING ===== */
+@media (max-width: 420px) {
+  .phone-frame {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  .phone-inner { border-radius: 0; }
+  .phone-notch { display: none; }
+  .page-header, .screen-nav, .theme-toggle { display: none; }
+  body { padding: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- Page Header -->
+<div class="page-header">
+  <h1>Buildwrk Mobile App</h1>
+  <p>Interactive UI preview — Click screens to navigate. Toggle dark mode to preview both themes.</p>
+</div>
+
+<!-- Screen Navigation -->
+<div class="screen-nav">
+  <button class="active" onclick="showScreen('splash')">Splash</button>
+  <button onclick="showScreen('login')">Login</button>
+  <button onclick="showScreen('dashboard')">Dashboard</button>
+  <button onclick="showScreen('projects')">Projects</button>
+  <button onclick="showScreen('more')">More</button>
+</div>
+
+<!-- Theme & Variant Toggles -->
+<div style="display:flex; gap:24px; margin-bottom:24px; align-items:center; flex-wrap:wrap; justify-content:center;">
+  <div class="theme-toggle" style="margin-bottom:0;">
+    <span>Theme:</span>
+    <button class="active" onclick="setTheme('light')" title="Light">&#9728;</button>
+    <button onclick="setTheme('dark')" title="Dark">&#9790;</button>
+  </div>
+  <div class="theme-toggle" style="margin-bottom:0;">
+    <span>Variant:</span>
+    <button class="active" onclick="setVariant('classic')" title="Classic" style="width:auto; border-radius:999px; padding:4px 14px; font-size:0.75rem; font-weight:600;">Classic</button>
+    <button onclick="setVariant('corporate')" title="Corporate" style="width:auto; border-radius:999px; padding:4px 14px; font-size:0.75rem; font-weight:600;">Corporate</button>
+  </div>
+</div>
+
+<!-- Phone Frame -->
+<div class="phone-frame">
+  <div class="phone-notch"></div>
+  <div class="phone-inner" id="phoneInner">
+
+    <!-- Status Bar (shared) -->
+    <div class="status-bar" id="statusBar">
+      <span class="time">9:41</span>
+      <span class="icons">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx="1"/><rect x="4.5" y="4" width="3" height="8" rx="1"/><rect x="9" y="2" width="3" height="10" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity="0.3"/></svg>
+        <svg width="16" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+        <svg width="24" height="12" viewBox="0 0 28 14" fill="currentColor"><rect x="0" y="1" width="24" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="3.5" width="16" height="7" rx="1.5" fill="currentColor"/><rect x="25.5" y="4.5" width="2" height="5" rx="1" opacity="0.4"/></svg>
+      </span>
+    </div>
+
+    <!-- Home Indicator -->
+    <div class="home-indicator" id="homeIndicator"></div>
+
+    <!-- ==================== SPLASH SCREEN ==================== -->
+    <div class="screen splash-screen active" id="screen-splash">
+      <div class="splash-logo">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 4L6 14v20l18 10 18-10V14L24 4z" stroke="white" stroke-width="2.5" fill="none"/>
+          <path d="M24 4v40M6 14l18 10 18-10M6 34l18-10 18 10" stroke="white" stroke-width="2" opacity="0.6"/>
+          <circle cx="24" cy="24" r="6" fill="white" opacity="0.9"/>
+        </svg>
+      </div>
+      <div class="splash-brand">Buildwrk</div>
+      <div class="splash-tagline">Construction Intelligence Platform</div>
+      <div class="splash-loader">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="splash-version">v1.0.0</div>
+    </div>
+
+    <!-- ==================== LOGIN SCREEN ==================== -->
+    <div class="screen login-screen" id="screen-login">
+      <div class="login-header">
+        <div class="login-logo-small">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 4L6 14v20l18 10 18-10V14L24 4z" stroke="white" stroke-width="2.5" fill="none"/>
+            <path d="M24 4v40M6 14l18 10 18-10" stroke="white" stroke-width="2" opacity="0.6"/>
+            <circle cx="24" cy="24" r="5" fill="white" opacity="0.9"/>
+          </svg>
+        </div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to your Buildwrk account</p>
+      </div>
+
+      <div class="login-form">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" placeholder="you@company.com" value="john@acmeconstruction.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" placeholder="Enter your password" value="••••••••••">
+        </div>
+        <div class="form-row">
+          <label class="remember-me">
+            <input type="checkbox" checked> Remember me
+          </label>
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </div>
+        <button class="btn-primary" onclick="showScreen('dashboard')">Sign In</button>
+
+        <div class="login-divider">or continue with</div>
+
+        <button class="biometric-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 10V14M7.21 2.82l.56.56M16.23 2.82l-.56.56M12 2v1M2 12h1M21 12h1M4.22 19.78l.56-.56M19.78 19.78l-.56-.56"/>
+            <path d="M18.36 5.64a9 9 0 11-12.73 0" stroke-linecap="round"/>
+            <rect x="8" y="9" width="8" height="10" rx="4" stroke-linecap="round"/>
+          </svg>
+          Sign in with Face ID
+        </button>
+
+        <div class="login-footer">
+          Don't have an account? <a href="#">Create one</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== DASHBOARD SCREEN ==================== -->
+    <div class="screen dashboard-screen" id="screen-dashboard">
+      <div class="dash-header">
+        <div class="dash-greeting">
+          <h2>Hello, John</h2>
+          <div class="dash-date">Tuesday, Mar 4, 2026</div>
+        </div>
+        <div class="dash-header-right">
+          <button class="notif-btn" title="Notifications">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <span class="notif-dot"></span>
+          </button>
+          <div class="avatar-sm">JD</div>
+        </div>
+      </div>
+
+      <div class="dash-body">
+        <!-- Clock Status -->
+        <div class="clock-card">
+          <div class="clock-card-header">
+            <div class="clock-status">
+              <div class="clock-dot"></div>
+              <span class="clock-status-text">Not Clocked In</span>
+            </div>
+            <div class="clock-hours">Today: <strong>0.0h</strong></div>
+          </div>
+          <div class="clock-btn-row">
+            <button class="clock-in-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Clock In
+            </button>
+            <button class="clock-project-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Select Project
+            </button>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-icon blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>
+            </div>
+            <div class="kpi-value">12</div>
+            <div class="kpi-label">Active Projects</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="kpi-value">38.5h</div>
+            <div class="kpi-label">This Week</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon amber">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="kpi-value">47</div>
+            <div class="kpi-label">Team Members</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon red">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </div>
+            <div class="kpi-value">3</div>
+            <div class="kpi-label">Safety Alerts</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section-title">Quick Actions</div>
+        <div class="quick-grid">
+          <div class="quick-item" onclick="showScreen('dashboard')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Clock In</span>
+          </div>
+          <div class="quick-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            <span>Daily Log</span>
+          </div>
+          <div class="quick-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            <span>Photo</span>
+          </div>
+          <div class="quick-item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            <span>Safety</span>
+          </div>
+        </div>
+
+        <!-- Active Projects -->
+        <div class="section-title">Active Projects</div>
+        <div class="project-card" onclick="showScreen('projects')">
+          <div class="project-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/></svg>
+          </div>
+          <div class="project-info">
+            <div class="project-name">Oceanview Tower</div>
+            <div class="project-meta">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Miami, FL
+            </div>
+          </div>
+          <span class="project-badge">Active</span>
+        </div>
+        <div class="project-card" onclick="showScreen('projects')">
+          <div class="project-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/></svg>
+          </div>
+          <div class="project-info">
+            <div class="project-name">Highland Park Bridge</div>
+            <div class="project-meta">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Houston, TX
+            </div>
+          </div>
+          <span class="project-badge planning">Planning</span>
+        </div>
+        <div class="project-card" onclick="showScreen('projects')">
+          <div class="project-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/></svg>
+          </div>
+          <div class="project-info">
+            <div class="project-name">Metro Station Reno</div>
+            <div class="project-meta">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              New York, NY
+            </div>
+          </div>
+          <span class="project-badge">Active</span>
+        </div>
+
+        <!-- Tasks -->
+        <div class="section-title">Your Tasks</div>
+        <div class="task-card">
+          <div class="task-item">
+            <div class="task-check"></div>
+            <div>
+              <div class="task-name">Inspect foundation pour - Section C</div>
+              <div class="task-meta">Oceanview Tower <span class="task-priority high">High</span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-check"></div>
+            <div>
+              <div class="task-name">Submit RFI for electrical routing</div>
+              <div class="task-meta">Oceanview Tower <span class="task-priority medium">Medium</span></div>
+            </div>
+          </div>
+          <div class="task-item">
+            <div class="task-check"></div>
+            <div>
+              <div class="task-name">Review steel shop drawings</div>
+              <div class="task-meta">Highland Park Bridge <span class="task-priority low">Low</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section-title">Recent Activity</div>
+        <div class="activity-card">
+          <div class="activity-item">
+            <div class="activity-dot"></div>
+            <div>
+              <div class="activity-text">Change Order #CO-042 approved</div>
+              <div class="activity-time">2 hours ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background: var(--green);"></div>
+            <div>
+              <div class="activity-text">Daily log submitted for Oceanview Tower</div>
+              <div class="activity-time">Yesterday, 5:32 PM</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background: var(--amber);"></div>
+            <div>
+              <div class="activity-text">Safety inspection scheduled - Zone B</div>
+              <div class="activity-time">Yesterday, 2:15 PM</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background: var(--red);"></div>
+            <div>
+              <div class="activity-text">RFI #RFI-108 requires your response</div>
+              <div class="activity-time">Mar 2, 4:48 PM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <div class="tab-item active" onclick="showScreen('dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="tab-label">Home</span>
+        </div>
+        <div class="tab-item" onclick="showScreen('projects')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <span class="tab-label">Projects</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="tab-label">Clock</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+          <span class="tab-label">Daily Log</span>
+        </div>
+        <div class="tab-item" onclick="showScreen('more')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          <span class="tab-label">More</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PROJECTS LIST SCREEN ==================== -->
+    <div class="screen projects-screen" id="screen-projects">
+      <div class="screen-header">
+        <h2>Projects</h2>
+        <button class="header-action" title="New Project">+</button>
+      </div>
+
+      <input type="text" class="search-bar" placeholder="Search projects...">
+
+      <div class="filter-row">
+        <span class="filter-chip active">All</span>
+        <span class="filter-chip">Active</span>
+        <span class="filter-chip">Planning</span>
+        <span class="filter-chip">On Hold</span>
+        <span class="filter-chip">Completed</span>
+      </div>
+
+      <div class="projects-list">
+        <div class="project-list-card">
+          <div class="plc-header">
+            <div>
+              <div class="plc-name">Oceanview Tower</div>
+              <div class="plc-code">PRJ-2024-001</div>
+            </div>
+            <span class="project-badge">Active</span>
+          </div>
+          <div class="plc-location">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            1200 Brickell Ave, Miami, FL 33131
+          </div>
+          <div class="plc-stats">
+            <div class="plc-stat">Budget: <strong>$48.2M</strong></div>
+            <div class="plc-stat">Completion: <strong>67%</strong></div>
+          </div>
+          <div class="plc-progress"><div class="plc-progress-fill" style="width:67%"></div></div>
+        </div>
+
+        <div class="project-list-card">
+          <div class="plc-header">
+            <div>
+              <div class="plc-name">Highland Park Bridge</div>
+              <div class="plc-code">PRJ-2024-003</div>
+            </div>
+            <span class="project-badge planning">Planning</span>
+          </div>
+          <div class="plc-location">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            4500 Memorial Dr, Houston, TX 77007
+          </div>
+          <div class="plc-stats">
+            <div class="plc-stat">Budget: <strong>$12.8M</strong></div>
+            <div class="plc-stat">Completion: <strong>15%</strong></div>
+          </div>
+          <div class="plc-progress"><div class="plc-progress-fill" style="width:15%"></div></div>
+        </div>
+
+        <div class="project-list-card">
+          <div class="plc-header">
+            <div>
+              <div class="plc-name">Metro Station Renovation</div>
+              <div class="plc-code">PRJ-2024-005</div>
+            </div>
+            <span class="project-badge">Active</span>
+          </div>
+          <div class="plc-location">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            42nd St & Park Ave, New York, NY 10017
+          </div>
+          <div class="plc-stats">
+            <div class="plc-stat">Budget: <strong>$92.5M</strong></div>
+            <div class="plc-stat">Completion: <strong>34%</strong></div>
+          </div>
+          <div class="plc-progress"><div class="plc-progress-fill" style="width:34%"></div></div>
+        </div>
+
+        <div class="project-list-card">
+          <div class="plc-header">
+            <div>
+              <div class="plc-name">Sunset Apartments Phase II</div>
+              <div class="plc-code">PRJ-2025-002</div>
+            </div>
+            <span class="project-badge">Active</span>
+          </div>
+          <div class="plc-location">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            8800 Collins Ave, Surfside, FL 33154
+          </div>
+          <div class="plc-stats">
+            <div class="plc-stat">Budget: <strong>$22.1M</strong></div>
+            <div class="plc-stat">Completion: <strong>89%</strong></div>
+          </div>
+          <div class="plc-progress"><div class="plc-progress-fill" style="width:89%; background: var(--green)"></div></div>
+        </div>
+
+        <div class="project-list-card">
+          <div class="plc-header">
+            <div>
+              <div class="plc-name">Corporate HQ Fitout</div>
+              <div class="plc-code">PRJ-2025-004</div>
+            </div>
+            <span class="project-badge planning">Planning</span>
+          </div>
+          <div class="plc-location">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            100 SE 2nd St, Miami, FL 33131
+          </div>
+          <div class="plc-stats">
+            <div class="plc-stat">Budget: <strong>$5.4M</strong></div>
+            <div class="plc-stat">Completion: <strong>5%</strong></div>
+          </div>
+          <div class="plc-progress"><div class="plc-progress-fill" style="width:5%"></div></div>
+        </div>
+      </div>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <div class="tab-item" onclick="showScreen('dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="tab-label">Home</span>
+        </div>
+        <div class="tab-item active" onclick="showScreen('projects')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <span class="tab-label">Projects</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="tab-label">Clock</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+          <span class="tab-label">Daily Log</span>
+        </div>
+        <div class="tab-item" onclick="showScreen('more')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          <span class="tab-label">More</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MORE MENU SCREEN ==================== -->
+    <div class="screen more-screen" id="screen-more">
+      <div class="screen-header">
+        <h2>More</h2>
+        <div></div>
+      </div>
+
+      <!-- User Info Mini -->
+      <div style="padding: 16px 16px 0;">
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 4px;">
+          <div class="avatar-sm" style="width: 48px; height: 48px; font-size: 1rem;">JD</div>
+          <div>
+            <div style="font-weight: 600; color: var(--text); font-size: 0.95rem;">John Doe</div>
+            <div style="font-size: 0.78rem; color: var(--muted);">Project Manager - Acme Construction</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="margin-left:auto;"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+      </div>
+
+      <div style="padding: 8px 16px 0;">
+        <div class="section-title" style="margin-bottom: 8px;">Features</div>
+      </div>
+
+      <div class="more-grid">
+        <div class="more-item">
+          <div class="more-item-icon red">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span>Safety</span>
+        </div>
+        <div class="more-item">
+          <div class="more-item-icon amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="22" height="12" rx="2"/><path d="M1 10h22"/></svg>
+          </div>
+          <span>Equipment</span>
+        </div>
+        <div class="more-item">
+          <div class="more-item-icon green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <span>Financial</span>
+        </div>
+        <div class="more-item">
+          <div class="more-item-icon blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <span>Documents</span>
+        </div>
+        <div class="more-item">
+          <div class="more-item-icon blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <span>People</span>
+        </div>
+        <div class="more-item">
+          <div class="more-item-icon amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <span>Approvals</span>
+        </div>
+        <div class="more-item">
+          <div class="more-item-icon blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          </div>
+          <span>Photos</span>
+        </div>
+        <div class="more-item">
+          <div class="more-item-icon green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
+          <span>Search</span>
+        </div>
+        <div class="more-item">
+          <div class="more-item-icon blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          </div>
+          <span>Alerts</span>
+        </div>
+      </div>
+
+      <!-- Settings links -->
+      <div style="padding: 0 16px 16px;">
+        <div class="section-title" style="margin-bottom: 8px;">Settings</div>
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;">
+          <div style="padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); cursor: pointer;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              <span style="font-size: 0.88rem; color: var(--text);">Appearance</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+          <div style="padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); cursor: pointer;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span style="font-size: 0.88rem; color: var(--text);">Help & Support</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+          <div style="padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span style="font-size: 0.88rem; color: var(--text);">Privacy & Legal</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+
+        <button style="width: 100%; margin-top: 16px; padding: 14px; background: var(--red-light); border: 1px solid var(--red); border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--red); cursor: pointer;">
+          Sign Out
+        </button>
+      </div>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <div class="tab-item" onclick="showScreen('dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="tab-label">Home</span>
+        </div>
+        <div class="tab-item" onclick="showScreen('projects')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <span class="tab-label">Projects</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="tab-label">Clock</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+          <span class="tab-label">Daily Log</span>
+        </div>
+        <div class="tab-item active" onclick="showScreen('more')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          <span class="tab-label">More</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phone-inner -->
+</div><!-- /phone-frame -->
+
+<script>
+// Screen management
+const screens = ['splash', 'login', 'dashboard', 'projects', 'more'];
+let currentScreen = 'splash';
+
+function showScreen(name) {
+  // Hide all screens
+  screens.forEach(s => {
+    const el = document.getElementById('screen-' + s);
+    if (el) el.classList.remove('active');
+  });
+
+  // Show target screen
+  const target = document.getElementById('screen-' + name);
+  if (target) target.classList.add('active');
+
+  // Update nav buttons
+  document.querySelectorAll('.screen-nav button').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase().includes(name));
+  });
+
+  // Update status bar color for splash
+  const statusBar = document.getElementById('statusBar');
+  const homeIndicator = document.getElementById('homeIndicator');
+  if (name === 'splash') {
+    statusBar.style.color = '#fff';
+    homeIndicator.style.background = 'rgba(255,255,255,0.3)';
+  } else {
+    statusBar.style.color = 'var(--status-bar-color)';
+    homeIndicator.style.background = 'rgba(0,0,0,0.2)';
+  }
+
+  currentScreen = name;
+}
+
+// Theme management
+function setTheme(theme) {
+  const phoneInner = document.getElementById('phoneInner');
+  if (theme === 'dark') {
+    phoneInner.classList.add('dark');
+  } else {
+    phoneInner.classList.remove('dark');
+  }
+
+  // Update theme buttons (first toggle group)
+  const themeGroup = document.querySelectorAll('.theme-toggle')[0];
+  if (themeGroup) {
+    themeGroup.querySelectorAll('button').forEach((btn, i) => {
+      btn.classList.toggle('active', (theme === 'light' && i === 0) || (theme === 'dark' && i === 1));
+    });
+  }
+}
+
+// Variant management
+function setVariant(variant) {
+  const phoneInner = document.getElementById('phoneInner');
+  if (variant === 'corporate') {
+    phoneInner.classList.add('corporate');
+  } else {
+    phoneInner.classList.remove('corporate');
+  }
+
+  // Update variant buttons (second toggle group)
+  const variantGroup = document.querySelectorAll('.theme-toggle')[1];
+  if (variantGroup) {
+    variantGroup.querySelectorAll('button').forEach((btn, i) => {
+      btn.classList.toggle('active', (variant === 'classic' && i === 0) || (variant === 'corporate' && i === 1));
+    });
+  }
+}
+
+// Auto-advance splash after 3 seconds (when splash is shown)
+let splashTimer;
+function startSplashTimer() {
+  clearTimeout(splashTimer);
+  splashTimer = setTimeout(() => {
+    if (currentScreen === 'splash') {
+      showScreen('login');
+    }
+  }, 3000);
+}
+
+// Click splash to advance
+document.getElementById('screen-splash').addEventListener('click', () => {
+  showScreen('login');
+});
+
+// Start splash timer on load
+startSplashTimer();
+</script>
+
+</body>
+</html>

@@ -54,12 +54,13 @@ export async function getAdminOverview(
   };
 }
 
-export async function getTeamMembers(supabase: SupabaseClient, companyId: string) {
+export async function getTeamMembers(supabase: SupabaseClient, companyId: string, limit = 200) {
   const { data } = await supabase
     .from("company_members")
     .select("id, user_id, role, is_active, joined_at")
     .eq("company_id", companyId)
-    .order("joined_at", { ascending: false });
+    .order("joined_at", { ascending: false })
+    .limit(limit);
 
   const members = data ?? [];
 
@@ -82,23 +83,25 @@ export async function getTeamMembers(supabase: SupabaseClient, companyId: string
   }));
 }
 
-export async function getAllTenants(supabase: SupabaseClient, companyId: string) {
+export async function getAllTenants(supabase: SupabaseClient, companyId: string, limit = 500) {
   const { data } = await supabase
     .from("leases")
     .select("id, status, monthly_rent, start_date, end_date, tenant_user_id, units(name, properties(name))")
     .eq("company_id", companyId)
     .not("tenant_user_id", "is", null)
-    .order("start_date", { ascending: false });
+    .order("start_date", { ascending: false })
+    .limit(limit);
   return data ?? [];
 }
 
-export async function getAllVendors(supabase: SupabaseClient, companyId: string) {
+export async function getAllVendors(supabase: SupabaseClient, companyId: string, limit = 500) {
   const { data } = await supabase
     .from("contacts")
     .select("id, name, email, phone, contact_type, company_name, user_id, created_at")
     .eq("company_id", companyId)
     .in("contact_type", ["vendor", "subcontractor"])
-    .order("name");
+    .order("name")
+    .limit(limit);
   return data ?? [];
 }
 

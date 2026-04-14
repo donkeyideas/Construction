@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
+import { paginatedQuery } from "@/lib/utils/paginated-query";
 
 export async function GET(
   request: NextRequest,
@@ -26,19 +27,29 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const { data: lines } = await supabase
-      .from("journal_entry_lines")
-      .select("id, account_id, description, debit, credit, chart_of_accounts(account_number, name)")
-      .eq("journal_entry_id", id)
-      .eq("company_id", userCtx.companyId)
-      .order("created_at", { ascending: true });
+    const lines = await paginatedQuery<{
+      id: string;
+      account_id: string;
+      description: string | null;
+      debit: number | null;
+      credit: number | null;
+      chart_of_accounts: { account_number: string; name: string } | null;
+    }>((from, to) =>
+      supabase
+        .from("journal_entry_lines")
+        .select("id, account_id, description, debit, credit, chart_of_accounts(account_number, name)")
+        .eq("journal_entry_id", id)
+        .eq("company_id", userCtx.companyId)
+        .order("created_at", { ascending: true })
+        .range(from, to)
+    );
 
     return NextResponse.json({
       ...entry,
-      lines: (lines ?? []).map((l) => ({
+      lines: lines.map((l) => ({
         id: l.id,
-        accountNumber: (l.chart_of_accounts as unknown as { account_number: string; name: string } | null)?.account_number ?? "",
-        accountName: (l.chart_of_accounts as unknown as { account_number: string; name: string } | null)?.name ?? "",
+        accountNumber: l.chart_of_accounts?.account_number ?? "",
+        accountName: l.chart_of_accounts?.name ?? "",
         description: l.description ?? "",
         debit: Number(l.debit) || 0,
         credit: Number(l.credit) || 0,

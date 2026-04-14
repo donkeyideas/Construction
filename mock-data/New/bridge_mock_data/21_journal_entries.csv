@@ -1,0 +1,68 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-000,2023-03-01,Opening balances – beginning of project tracking period,OB-2023,1000,7200000,,Beginning cash balance carryforward
+JE-000,2023-03-01,Opening balances – beginning of project tracking period,OB-2023,1100,8500000,,Equipment fleet net book value at beginning of period
+JE-000,2023-03-01,Opening balances – beginning of project tracking period,OB-2023,1040,820000,,Prepaid insurance beginning of period
+JE-000,2023-03-01,Opening balances – beginning of project tracking period,OB-2023,1210,480000,,Bid and performance bond premiums capitalized
+JE-000,2023-03-01,Opening balances – beginning of project tracking period,OB-2023,1200,200000,,Security deposits other long-term assets
+JE-000,2023-03-01,Opening balances – beginning of project tracking period,OB-2023,2100,0,5800000,Equipment financing – long-term debt
+JE-000,2023-03-01,Opening balances – beginning of project tracking period,OB-2023,2110,0,3000000,Line of credit – US Bank revolving facility
+JE-000,2023-03-01,Opening balances – beginning of project tracking period,OB-2023,3000,0,500000,Common stock – paid-in capital
+JE-000,2023-03-01,Opening balances – beginning of project tracking period,OB-2023,3010,0,3670000,Retained earnings – beginning of tracking period
+JE-019,2026-01-10,WSB Structural Steel – PA#7 Supplemental January,AP-PSSS-007B,5010,4200000,,Subcontractor costs – PSSS additional January
+JE-019,2026-01-10,WSB Structural Steel – PA#7 Supplemental January,AP-PSSS-007B,2000,,4200000,AP – PSSS January supplement
+JE-020,2025-12-15,WSB Marine Diving – Payment Application #8 (AP),AP-PSD-008,5010,4100000,,Subcontractor costs – Pacific Sound Diving PA#8
+JE-020,2025-12-15,WSB Marine Diving – Payment Application #8 (AP),AP-PSD-008,5050,2400000,,Specialty marine costs – barge fuel USCG inspections
+JE-020,2025-12-15,WSB Marine Diving – Payment Application #8 (AP),AP-PSD-008,2000,,6500000,AP – Pacific Sound Diving and marine costs
+JE-021,2026-01-10,WSB Diving – January additional PA,AP-PSD-008B,5010,980000,,Subcontractor costs – Pacific Sound Diving January
+JE-021,2026-01-10,WSB Diving – January additional PA,AP-PSD-008B,2000,,980000,AP – PSD January
+JE-023,2026-01-15,WSB Concrete PA#6 – Cash Payment,AP-RCF-006-PMT,2000,6800000,,Clear AP – Reyes WSB
+JE-023,2026-01-15,WSB Concrete PA#6 – Cash Payment,AP-RCF-006-PMT,1000,,6800000,Cash disbursed – Reyes Concrete WSB
+JE-025,2026-01-20,SR-520 Concrete PA#4 – Cash Payment,AP-RCF-SR520-004-PMT,2000,4800000,,Clear AP – Reyes SR-520
+JE-025,2026-01-20,SR-520 Concrete PA#4 – Cash Payment,AP-RCF-SR520-004-PMT,1000,,4800000,Cash disbursed – Reyes Concrete SR-520
+JE-030,2026-01-15,Materials and supplies – all projects current period,AP-MAT-JAN,5020,4450000,,Materials and supplies – structural steel accessories rebar formwork
+JE-030,2026-01-15,Materials and supplies – all projects current period,AP-MAT-JAN,2000,,4450000,AP – materials vendors
+JE-031,2026-01-31,Materials AP – partial payment,AP-MAT-PMT,2000,2250000,,Partial payment on materials AP
+JE-031,2026-01-31,Materials AP – partial payment,AP-MAT-PMT,1000,,2250000,Cash disbursed – materials
+JE-032,2025-10-01,Historical subcontractor and labor costs – Everett project,HIST-EVT-COST,5010,22000000,,Everett project sub costs prior periods
+JE-032,2025-10-01,Historical subcontractor and labor costs – Everett project,HIST-EVT-COST,5000,5500000,,Everett direct labor prior periods
+JE-032,2025-10-01,Historical subcontractor and labor costs – Everett project,HIST-EVT-COST,5020,2000000,,Everett materials prior periods
+JE-032,2025-10-01,Historical subcontractor and labor costs – Everett project,HIST-EVT-COST,1000,,29500000,Cash disbursed – Everett historical costs
+JE-033,2024-06-01,Historical subcontractor and labor costs – WSB prior periods,HIST-WSB-COST,5010,14000000,,WSB sub costs periods 1-3 prior
+JE-033,2024-06-01,Historical subcontractor and labor costs – WSB prior periods,HIST-WSB-COST,5000,3200000,,WSB direct labor prior periods
+JE-033,2024-06-01,Historical subcontractor and labor costs – WSB prior periods,HIST-WSB-COST,5050,1800000,,WSB marine operations prior periods
+JE-033,2024-06-01,Historical subcontractor and labor costs – WSB prior periods,HIST-WSB-COST,1000,,19000000,Cash disbursed – WSB historical costs
+JE-034,2024-09-01,Historical subcontractor and labor costs – SR-520 prior periods,HIST-SR520-COST,5010,4500000,,SR-520 sub costs prior periods
+JE-034,2024-09-01,Historical subcontractor and labor costs – SR-520 prior periods,HIST-SR520-COST,5000,1300000,,SR-520 direct labor prior periods
+JE-034,2024-09-01,Historical subcontractor and labor costs – SR-520 prior periods,HIST-SR520-COST,1000,,5800000,Cash disbursed – SR-520 historical costs
+JE-035,2026-01-31,Direct labor – all projects current January 2026,PR-JAN-2026,5000,8200000,,Direct field labor January 2026 all active projects
+JE-035,2026-01-31,Direct labor – all projects current January 2026,PR-JAN-2026,2030,,8200000,Accrued payroll January 2026
+JE-036,2026-01-31,Payroll disbursement – January 2026,PR-JAN-PMT,2030,8200000,,Clear accrued payroll January
+JE-036,2026-01-31,Payroll disbursement – January 2026,PR-JAN-PMT,1000,,8200000,Cash disbursed – payroll January 2026
+JE-037,2026-01-31,G&A salaries and payroll taxes – January 2026,PR-GA-JAN,6000,3120000,,G&A salaries – CEO CFO COO VPs Controllers PMs
+JE-037,2026-01-31,G&A salaries and payroll taxes – January 2026,PR-GA-JAN,6010,780000,,Payroll taxes and benefits 25%
+JE-037,2026-01-31,G&A salaries and payroll taxes – January 2026,PR-GA-JAN,2030,,3900000,Accrued payroll – G&A January
+JE-038,2026-01-31,G&A payroll disbursement January,PR-GA-JAN-PMT,2030,3900000,,Clear G&A accrued payroll
+JE-038,2026-01-31,G&A payroll disbursement January,PR-GA-JAN-PMT,1000,,3900000,Cash disbursed – G&A payroll
+JE-039,2025-12-31,Insurance – draw on prepaid and accrue,EXP-INS-YE,6030,890000,,Insurance general liability workers comp marine umbrella
+JE-039,2025-12-31,Insurance – draw on prepaid and accrue,EXP-INS-YE,1040,,820000,Draw on prepaid insurance – fully utilized
+JE-039,2025-12-31,Insurance – draw on prepaid and accrue,EXP-INS-YE,2040,,70000,Accrual – remaining insurance premium due
+JE-040,2025-12-31,Depreciation – heavy construction fleet,DEP-2025,6040,1240000,,Depreciation – 12 pieces of heavy equipment
+JE-040,2025-12-31,Depreciation – heavy construction fleet,DEP-2025,1130,,1240000,Accumulated depreciation
+JE-041,2025-12-31,Bonding and surety costs – annual,EXP-BOND-YE,6090,420000,,Bid and performance bond premiums
+JE-041,2025-12-31,Bonding and surety costs – annual,EXP-BOND-YE,2040,,420000,Accrued bonding expense
+JE-042,2025-12-31,Professional fees – legal and accounting,EXP-PROF-YE,6050,185000,,Legal counsel contract disputes and accounting
+JE-042,2025-12-31,Professional fees – legal and accounting,EXP-PROF-YE,2040,,185000,Accrued professional fees
+JE-043,2025-12-31,Office supplies and technology,EXP-IT-YE,6080,72000,,Software subscriptions project management IT
+JE-043,2025-12-31,Office supplies and technology,EXP-IT-YE,2040,,72000,Accrued office expenses
+JE-044,2025-12-31,Interest expense – equipment financing and LOC,EXP-INT-YE,7000,198000,,Interest on equipment loans and revolving line of credit
+JE-044,2025-12-31,Interest expense – equipment financing and LOC,EXP-INT-YE,2040,,198000,Accrued interest
+JE-045,2025-12-31,Warranty reserve – Everett and Ballard,EXP-WARR-YE,6100,380000,,Warranty reserve – 1% of Everett revenue plus Ballard partial
+JE-045,2025-12-31,Warranty reserve – Everett and Ballard,EXP-WARR-YE,2060,,380000,Contract warranty reserve liability
+JE-046,2025-12-31,Income tax expense – B&O and federal,TAX-YE-2025,8000,2850000,,Washington B&O tax and federal income tax
+JE-046,2025-12-31,Income tax expense – B&O and federal,TAX-YE-2025,2050,,2850000,Income taxes payable
+JE-047,2026-01-31,Retainage receivable – 10% of billings WSB SR-520 Ballard,RET-REC-01,1020,5980000,,Retainage receivable – MAC withholds 5% WSB and 5% SR-520 Ballard
+JE-047,2026-01-31,Retainage receivable – 10% of billings WSB SR-520 Ballard,RET-REC-01,1010,,5980000,Reduce AR for client retainage held
+JE-048,2026-01-31,Retainage payable – withheld from subcontractors,RET-PAY-01,2000,3760000,,10% retainage withheld from PSSS Reyes Diving EPS
+JE-048,2026-01-31,Retainage payable – withheld from subcontractors,RET-PAY-01,2010,,3760000,Retainage payable to subcontractors
+JE-049,2023-03-01,Opening cash supplement – historical project cost funding,OB-HIST-CASH,1000,54300000,,Opening cash supplemental to fund historical paid project costs
+JE-049,2023-03-01,Opening cash supplement – historical project cost funding,OB-HIST-CASH,3010,,54300000,Retained earnings – historical project equity funding

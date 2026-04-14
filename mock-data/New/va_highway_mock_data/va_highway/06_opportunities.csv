@@ -1,0 +1,6 @@
+name,client_name,stage,estimated_value,probability_pct,expected_close_date,source
+I-66 Corridor Improvements Phase 2,Virginia Department of Transportation,proposal,62000000,55,2026-03-15,existing_client
+US-17 Pavement Rehabilitation - Fauquier County,Virginia Department of Transportation,negotiation,11500000,80,2026-02-28,existing_client
+VA-55 Roadway Safety Improvements - Warren County,Virginia Department of Transportation,discovery,4800000,40,2026-05-01,existing_client
+Rt 7 Corridor Widening - Loudoun County,Loudoun County DPWES,proposal,28000000,50,2026-04-30,new_client
+I-81 SVA Phase 2 - MM 298 to 322,Virginia Department of Transportation,discovery,55000000,35,2026-09-30,existing_client

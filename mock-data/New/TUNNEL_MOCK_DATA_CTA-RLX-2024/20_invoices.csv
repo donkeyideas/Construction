@@ -1,0 +1,14 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2024-06-01,9500000,0,2024-07-01,AIA App #01 - TBM mobilization launching shaft and preconstruction,paid,,Chicago Transit Authority,CTA Red Line Extension Utility Relocation Tunnel
+receivable,2024-09-01,11800000,0,2024-10-01,AIA App #02 - TBM launch through Ring 180 dewatering and utility relocations start,paid,,Chicago Transit Authority,CTA Red Line Extension Utility Relocation Tunnel
+receivable,2024-12-01,13200000,0,2025-01-01,AIA App #03 - TBM Rings 181-480 CO-001 timber caisson obstruction and NICOR reroute start,paid,,Chicago Transit Authority,CTA Red Line Extension Utility Relocation Tunnel
+receivable,2025-03-01,12600000,0,2025-04-01,AIA App #04 - TBM Rings 481-700 CO-002 NICOR complete CO-003 groundwater monitoring,paid,,Chicago Transit Authority,CTA Red Line Extension Utility Relocation Tunnel
+receivable,2025-06-01,11400000,0,2025-07-01,AIA App #05 - TBM Rings 701-900 111th St station cavern excavation start,paid,,Chicago Transit Authority,CTA Red Line Extension Utility Relocation Tunnel
+receivable,2025-09-01,12800000,0,2025-10-01,AIA App #06 - TBM Rings 901-1000 CO-004 shotcrete upgrade 119th St,paid,,Chicago Transit Authority,CTA Red Line Extension Utility Relocation Tunnel
+receivable,2026-01-05,10600000,0,2026-02-05,AIA App #07 - TBM Rings 1001-1100 cross passage ground improvement start,pending,,Chicago Transit Authority,CTA Red Line Extension Utility Relocation Tunnel
+payable,2025-12-31,8432000,0,2026-01-30,Segmental lining supply and install Rings 1-1000 - 34% complete,paid,Midwest Segmental Lining Corp,,CTA Red Line Extension Utility Relocation Tunnel
+payable,2025-12-31,2176000,0,2026-01-30,Annular grouting Rings 1-1000 - 34% complete,paid,Chicago Precise Grouting LLC,,CTA Red Line Extension Utility Relocation Tunnel
+payable,2025-12-31,2788000,0,2026-01-30,Dewatering - through January 2026 monthly billing,paid,Layne Christensen Dewatering,,CTA Red Line Extension Utility Relocation Tunnel
+payable,2025-12-31,3876000,0,2026-01-30,Tunnel electrical - temporary power systems complete - permanent 34% start,paid,Subway Electrical Contractors LLC,,CTA Red Line Extension Utility Relocation Tunnel
+payable,2025-12-31,1428000,0,2026-01-30,Herrenknecht TBM OEM service and parts Jan 2024 - Dec 2025,paid,Herrenknecht AG,,CTA Red Line Extension Utility Relocation Tunnel
+payable,2025-12-31,952000,0,2026-01-30,Third-party inspection and monitoring Jan 2024 - Dec 2025,paid,TunnelVision Inspection Services,,CTA Red Line Extension Utility Relocation Tunnel

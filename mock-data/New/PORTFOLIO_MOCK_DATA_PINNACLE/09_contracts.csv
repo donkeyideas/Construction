@@ -1,0 +1,29 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms,project_name
+MRN-2023 Prime Contract - Lump Sum,owner,Great Lakes Urban Partners,p.huang@glupartners.com,82000000,2023-03-01,2026-04-30,net_30,The Meridian at River North
+MRN-2023 Structural Concrete,subcontractor,Midwest Concrete Contractors,t.washington@midwestconcrete.com,14200000,2023-03-15,2025-11-30,net_30,The Meridian at River North
+MRN-2023 Structural Steel & Erection,subcontractor,Steel City Fabricators & Erectors,a.sobczak@steelcityfab.com,6800000,2023-06-01,2025-08-31,net_30,The Meridian at River North
+MRN-2023 MEP Full Package,subcontractor,Lakefront MEP Contractors,mep@lakefrontmep.com,18400000,2023-05-01,2026-03-31,net_30,The Meridian at River North
+MRN-2023 Curtain Wall - Unitized System,subcontractor,Great Lakes Glass & Curtain Wall,cw@gllglass.com,8200000,2023-10-01,2025-10-31,net_30,The Meridian at River North
+MRN-2023 Interior Finishes & Millwork,subcontractor,Windy City Interiors LLC,wci@windycityinteriors.com,9400000,2025-01-01,2026-03-31,net_30,The Meridian at River North
+MRN-2023 Elevator - 6 Cabs,subcontractor,Otis Elevator Company,otis@otis.com,3800000,2024-06-01,2026-03-31,net_30,The Meridian at River North
+SDM-2024 Prime Contract - GMP,owner,St. Dominic Health System,f.moreno@stdominichealth.org,58000000,2024-06-01,2027-03-31,net_30,St. Dominic Medical Center Expansion
+SDM-2024 MEP Critical Systems,subcontractor,Texas Mechanical Group,l.espinoza@texasmechanical.com,16800000,2024-07-01,2027-02-28,net_30,St. Dominic Medical Center Expansion
+SDM-2024 Electrical - Full Package,subcontractor,Austin Electrical Services,g.tanner@austinelectric.com,9200000,2024-07-01,2027-02-28,net_30,St. Dominic Medical Center Expansion
+SDM-2024 Medical HVAC & Special Systems,subcontractor,Medical HVAC Specialists Inc,p.owens@medhvacspecialists.com,7400000,2024-08-01,2027-02-28,net_30,St. Dominic Medical Center Expansion
+SDM-2024 Structural Concrete,subcontractor,Texas Structural Concrete LLC,tsc@texasstructural.com,8600000,2024-06-01,2026-06-30,net_30,St. Dominic Medical Center Expansion
+SDM-2024 Drywall & Interior Framing,subcontractor,Alamo Drywall & Framing,adf@alamodrywall.com,5800000,2025-02-01,2027-01-31,net_30,St. Dominic Medical Center Expansion
+PRC-2026 CM at Risk Contract,owner,Western Pacific Gaming LLC,r.fong@westerngaming.com,145000000,2026-06-01,2029-08-31,net_30,Paladin Resort & Casino
+PRC-2026 Foundation & Shoring - Bid Package,subcontractor,Desert Foundation Systems,o.johnson@desertfoundation.com,8400000,2026-06-01,2027-04-30,net_30,Paladin Resort & Casino
+PRC-2026 Structural Concrete - GMP Development,subcontractor,Nevada Concrete Partners,ncp@nevadaconcrete.com,18600000,2026-07-01,2028-03-31,net_30,Paladin Resort & Casino
+MSL-2024 Prime Contract - Lump Sum,owner,CenterPoint Properties,k.worthington@centerpoint.com,38000000,2024-02-15,2026-02-28,net_30,Mid-South Logistics Park - Building 2
+MSL-2024 Tilt-Up Concrete Package,subcontractor,Mid-South Tilt-Up Concrete,j.powell@midsouthtiltup.com,9800000,2024-03-01,2025-06-30,net_30,Mid-South Logistics Park - Building 2
+MSL-2024 MEP & Dock Equipment,subcontractor,Memphis Industrial MEP,memphis@memindustrialmep.com,8400000,2024-04-01,2026-02-15,net_30,Mid-South Logistics Park - Building 2
+MSL-2024 Roofing - TPO 1.2M SF,subcontractor,Southern Roofing & Waterproofing,h.tanner@southernroofing.com,6200000,2024-08-01,2025-05-31,net_30,Mid-South Logistics Park - Building 2
+MSL-2024 Site Work & Paving,subcontractor,Delta Grading & Paving LLC,dgp@deltagrading.com,4800000,2024-02-15,2025-10-31,net_30,Mid-South Logistics Park - Building 2
+MSL-2024 LED Lighting & Controls,subcontractor,Mid-South Electrical Contractors,msec@midsouthelectric.com,2400000,2024-10-01,2025-12-31,net_30,Mid-South Logistics Park - Building 2
+DSR-2025 Design-Build Contract,owner,City and County of Denver Parks & Recreation,m.adeyemi@denvergov.org,24000000,2025-04-01,2027-01-31,net_30,Denver Southwest Recreation & Aquatics Center
+DSR-2025 Architect of Record,subcontractor,Confluence Architecture Denver,cad@confluencearch.com,1800000,2025-04-01,2027-01-31,net_30,Denver Southwest Recreation & Aquatics Center
+DSR-2025 Pool & Aquatics Systems,subcontractor,Denver Aquatics & Pool Systems,v.ruiz@denveraquatics.com,4200000,2026-01-01,2027-01-15,net_30,Denver Southwest Recreation & Aquatics Center
+DSR-2025 MEP - Full Package,subcontractor,Colorado MEP Solutions,r.blackwood@coloradomep.com,6400000,2025-09-01,2027-01-15,net_30,Denver Southwest Recreation & Aquatics Center
+DSR-2025 Structural & Concrete,subcontractor,Front Range Concrete LLC,frc@frontrangeconcrete.com,3800000,2025-06-01,2026-06-30,net_30,Denver Southwest Recreation & Aquatics Center
+DSR-2025 Solar PV & Geothermal,subcontractor,Rocky Mountain Renewables Inc,rmr@rockymtnrenewables.com,2200000,2026-06-01,2027-01-15,net_30,Denver Southwest Recreation & Aquatics Center

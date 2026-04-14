@@ -1,0 +1,3 @@
+title,description,reason,amount,schedule_impact_days,project_name
+Equipment Upgrade Scope Increase,Added commercial ice machine replacement to renovation scope. Original quote did not include ice machine which failed inspection during project.,equipment_failure,3200,3,Renovation - New Equipment Upgrade
+POS Software Add-on,Added integrated online ordering module to POS upgrade. Required for upcoming Subway digital loyalty app integration.,owner_request,1800,0,Renovation - New Equipment Upgrade

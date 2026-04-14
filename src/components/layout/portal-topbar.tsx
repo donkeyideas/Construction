@@ -31,11 +31,7 @@ function getInitials(name: string | null, email: string | null): string {
   return "U";
 }
 
-const portalLabels: Record<string, string> = {
-  tenant: "Tenant Portal",
-  vendor: "Vendor Portal",
-  employee: "Employee Portal",
-};
+// Portal labels resolved via i18n in the component
 
 export function PortalTopbar({ portalType }: PortalTopbarProps) {
   const { theme, variant, toggleTheme, setVariant } = useTheme();
@@ -89,6 +85,8 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
     window.location.href = "/login";
   }
 
+  const profileEndpoint = `/api/${portalType}/profile`;
+
   function openSettings() {
     setSettingsName(userInfo.name ?? "");
     setSettingsPhone("");
@@ -97,7 +95,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
     setSettingsOpen(true);
 
     // Fetch current profile data for phone
-    fetch("/api/tenant/profile")
+    fetch(profileEndpoint)
       .then((r) => r.json())
       .then((data) => {
         if (data.phone) setSettingsPhone(data.phone);
@@ -113,7 +111,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
     setSettingsSuccess("");
 
     try {
-      const res = await fetch("/api/tenant/profile", {
+      const res = await fetch(profileEndpoint, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ full_name: settingsName, phone: settingsPhone }),
@@ -135,11 +133,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
   }
 
   function handleSettingsClick() {
-    if (portalType === "tenant") {
-      openSettings();
-    } else {
-      router.push("/admin/settings");
-    }
+    openSettings();
   }
 
   const initials = getInitials(userInfo.name, userInfo.email);
@@ -150,7 +144,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
         <div className="portal-brand">
           <h1>Buildwrk</h1>
           <span className="portal-accent-dot" />
-          <span className="portal-label">{portalLabels[portalType] || "Portal"}</span>
+          <span className="portal-label">{t(`portalLabel.${portalType}`)}</span>
         </div>
 
         <button className="portal-search-btn" onClick={() => setSearchOpen(true)}>
@@ -206,7 +200,7 @@ export function PortalTopbar({ portalType }: PortalTopbarProps) {
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      {/* Tenant Settings Modal */}
+      {/* Portal Settings Modal */}
       {settingsOpen && (
         <div className="tenant-modal-overlay" onClick={() => setSettingsOpen(false)}>
           <div className="tenant-modal" onClick={(e) => e.stopPropagation()}>

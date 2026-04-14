@@ -1,0 +1,11 @@
+property_name,unit_number,unit_type,sqft,bedrooms,bathrooms,floor_number,market_rent,status
+Harbor View Apartments,101,1br,750,1,1,1,1200,vacant
+Harbor View Apartments,102,2br,1050,2,1,1,1600,vacant
+Harbor View Apartments,201,studio,500,0,1,2,950,vacant
+Harbor View Apartments,202,1br,780,1,1,2,1250,vacant
+Harbor View Apartments,301,3br,1400,3,2,3,2200,vacant
+Harbor View Apartments,302,2br,1100,2,2,3,1750,vacant
+Galleria Office Tower,100,office,2500,,,1,4500,vacant
+Galleria Office Tower,200,office,3200,,,2,5800,vacant
+Galleria Office Tower,300,office,2800,,,3,5200,vacant
+Galleria Office Tower,400,retail,1800,,,1,3500,vacant

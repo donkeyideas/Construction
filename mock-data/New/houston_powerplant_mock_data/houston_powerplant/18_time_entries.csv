@@ -1,0 +1,19 @@
+entry_date,hours,overtime_hours,description,cost_code
+2026-01-05,12,0,Derek Sloane - Control Room Operator shift A. Full plant operations monitoring GT1 GT2 STG. ERCOT dispatch compliance. Gas nominations., OPS-CR-001
+2026-01-05,12,0,Carlos Vega - Control Room Operator shift A. GT1 primary operator. Inlet air chiller operations and monitoring.,OPS-CR-002
+2026-01-05,12,0,Patricia Nguyen - Control Room Operator shift B. GT2 primary operator. 12-hour shift overlap coverage.,OPS-CR-003
+2026-01-05,10,2,Roy Castellano - Gas Turbine Tech. GT1 and GT2 daily walkdown lube oil samples fuel system inspection.,MAINT-GT-001
+2026-01-05,8,0,Angela Brooks - Electrical Tech. Transformer inspection battery room checks switchyard walk.,MAINT-ELEC-001
+2026-01-05,8,0,Marcus Whitley - I&C Tech. CEMS data validation daily instrument calibration checks.,MAINT-IC-001
+2026-01-05,8,0,Michelle Beaumont - Plant Engineer. GT2 T48 exceedance analysis data trending and GE liaison.,ENG-001
+2026-01-05,8,0,Donna Ramirez - Environmental Compliance. CEMS daily reporting TCEQ data submission.,ENV-001
+2026-01-05,8,0,Kevin Park - Safety Manager. Site inspection cooling tower recoating contractor safety pre-qualification.,SAFE-001
+2026-01-06,12,0,Derek Sloane - Control Room. ERCOT 4CP event management 1400-1600 hours. Peak dispatch 1004MW.,OPS-CR-001
+2026-01-06,12,2,Carlos Vega - Control Room. Extended shift for 4CP event. GT1 operations and ancillary services dispatch.,OPS-CR-002
+2026-01-06,12,0,Patricia Nguyen - Control Room shift B. GT2 operations during peak event.,OPS-CR-003
+2026-01-06,8,0,Roy Castellano - GT Tech. Assisted with GT2 exhaust temp investigation data collection.,MAINT-GT-001
+2026-01-07,12,0,Derek Sloane - Control Room shift A. Routine operations post-4CP event review.,OPS-CR-001
+2026-01-07,8,0,Michelle Beaumont - Engineer. GT2 T48 data package prep for GE remote engineering team.,ENG-001
+2026-01-08,12,0,Carlos Vega - Control Room. Inlet air chiller activation both GT units.,OPS-CR-002
+2026-01-08,8,4,Roy Castellano - GT Tech. GT2 inspection preparation on-site GE visit support.,MAINT-GT-001
+2026-01-08,8,0,William Hargrove - Plant Manager. GE pre-inspection meeting GT2 T48 exceedance review.,MGT-001

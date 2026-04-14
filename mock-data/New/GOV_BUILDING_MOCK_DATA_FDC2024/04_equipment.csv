@@ -1,0 +1,9 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+CAT 336 Next Gen Excavator,excavator,Caterpillar,336 GC,CAT336GC-44102,365000,225.00,2021-03-10
+Manitowoc 3900W Tower Crane,crane,Manitowoc,3900W,MAN3900W-88301,1250000,450.00,2019-09-15
+CAT D6 XE Dozer,dozer,Caterpillar,D6 XE,CATD6XE-22948,380000,195.00,2020-11-20
+Mack Granite Dump Truck #1,truck,Mack,Granite 64FR,MACK64FR-55001,185000,95.00,2022-01-08
+Mack Granite Dump Truck #2,truck,Mack,Granite 64FR,MACK64FR-55002,185000,95.00,2022-01-08
+JLG 600S Boom Lift,aerial_lift,JLG,600S,JLG600S-11422,92000,85.00,2021-07-14
+Multiquip Generator 400kW,generator,Multiquip,DCA400SSK,MQ400SSK-66180,98000,65.00,2020-05-22
+Putzmeister 58Z Concrete Pump,concrete_pump,Putzmeister,58Z Meter,PUT58Z-33901,520000,280.00,2022-06-30

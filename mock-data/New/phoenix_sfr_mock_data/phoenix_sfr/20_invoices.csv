@@ -1,0 +1,111 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2025-01-01,71187,0,2025-01-01,Rental Income - Mesa Portfolio (January 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-01-01,66853,0,2025-01-01,Rental Income - Chandler Portfolio (January 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-01-01,55985,0,2025-01-01,Rental Income - Gilbert Portfolio (January 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-01-01,40335,0,2025-01-01,Rental Income - Tempe Portfolio (January 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-01-01,21330,0,2025-01-01,Rental Income - Scottsdale Portfolio (January 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-02-01,71187,0,2025-02-01,Rental Income - Mesa Portfolio (February 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-02-01,66853,0,2025-02-01,Rental Income - Chandler Portfolio (February 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-02-01,55985,0,2025-02-01,Rental Income - Gilbert Portfolio (February 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-02-01,40335,0,2025-02-01,Rental Income - Tempe Portfolio (February 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-02-01,21330,0,2025-02-01,Rental Income - Scottsdale Portfolio (February 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-03-01,71187,0,2025-03-01,Rental Income - Mesa Portfolio (March 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-03-01,66853,0,2025-03-01,Rental Income - Chandler Portfolio (March 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-03-01,55985,0,2025-03-01,Rental Income - Gilbert Portfolio (March 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-03-01,40335,0,2025-03-01,Rental Income - Tempe Portfolio (March 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-03-01,21330,0,2025-03-01,Rental Income - Scottsdale Portfolio (March 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-04-01,71187,0,2025-04-01,Rental Income - Mesa Portfolio (April 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-04-01,66853,0,2025-04-01,Rental Income - Chandler Portfolio (April 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-04-01,55985,0,2025-04-01,Rental Income - Gilbert Portfolio (April 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-04-01,40335,0,2025-04-01,Rental Income - Tempe Portfolio (April 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-04-01,21330,0,2025-04-01,Rental Income - Scottsdale Portfolio (April 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-05-01,71187,0,2025-05-01,Rental Income - Mesa Portfolio (May 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-05-01,66853,0,2025-05-01,Rental Income - Chandler Portfolio (May 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-05-01,55985,0,2025-05-01,Rental Income - Gilbert Portfolio (May 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-05-01,40335,0,2025-05-01,Rental Income - Tempe Portfolio (May 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-05-01,21330,0,2025-05-01,Rental Income - Scottsdale Portfolio (May 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-06-01,71187,0,2025-06-01,Rental Income - Mesa Portfolio (June 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-06-01,66853,0,2025-06-01,Rental Income - Chandler Portfolio (June 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-06-01,55985,0,2025-06-01,Rental Income - Gilbert Portfolio (June 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-06-01,40335,0,2025-06-01,Rental Income - Tempe Portfolio (June 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-06-01,21330,0,2025-06-01,Rental Income - Scottsdale Portfolio (June 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-07-01,71187,0,2025-07-01,Rental Income - Mesa Portfolio (July 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-07-01,66853,0,2025-07-01,Rental Income - Chandler Portfolio (July 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-07-01,55985,0,2025-07-01,Rental Income - Gilbert Portfolio (July 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-07-01,40335,0,2025-07-01,Rental Income - Tempe Portfolio (July 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-07-01,21330,0,2025-07-01,Rental Income - Scottsdale Portfolio (July 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-08-01,71187,0,2025-08-01,Rental Income - Mesa Portfolio (August 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-08-01,66853,0,2025-08-01,Rental Income - Chandler Portfolio (August 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-08-01,55985,0,2025-08-01,Rental Income - Gilbert Portfolio (August 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-08-01,40335,0,2025-08-01,Rental Income - Tempe Portfolio (August 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-08-01,21330,0,2025-08-01,Rental Income - Scottsdale Portfolio (August 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-09-01,71187,0,2025-09-01,Rental Income - Mesa Portfolio (September 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-09-01,66853,0,2025-09-01,Rental Income - Chandler Portfolio (September 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-09-01,55985,0,2025-09-01,Rental Income - Gilbert Portfolio (September 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-09-01,40335,0,2025-09-01,Rental Income - Tempe Portfolio (September 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-09-01,21330,0,2025-09-01,Rental Income - Scottsdale Portfolio (September 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-10-01,71187,0,2025-10-01,Rental Income - Mesa Portfolio (October 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-10-01,66853,0,2025-10-01,Rental Income - Chandler Portfolio (October 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-10-01,55985,0,2025-10-01,Rental Income - Gilbert Portfolio (October 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-10-01,40335,0,2025-10-01,Rental Income - Tempe Portfolio (October 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-10-01,21330,0,2025-10-01,Rental Income - Scottsdale Portfolio (October 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-11-01,71187,0,2025-11-01,Rental Income - Mesa Portfolio (November 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-11-01,66853,0,2025-11-01,Rental Income - Chandler Portfolio (November 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-11-01,55985,0,2025-11-01,Rental Income - Gilbert Portfolio (November 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-11-01,40335,0,2025-11-01,Rental Income - Tempe Portfolio (November 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-11-01,21330,0,2025-11-01,Rental Income - Scottsdale Portfolio (November 2025),paid,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-12-01,71187,0,2025-12-01,Rental Income - Mesa Portfolio (December 2025),pending,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-12-01,66853,0,2025-12-01,Rental Income - Chandler Portfolio (December 2025),pending,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-12-01,55985,0,2025-12-01,Rental Income - Gilbert Portfolio (December 2025),pending,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-12-01,40335,0,2025-12-01,Rental Income - Tempe Portfolio (December 2025),pending,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-12-01,21330,0,2025-12-01,Rental Income - Scottsdale Portfolio (December 2025),pending,,Various Tenants,2025 Annual HVAC Tune-Up Program - All Properties
+receivable,2025-01-15,6546.0,0,2025-01-15,3rd-Party Property Management Fees (January 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-02-15,6546.0,0,2025-02-15,3rd-Party Property Management Fees (February 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-03-15,6546.0,0,2025-03-15,3rd-Party Property Management Fees (March 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-04-15,6546.0,0,2025-04-15,3rd-Party Property Management Fees (April 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-05-15,6546.0,0,2025-05-15,3rd-Party Property Management Fees (May 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-06-15,6546.0,0,2025-06-15,3rd-Party Property Management Fees (June 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-07-15,6546.0,0,2025-07-15,3rd-Party Property Management Fees (July 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-08-15,6546.0,0,2025-08-15,3rd-Party Property Management Fees (August 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-09-15,6546.0,0,2025-09-15,3rd-Party Property Management Fees (September 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-10-15,6546.0,0,2025-10-15,3rd-Party Property Management Fees (October 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-11-15,6546.0,0,2025-11-15,3rd-Party Property Management Fees (November 2025) - Whitfield & Equity Partners,paid,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+receivable,2025-12-15,6546.0,0,2025-12-15,3rd-Party Property Management Fees (December 2025) - Whitfield & Equity Partners,pending,,Whitfield & Phoenix Equity Partners,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+payable,2025-01-31,12065,0,2025-01-31,Monthly Landscaping Service - January 2025 (127 Properties),paid,AZ Landscape Professionals,,Landscaping Contract Renewal & Upgrade 2025
+payable,2025-04-05,9350,0,2025-04-05,HVAC Annual Tune-Up Program - Batch 1 of 4 (Phase 1),paid,Cool Comfort AC & Heating,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-04-20,9350,0,2025-04-20,HVAC Annual Tune-Up Program - Batch 2 of 4 (Phase 2),paid,Cool Comfort AC & Heating,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-05-05,9350,0,2025-05-05,HVAC Annual Tune-Up Program - Batch 3 of 4 (Phase 3),paid,Cool Comfort AC & Heating,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-05-20,9350,0,2025-05-20,HVAC Annual Tune-Up Program - Batch 4 of 4 (Phase 4),paid,Cool Comfort AC & Heating,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-06-18,7650,0,2025-06-18,Emergency HVAC Replacement - 2208 Ray Rd Chandler (Trane XR15 3.5T),paid,Cool Comfort AC & Heating,,2208 Ray Rd Chandler - HVAC System Replacement
+payable,2025-08-09,4980,0,2025-08-09,Water Heater Replacement + Re-Pipe - 7733 Val Vista Dr Gilbert,paid,Valley Plumbing Solutions,,7733 Val Vista Dr Gilbert - Water Heater & Re-Pipe
+payable,2025-01-31,3850,0,2025-01-31,Monthly Work Order Batch - January 2025 (14 WOs),paid,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-02-28,3120,0,2025-02-28,Monthly Work Order Batch - February 2025 (11 WOs),paid,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-03-31,4420,0,2025-03-31,Monthly Work Order Batch - March 2025 (16 WOs - Turnover Season),paid,Desert Handyman Services,,4851 Dobson Rd Mesa - Full Interior Renovation
+payable,2025-04-30,3680,0,2025-04-30,Monthly Work Order Batch - April 2025 (13 WOs),paid,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-05-31,3340,0,2025-05-31,Monthly Work Order Batch - May 2025 (12 WOs),paid,Desert Handyman Services,,3382 Stapley Dr Mesa - Post-Eviction Make-Ready
+payable,2025-06-30,5180,0,2025-06-30,Monthly Work Order Batch - June 2025 (18 WOs - Summer Peak),paid,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-07-31,6280,0,2025-07-31,Monthly Work Order Batch - July 2025 (22 WOs - Peak HVAC Season),paid,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-08-31,5440,0,2025-08-31,Monthly Work Order Batch - August 2025 (19 WOs),paid,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-09-30,3960,0,2025-09-30,Monthly Work Order Batch - September 2025 (14 WOs),paid,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-10-31,3120,0,2025-10-31,Monthly Work Order Batch - October 2025 (11 WOs),paid,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-11-30,2820,0,2025-11-30,Monthly Work Order Batch - November 2025 (10 WOs),paid,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-12-31,3420,0,2025-12-31,Monthly Work Order Batch - December 2025 (12 WOs),pending,Desert Handyman Services,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-01-15,5715,0,2025-01-15,Annual Pest Control - Quarterly Invoice Q1 2025,paid,Sunstate Pest Control,,Pest Control Annual Program - All 127 Units
+payable,2025-04-15,5715,0,2025-04-15,Annual Pest Control - Quarterly Invoice Q2 2025,paid,Sunstate Pest Control,,Pest Control Annual Program - All 127 Units
+payable,2025-07-15,5715,0,2025-07-15,Annual Pest Control - Quarterly Invoice Q3 2025,paid,Sunstate Pest Control,,Pest Control Annual Program - All 127 Units
+payable,2025-10-15,5715,0,2025-10-15,Annual Pest Control - Quarterly Invoice Q4 2025,paid,Sunstate Pest Control,,Pest Control Annual Program - All 127 Units
+payable,2025-10-15,18250,0,2025-10-15,Exterior Paint Program - Phase 1 Deposit (50%),paid,Phoenix Paint Pros,,Exterior Paint Program - Mesa Portfolio Phase 1
+payable,2025-12-15,10950,0,2025-12-15,Exterior Paint Program - Phase 1 Progress Invoice (30%),paid,Phoenix Paint Pros,,Exterior Paint Program - Mesa Portfolio Phase 1
+payable,2025-12-31,6270,0,2025-12-31,Turnover Cleaning - 22 Turnovers FY 2025 (avg $285/clean),paid,Phoenix Turn & Clean LLC,,3382 Stapley Dr Mesa - Post-Eviction Make-Ready
+payable,2025-01-01,18500,0,2025-01-01,PM Software Annual License 2025,paid,AppFolio Inc,,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+payable,2025-01-10,234950,0,2025-01-10,Portfolio Landlord Insurance Annual Premium 2025,paid,AZ Insurance Brokerage,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-03-31,7000,0,2025-03-31,Annual Accounting & Tax Services Q1 2025,paid,Sun CPA Firm,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-06-30,7000,0,2025-06-30,Annual Accounting & Tax Services Q2 2025,paid,Sun CPA Firm,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-09-30,7000,0,2025-09-30,Annual Accounting & Tax Services Q3 2025,paid,Sun CPA Firm,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-12-31,7000,0,2025-12-31,Annual Accounting & Tax Services Q4 2025 + Tax Return,pending,Sun CPA Firm,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-12-01,3800,0,2025-12-01,Office Lease - 4820 N Scottsdale Rd Suite 200 (Monthly),paid,Silverbell Property Partners,,Harrisburg Crossing - 3rd Party Portfolio Onboarding
+payable,2025-12-31,12065,0,2025-12-31,Monthly Landscaping Service - December 2025 (127 Properties),pending,AZ Landscape Professionals,,Landscaping Contract Renewal & Upgrade 2025
+payable,2025-01-10,168021,0,2025-01-10,Property Tax - Portfolio First Half 2025,paid,Maricopa County Assessor,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-07-10,168021,0,2025-07-10,Property Tax - Portfolio Second Half 2025,paid,Maricopa County Assessor,,2025 Annual HVAC Tune-Up Program - All Properties
+payable,2025-05-31,8500,0,2025-05-31,Legal Retainer - Eviction Stapley Dr Mesa + HOA Defense,paid,AZ Residential Tenancy Legal,,Eviction & Legal - 3382 Stapley Dr Mesa
+payable,2025-01-10,24000,0,2025-01-10,E&O and GL Insurance - Management Company 2025,paid,AZ Insurance Brokerage,,2025 Annual HVAC Tune-Up Program - All Properties

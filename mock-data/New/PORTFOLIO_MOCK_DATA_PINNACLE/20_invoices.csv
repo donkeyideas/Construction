@@ -1,0 +1,47 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2023-05-01,4100000,0,2023-06-01,AIA App #01 - Mobilization and excavation,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2023-08-01,5200000,0,2023-09-01,AIA App #02 - Foundation and garage structure Level P1-P3,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2023-11-01,6400000,0,2023-12-01,AIA App #03 - Podium structure Level 1-6,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2024-02-01,6800000,0,2024-03-01,AIA App #04 - Tower structure Level 7-14,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2024-05-01,7200000,0,2024-06-01,AIA App #05 - Tower structure Level 15-22 and curtain wall start,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2024-08-01,7600000,0,2024-09-01,AIA App #06 - Tower structure Level 23-28 and curtain wall Level 1-8,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2024-11-01,7800000,0,2024-12-01,AIA App #07 - Tower complete and curtain wall Level 9-18,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2025-02-01,7400000,0,2025-03-01,AIA App #08 - Curtain wall Level 19-28 and interior rough Level 1-8,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2025-05-01,7600000,0,2025-06-01,AIA App #09 - Curtain wall complete and MEP rough Level 9-18,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2025-08-01,7200000,0,2025-09-01,AIA App #10 - Interior finishes Level 1-12 and approved COs 1-5,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2025-11-01,6800000,0,2025-12-01,AIA App #11 - Interior finishes Level 13-22,paid,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2026-01-05,5900000,0,2026-02-05,AIA App #12 - Interior finishes Level 23-30 pending,pending,,Great Lakes Urban Partners,The Meridian at River North
+receivable,2024-09-01,2900000,0,2024-10-01,SDM AIA App #01 - Mobilization and Level 1 foundations,paid,,St. Dominic Health System,St. Dominic Medical Center Expansion
+receivable,2024-12-01,3600000,0,2025-01-01,SDM AIA App #02 - Structure Level 2-3 east wing,paid,,St. Dominic Health System,St. Dominic Medical Center Expansion
+receivable,2025-03-01,4200000,0,2025-04-01,SDM AIA App #03 - Structure Level 4-5 and MEP Level 2-3,paid,,St. Dominic Health System,St. Dominic Medical Center Expansion
+receivable,2025-06-01,4600000,0,2025-07-01,SDM AIA App #04 - MOB structure and MEP Level 4-5,paid,,St. Dominic Health System,St. Dominic Medical Center Expansion
+receivable,2025-09-01,4800000,0,2025-10-01,SDM AIA App #05 - Drywall framing and approved COs 1-4,paid,,St. Dominic Health System,St. Dominic Medical Center Expansion
+receivable,2025-12-01,5200000,0,2026-01-01,SDM AIA App #06 - MEP rough-in ICU and OR levels,paid,,St. Dominic Health System,St. Dominic Medical Center Expansion
+receivable,2026-01-10,3800000,0,2026-02-10,SDM AIA App #07 - Drywall and MEP Level 2-3 advancing,pending,,St. Dominic Health System,St. Dominic Medical Center Expansion
+receivable,2024-06-01,5800000,0,2024-07-01,MSL AIA App #01 - Mobilization site work and foundations,paid,,CenterPoint Properties,Mid-South Logistics Park - Building 2
+receivable,2024-09-01,7200000,0,2024-10-01,MSL AIA App #02 - Tilt-up panels and structure complete,paid,,CenterPoint Properties,Mid-South Logistics Park - Building 2
+receivable,2024-12-01,8400000,0,2025-01-01,MSL AIA App #03 - Roofing MEP rough and dock equipment,paid,,CenterPoint Properties,Mid-South Logistics Park - Building 2
+receivable,2025-03-01,7600000,0,2025-04-01,MSL AIA App #04 - Site paving LED lighting and office shell,paid,,CenterPoint Properties,Mid-South Logistics Park - Building 2
+receivable,2025-06-01,5200000,0,2025-07-01,MSL AIA App #05 - Office TI and site completion and COs 1-3,paid,,CenterPoint Properties,Mid-South Logistics Park - Building 2
+receivable,2025-09-01,2400000,0,2025-10-01,MSL AIA App #06 - Punchlist and closeout,paid,,CenterPoint Properties,Mid-South Logistics Park - Building 2
+receivable,2025-12-01,1000000,0,2026-01-01,MSL AIA App #07 - Final punchlist and substantial completion,pending,,CenterPoint Properties,Mid-South Logistics Park - Building 2
+receivable,2025-07-01,1800000,0,2025-08-01,DSR AIA App #01 - Design phase and mobilization,paid,,City and County of Denver,Denver Southwest Recreation & Aquatics Center
+receivable,2025-10-01,2400000,0,2025-11-01,DSR AIA App #02 - Site work foundations and underground MEP,paid,,City and County of Denver,Denver Southwest Recreation & Aquatics Center
+receivable,2026-01-08,2800000,0,2026-02-08,DSR AIA App #03 - Structural steel slab and geothermal drilling,pending,,City and County of Denver,Denver Southwest Recreation & Aquatics Center
+payable,2025-10-31,9840000,0,2025-11-30,Structural concrete MRN Level 1-26 payment - 69% complete,paid,Midwest Concrete Contractors,,The Meridian at River North
+payable,2025-08-31,5440000,0,2025-09-30,Structural steel MRN - 80% complete,paid,Steel City Fabricators & Erectors,,The Meridian at River North
+payable,2025-10-31,12144000,0,2025-11-30,MEP MRN Level 1-22 - 66% complete,paid,Lakefront MEP Contractors,,The Meridian at River North
+payable,2025-10-31,6724000,0,2025-11-30,Curtain wall MRN Level 1-24 - 82% complete,paid,Great Lakes Glass & Curtain Wall,,The Meridian at River North
+payable,2025-12-31,3760000,0,2026-01-30,Interior finishes MRN Level 8-20 - 40% complete,paid,Windy City Interiors LLC,,The Meridian at River North
+payable,2025-05-31,2800000,0,2025-06-30,MEP SDM Level 2-3 - 28% complete,paid,Texas Mechanical Group,,St. Dominic Medical Center Expansion
+payable,2025-05-31,1656000,0,2025-06-30,Electrical SDM Level 2-3 - 18% complete,paid,Austin Electrical Services,,St. Dominic Medical Center Expansion
+payable,2025-06-30,1776000,0,2025-07-30,Medical HVAC SDM Level 2-3 - 24% complete,paid,Medical HVAC Specialists Inc,,St. Dominic Medical Center Expansion
+payable,2025-07-31,3440000,0,2025-08-30,Structural concrete SDM Level 1-3 - 40% complete,paid,Texas Structural Concrete LLC,,St. Dominic Medical Center Expansion
+payable,2025-11-30,5880000,0,2025-12-30,Tilt-up concrete MSL - 60% paid - complete,paid,Mid-South Tilt-Up Concrete,,Mid-South Logistics Park - Building 2
+payable,2025-11-30,7308000,0,2025-12-30,MEP and dock equipment MSL - 87% complete,paid,Memphis Industrial MEP,,Mid-South Logistics Park - Building 2
+payable,2025-05-31,5580000,0,2025-06-30,Roofing MSL - complete,paid,Southern Roofing & Waterproofing,,Mid-South Logistics Park - Building 2
+payable,2025-09-30,4320000,0,2025-10-30,Site work and paving MSL - 90% complete,paid,Delta Grading & Paving LLC,,Mid-South Logistics Park - Building 2
+payable,2025-12-31,2040000,0,2026-01-30,LED lighting MSL - 85% complete,paid,Mid-South Electrical Contractors,,Mid-South Logistics Park - Building 2
+payable,2025-12-31,1260000,0,2026-01-30,Design fees DSR - Architect of Record 70% complete,paid,Confluence Architecture Denver,,Denver Southwest Recreation & Aquatics Center
+payable,2025-12-31,1280000,0,2026-01-30,MEP rough-in DSR - 20% complete,paid,Colorado MEP Solutions,,Denver Southwest Recreation & Aquatics Center
+payable,2025-11-30,1900000,0,2025-12-30,Structural concrete DSR - 50% complete,paid,Front Range Concrete LLC,,Denver Southwest Recreation & Aquatics Center

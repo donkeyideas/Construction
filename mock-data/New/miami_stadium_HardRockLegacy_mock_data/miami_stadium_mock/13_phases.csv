@@ -1,0 +1,48 @@
+name,color,start_date,end_date,project_name
+Preconstruction & Design,#6b7280,2022-06-01,2024-01-14,Hard Rock Legacy Stadium
+Site Preparation & Mobilization,#92400e,2024-01-08,2024-03-31,Hard Rock Legacy Stadium
+Deep Foundation & Earthwork,#b45309,2024-02-01,2024-09-30,Hard Rock Legacy Stadium
+Structural Concrete - Below Grade,#d97706,2024-04-01,2024-12-31,Hard Rock Legacy Stadium
+Structural Steel & Superstructure,#ca8a04,2024-06-01,2026-03-31,Hard Rock Legacy Stadium
+Structural Concrete - Bowl & Concourse,#65a30d,2024-08-01,2026-06-30,Hard Rock Legacy Stadium
+Roof Structure & Enclosure,#16a34a,2025-01-15,2026-04-30,Hard Rock Legacy Stadium
+MEP Rough-in & Systems,#059669,2024-10-01,2026-10-31,Hard Rock Legacy Stadium
+Exterior Facade & Enclosure,#0891b2,2025-06-01,2026-08-31,Hard Rock Legacy Stadium
+Interior Finishes & Fit-out,#0284c7,2025-08-01,2027-01-31,Hard Rock Legacy Stadium
+Specialty Systems & Technology,#1d4ed8,2026-01-01,2027-04-30,Hard Rock Legacy Stadium
+Commissioning & Turnover,#4338ca,2026-10-01,2027-08-30,Hard Rock Legacy Stadium
+Preconstruction & Permitting,#6b7280,2023-01-01,2024-02-28,Hurricane Football Performance Center
+Site Preparation & Foundation,#92400e,2024-03-01,2024-08-31,Hurricane Football Performance Center
+Structural Frame & Enclosure,#d97706,2024-06-01,2025-06-30,Hurricane Football Performance Center
+Practice Bubble Air Structure,#65a30d,2024-09-01,2025-03-31,Hurricane Football Performance Center
+MEP Systems & Infrastructure,#059669,2024-10-01,2026-04-30,Hurricane Football Performance Center
+Interior Fit-out & Finishes,#0284c7,2025-06-01,2026-09-30,Hurricane Football Performance Center
+Outdoor Practice Fields,#16a34a,2025-08-01,2026-08-31,Hurricane Football Performance Center
+Technology & AV Systems,#1d4ed8,2026-01-01,2026-11-30,Hurricane Football Performance Center
+Commissioning & Punch List,#4338ca,2026-09-01,2026-12-31,Hurricane Football Performance Center
+Preconstruction & Design,#6b7280,2023-06-01,2024-05-31,Coral Gables Athlete Village
+Site Work & Foundation - All Towers,#92400e,2024-06-01,2025-03-31,Coral Gables Athlete Village
+Structural Frame - Towers 1 & 2,#d97706,2024-09-01,2025-09-30,Coral Gables Athlete Village
+Structural Frame - Towers 3 & 4,#ca8a04,2025-01-01,2026-03-31,Coral Gables Athlete Village
+MEP Rough-in All Towers,#059669,2025-04-01,2026-06-30,Coral Gables Athlete Village
+Exterior Enclosure & Windows,#0891b2,2025-09-01,2026-08-31,Coral Gables Athlete Village
+Interior Finishes - Towers 1 & 2,#0284c7,2025-12-01,2026-10-31,Coral Gables Athlete Village
+Interior Finishes - Towers 3 & 4,#1d4ed8,2026-04-01,2027-01-31,Coral Gables Athlete Village
+Dining Hall & Amenities,#4338ca,2026-06-01,2027-01-31,Coral Gables Athlete Village
+Commissioning & Punch List,#7c3aed,2026-12-01,2027-03-31,Coral Gables Athlete Village
+Preconstruction & Design,#6b7280,2023-09-01,2024-08-31,Hurricane Athletic Administration Tower
+Foundation & Below Grade,#92400e,2024-09-01,2025-06-30,Hurricane Athletic Administration Tower
+Core & Shell Structural Frame,#d97706,2025-01-01,2026-03-31,Hurricane Athletic Administration Tower
+MEP Rough-in & Infrastructure,#059669,2025-06-01,2026-08-31,Hurricane Athletic Administration Tower
+Exterior Facade & Curtain Wall,#0284c7,2026-01-01,2026-12-31,Hurricane Athletic Administration Tower
+Interior Fit-out & Finishes,#1d4ed8,2026-06-01,2027-03-31,Hurricane Athletic Administration Tower
+Sky Bridge to Stadium,#4338ca,2026-09-01,2027-02-28,Hurricane Athletic Administration Tower
+Commissioning & Punch List,#7c3aed,2027-02-01,2027-06-30,Hurricane Athletic Administration Tower
+Site Mobilization & Earthwork,#92400e,2024-01-08,2024-06-30,Stadium District Site & Infrastructure
+Underground Utilities & Storm,#b45309,2024-03-01,2024-12-31,Stadium District Site & Infrastructure
+Parking Structure Construction,#d97706,2024-06-01,2025-06-30,Stadium District Site & Infrastructure
+Campus Roads & Paving,#ca8a04,2024-09-01,2025-08-31,Stadium District Site & Infrastructure
+Pedestrian Spine & Plaza,#65a30d,2025-01-01,2025-10-31,Stadium District Site & Infrastructure
+Electrical Distribution & 5G DAS,#059669,2024-08-01,2025-09-30,Stadium District Site & Infrastructure
+Landscape & Wayfinding,#0284c7,2025-06-01,2025-11-30,Stadium District Site & Infrastructure
+Final Punchlist & Closeout,#4338ca,2025-10-01,2025-12-31,Stadium District Site & Infrastructure

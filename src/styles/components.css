@@ -322,59 +322,35 @@
   display: inline-flex;
   align-items: center;
   font-weight: 600;
-  border-radius: 10px;
   font-family: var(--font-sans);
   white-space: nowrap;
 }
 
 .ui-badge-sm {
-  padding: 2px 9px;
   font-size: 0.7rem;
 }
 
 .ui-badge-md {
-  padding: 3px 12px;
   font-size: 0.78rem;
 }
 
 .ui-badge-blue {
-  background: var(--color-blue-light);
   color: var(--color-blue);
 }
 
-[data-theme="dark"] .ui-badge-blue {
-  background: rgba(29, 78, 216, 0.15);
-}
-
 .ui-badge-amber {
-  background: var(--color-amber-light);
   color: var(--color-amber);
 }
 
-[data-theme="dark"] .ui-badge-amber {
-  background: rgba(180, 83, 9, 0.15);
-}
-
 .ui-badge-green {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .ui-badge-green {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .ui-badge-red {
-  background: var(--color-red-light);
   color: var(--color-red);
 }
 
-[data-theme="dark"] .ui-badge-red {
-  background: rgba(220, 38, 38, 0.15);
-}
-
 .ui-badge-gray {
-  background: var(--surface);
   color: var(--muted);
 }
 

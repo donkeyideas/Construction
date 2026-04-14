@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("POST /api/crm insert error:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(opportunity, { status: 201 });

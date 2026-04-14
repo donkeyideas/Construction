@@ -1,0 +1,43 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2025-01-31,4583.33,0,2025-02-15,Catering Services - January 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-02-28,4583.33,0,2025-03-15,Catering Services - February 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-03-31,4583.33,0,2025-04-15,Catering Services - March 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-04-30,4583.33,0,2025-05-15,Catering Services - April 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-05-31,4583.33,0,2025-06-15,Catering Services - May 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-06-30,4583.33,0,2025-07-15,Catering Services - June 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-07-31,4583.33,0,2025-08-15,Catering Services - July 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-08-31,4583.33,0,2025-09-15,Catering Services - August 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-09-30,4583.33,0,2025-10-15,Catering Services - September 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-10-31,4583.33,0,2025-11-15,Catering Services - October 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-11-30,4583.33,0,2025-12-15,Catering Services - November 2025,paid,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-12-31,4583.37,0,2026-01-15,Catering Services - December 2025,pending,,Morgan Stanley Office Services,Annual Catering - Morgan Stanley
+receivable,2025-02-28,800.00,0,2025-03-15,WeWork Catering Event - February 2025,paid,,WeWork Community Manager,Annual Catering - WeWork 42nd
+receivable,2025-04-30,800.00,0,2025-05-15,WeWork Catering Event - April 2025,paid,,WeWork Community Manager,Annual Catering - WeWork 42nd
+receivable,2025-06-30,800.00,0,2025-07-15,WeWork Catering Event - June 2025,paid,,WeWork Community Manager,Annual Catering - WeWork 42nd
+receivable,2025-08-31,800.00,0,2025-09-15,WeWork Catering Event - August 2025,paid,,WeWork Community Manager,Annual Catering - WeWork 42nd
+receivable,2025-10-31,800.00,0,2025-11-15,WeWork Catering Event - October 2025,paid,,WeWork Community Manager,Annual Catering - WeWork 42nd
+receivable,2025-12-31,800.00,0,2026-01-15,WeWork Catering Event - December 2025,pending,,WeWork Community Manager,Annual Catering - WeWork 42nd
+payable,2025-01-31,18250.00,0,2025-02-28,Subway IPC Food & Supply Order - January 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-02-28,16800.00,0,2025-03-31,Subway IPC Food & Supply Order - February 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-03-31,19500.00,0,2025-04-30,Subway IPC Food & Supply Order - March 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-04-30,20100.00,0,2025-05-31,Subway IPC Food & Supply Order - April 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-05-31,22400.00,0,2025-06-30,Subway IPC Food & Supply Order - May 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-06-30,21600.00,0,2025-07-31,Subway IPC Food & Supply Order - June 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-07-31,22800.00,0,2025-08-31,Subway IPC Food & Supply Order - July 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-08-31,21900.00,0,2025-09-30,Subway IPC Food & Supply Order - August 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-09-30,20700.00,0,2025-10-31,Subway IPC Food & Supply Order - September 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-10-31,20400.00,0,2025-11-30,Subway IPC Food & Supply Order - October 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-11-30,19800.00,0,2025-12-31,Subway IPC Food & Supply Order - November 2025,paid,Subway IPC (Independent Purchasing Coop),,
+payable,2025-12-31,21150.00,0,2026-01-31,Subway IPC Food & Supply Order - December 2025,pending,Subway IPC (Independent Purchasing Coop),,
+payable,2025-01-31,4500.00,0,2025-02-28,January Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-02-28,4500.00,0,2025-03-31,February Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-03-31,4500.00,0,2025-04-30,March Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-04-30,4500.00,0,2025-05-31,April Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-05-31,4500.00,0,2025-06-30,May Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-06-30,4500.00,0,2025-07-31,June Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-07-31,4500.00,0,2025-08-31,July Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-08-31,4500.00,0,2025-09-30,August Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-09-30,4500.00,0,2025-10-31,September Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-10-31,4500.00,0,2025-11-30,October Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-11-30,4500.00,0,2025-12-31,November Rent - 697 8th Ave,paid,Midtown Realty Partners,,
+payable,2025-12-31,4500.00,0,2026-01-31,December Rent - 697 8th Ave,pending,Midtown Realty Partners,,

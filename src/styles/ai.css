@@ -309,18 +309,11 @@
 .ai-default-badge {
   display: inline-flex;
   align-items: center;
-  padding: 1px 8px;
-  border-radius: 8px;
   font-size: 0.68rem;
   font-weight: 600;
   font-family: var(--font-sans);
-  background: var(--color-blue-light);
   color: var(--color-blue);
   margin-left: 6px;
-}
-
-[data-theme="dark"] .ai-default-badge {
-  background: rgba(29, 78, 216, 0.15);
 }
 
 /* ===== Provider Action Buttons ===== */

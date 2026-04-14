@@ -200,6 +200,11 @@
       "fullName": "الاسم الكامل",
       "phone": "الهاتف",
       "saveChanges": "حفظ التغييرات"
+    },
+    "portalLabel": {
+      "tenant": "بوابة المستأجر",
+      "vendor": "بوابة المورد",
+      "employee": "بوابة الموظف"
     }
   },
   "mobile": {

@@ -40,14 +40,9 @@ export default async function JobCostingPage({ searchParams }: PageProps) {
   const selectedProjectId =
     params.projectId || (projects.length > 0 ? projects[0].id : null);
 
-  let summary = null;
-  if (selectedProjectId) {
-    summary = await getJobCostingSummary(
-      supabase,
-      userCompany.companyId,
-      selectedProjectId
-    );
-  }
+  const summary = selectedProjectId
+    ? await getJobCostingSummary(supabase, userCompany.companyId, selectedProjectId)
+    : null;
 
   return (
     <JobCostingClient

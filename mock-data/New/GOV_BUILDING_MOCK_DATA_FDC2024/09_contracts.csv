@@ -1,0 +1,15 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+FDC-2024 GSA Prime Contract - Federal District Courthouse,owner,U.S. General Services Administration,t.jefferson@gsa.gov,68500000,2024-02-01,2026-09-30,net_30
+FDC-2024 Earthwork & Site Utilities Package,subcontractor,Eagle Excavation LLC,h.nkemelu@eagleexcavation.com,3800000,2024-02-15,2024-09-30,net_30
+FDC-2024 Concrete & Formwork Package,subcontractor,Nationwide Concrete Inc,t.bassett@nationwideconcrete.com,7200000,2024-05-01,2025-08-30,net_30
+FDC-2024 Structural Steel Package,subcontractor,Federal Steel Erectors,j.kessler@federalsteel.com,8500000,2024-07-01,2025-06-30,net_30
+FDC-2024 Electrical Package,subcontractor,Patriot Electrical Contractors,s.drummond@patriotelectric.com,6800000,2024-08-01,2026-07-30,net_30
+FDC-2024 Mechanical Plumbing HVAC Package,subcontractor,Capital MEP Group,c.merritt@capitalmep.com,7400000,2024-08-01,2026-07-30,net_30
+FDC-2024 Masonry Package,subcontractor,Monument Masonry Corp,d.altman@monumentmasonry.com,2900000,2025-01-01,2025-10-30,net_30
+FDC-2024 Roofing & Waterproofing Package,subcontractor,Capitol Roofing Systems,l.vandenberg@capitolroofing.com,1850000,2025-06-01,2025-11-30,net_30
+FDC-2024 Drywall & Framing Package,subcontractor,Union Drywall & Framing,v.asamoah@uniondrywall.com,3200000,2025-04-01,2026-06-30,net_30
+FDC-2024 Security & Access Control Package,subcontractor,SafeGuard Security Integration,p.monroe@safeguardsec.com,2400000,2025-09-01,2026-08-30,net_30
+FDC-2024 Fire Protection Package,subcontractor,Apex Fire Protection LLC,g.flanagan@apexfire.com,1600000,2025-05-01,2026-07-30,net_30
+FDC-2024 Structural Engineering Services,vendor,Huang Structural Engineering,w.huang@huangstructural.com,480000,2024-01-15,2026-09-30,net_30
+FDC-2024 Davis-Bacon Compliance Monitoring,vendor,Davis-Bacon Compliance Consulting,a.reeves@dbcomplianceco.com,185000,2024-02-01,2026-09-30,net_30
+FDC-2024 Special Inspections & Testing,vendor,National Testing Laboratory,h.brooks@nationaltestlab.com,320000,2024-05-01,2026-09-30,net_30

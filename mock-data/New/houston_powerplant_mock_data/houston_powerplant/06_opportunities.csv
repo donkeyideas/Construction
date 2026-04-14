@@ -1,0 +1,7 @@
+name,client_name,stage,estimated_value,probability_pct,expected_close_date,source
+10-Year PPA Renewal - NextDecade,NextDecade Corporation,negotiation,680000000,75,2026-06-30,existing_client
+Demand Response Aggregation - CPS Energy,CPS Energy San Antonio,proposal,12000000,50,2026-03-31,new_client
+Virtual Power Plant Pilot - 50MW,Shell Energy North America,discovery,18000000,40,2026-09-30,existing_client
+ERCOT Ancillary Services Expansion - ERCOT Fast Frequency Response,ERCOT,negotiation,8500000,70,2026-02-28,existing_client
+Carbon Capture Feasibility Study - DOE Grant,US Department of Energy,proposal,4500000,35,2026-04-30,new_client
+Second Unit Expansion - 450MW Peaker,Private Equity Sponsors,discovery,380000000,20,2028-12-31,owner_initiative

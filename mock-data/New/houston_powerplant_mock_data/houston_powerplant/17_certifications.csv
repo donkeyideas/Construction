@@ -1,0 +1,13 @@
+cert_name,cert_type,issuing_authority,cert_number,issued_date,expiry_date,contact_name
+TCEQ Air Quality Permit - NSR Major Source,environmental,Texas Commission on Environmental Quality,TCEQ-NSR-HOU-2022-44891,2022-04-15,2037-04-15,Donna Ramirez
+TCEQ Title V Operating Permit,environmental,Texas Commission on Environmental Quality,TCEQ-TitleV-HOU-2022-44892,2022-06-01,2027-06-01,Donna Ramirez
+TCEQ Stormwater TPDES Permit,environmental,Texas Commission on Environmental Quality,TCEQ-TPDES-HOU-2022-55001,2022-04-01,2027-04-01,Donna Ramirez
+NERC CIP Cyber Security Compliance,regulatory,North American Electric Reliability Corporation,NERC-CIP-LSP-2022-7781,2022-06-01,2027-06-01,William Hargrove
+ERCOT QSE Registration - Qualified Scheduling Entity,regulatory,Electric Reliability Council of Texas,ERCOT-QSE-LSP-2022-001,2022-05-01,2027-05-01,Sandra Okafor
+FERC Market-Based Rate Authority,regulatory,Federal Energy Regulatory Commission,FERC-MBR-LSP-2022-EL22-88,2022-03-01,2027-03-01,Sandra Okafor
+OSHA Process Safety Management - PSM,safety,Occupational Safety and Health Administration,PSM-HOU-2022-88421,2022-06-01,2027-06-01,Kevin Park
+Harris County Boiler Certificate - HRSG-1,safety,Texas Department of Insurance,TDI-BOIL-2022-44101,2022-06-15,2026-06-15,Michelle Beaumont
+Harris County Boiler Certificate - HRSG-2,safety,Texas Department of Insurance,TDI-BOIL-2022-44102,2022-06-15,2026-06-15,Michelle Beaumont
+CEMS Certification - HRSG-1 (Post-Upgrade),environmental,Texas Commission on Environmental Quality,CEMS-CERT-2025-HOU-001,2025-05-15,2030-05-15,Donna Ramirez
+DOT Pipeline Safety - Gas Interconnect,regulatory,US Department of Transportation PHMSA,DOT-GAS-HOU-2022-77441,2022-05-01,2027-05-01,William Hargrove
+ISO 55001 Asset Management - Plant,quality,DNV GL,ISO55001-LSP-2023-8841,2023-09-01,2026-09-01,Michelle Beaumont

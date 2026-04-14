@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgB" x1="0" y1="512" x2="512" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0c0a09"/>
+      <stop offset="100%" stop-color="#1c1917"/>
+    </linearGradient>
+    <linearGradient id="molten" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#dc2626"/>
+      <stop offset="35%" stop-color="#f59e0b"/>
+      <stop offset="70%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+    <linearGradient id="moltenFade" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#dc2626" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="heat">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="108" fill="url(#bgB)"/>
+
+  <ellipse cx="256" cy="480" rx="200" ry="80" fill="url(#moltenFade)"/>
+
+  <path fill-rule="evenodd" fill="url(#molten)" filter="url(#heat)" d="
+    M 140 80
+    L 304 80
+    C 364 80 400 118 400 168
+    C 400 208 380 238 348 252
+    C 384 266 414 300 414 348
+    C 414 408 372 444 314 444
+    L 140 444
+    Z
+
+    M 210 148
+    L 210 220
+    L 286 220
+    C 320 220 340 202 340 184
+    C 340 166 320 148 286 148
+    Z
+
+    M 210 284
+    L 210 380
+    L 298 380
+    C 338 380 358 358 358 332
+    C 358 306 338 284 298 284
+    Z
+  "/>
+
+  <g fill="#fef3c7">
+    <circle cx="380" cy="120" r="2.5" opacity="0.9"/>
+    <circle cx="400" cy="160" r="1.5" opacity="0.6"/>
+    <circle cx="350" cy="90" r="2" opacity="0.7"/>
+    <circle cx="420" cy="200" r="1.5" opacity="0.5"/>
+    <circle cx="160" cy="100" r="1.5" opacity="0.4"/>
+    <circle cx="390" cy="300" r="2" opacity="0.5"/>
+    <circle cx="130" cy="380" r="1.5" opacity="0.3"/>
+    <circle cx="410" cy="380" r="2" opacity="0.4"/>
+    <circle cx="180" cy="60" r="1.5" opacity="0.5"/>
+    <circle cx="340" cy="440" r="2" opacity="0.3"/>
+  </g>
+
+  <g opacity="0.12" fill="white">
+    <path d="M 200 470 L 200 458 L 180 458 L 180 454 L 332 454 L 332 458 L 312 458 L 312 470 Z"/>
+    <rect x="188" y="444" width="136" height="12" rx="3"/>
+  </g>
+</svg>

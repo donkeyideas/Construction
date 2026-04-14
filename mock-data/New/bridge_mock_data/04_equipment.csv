@@ -1,0 +1,13 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+Manitowoc 16000 Crawler Crane,crane,Manitowoc,16000,MAN16K-20448,3200000,620.00,2019-05-10
+Liebherr LTM 1500-8.1 Mobile Crane,crane,Liebherr,LTM 1500-8.1,LIE1500-77821,4850000,750.00,2021-03-22
+Barge-Mounted Crane – Pacific Provider,marine_crane,IHI,IHI S-560,IHI560-00912,2100000,580.00,2017-08-15
+Derrick Barge – Cascade Spirit,marine_barge,Custom,CB-280,CASCBAR-01,1400000,420.00,2016-04-01
+CAT 395 Hydraulic Excavator,excavator,Caterpillar,395,CAT395-41221,520000,265.00,2022-01-18
+Terex CC 8800-1 Crawler Crane,crane,Terex,CC 8800-1,TRX8800-55301,5600000,890.00,2020-09-05
+Volvo EC950F Crawler Excavator,excavator,Volvo,EC950F,VLV950F-18844,685000,295.00,2021-07-30
+Wirtgen SP 94i Slipform Paver,paver,Wirtgen,SP 94i,WRT94I-30021,1250000,410.00,2022-03-14
+Hiab 788 EP-5 Knuckle Boom Truck,truck_crane,Hiab,788 EP-5,HIAB788-92104,380000,210.00,2023-01-09
+Goldhofer THP/SL Heavy Haul Trailer,hauler,Goldhofer,THP/SL 6-6,GOLD6-44801,890000,285.00,2020-11-20
+CAT D8T Dozer,dozer,Caterpillar,D8T,CATD8T-61122,480000,240.00,2021-05-07
+Dynapac CA7500D Compactor,compactor,Dynapac,CA7500D,DYN7500-22019,195000,130.00,2022-08-30

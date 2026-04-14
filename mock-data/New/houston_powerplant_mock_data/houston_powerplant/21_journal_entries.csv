@@ -1,0 +1,200 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-002,2025-01-31,January Ancillary and Other Revenue,REV2-JAN,1010,1870000,,Ancillary services AR
+JE-002,2025-01-31,January Ancillary and Other Revenue,REV2-JAN,4030,,1533000,Ancillary services revenue January
+JE-002,2025-01-31,January Ancillary and Other Revenue,REV2-JAN,4040,,337000,HRCO revenue January
+JE-003,2025-01-31,January Fuel Cost,FUEL-JAN,5000,13450000,,Natural gas commodity January
+JE-003,2025-01-31,January Fuel Cost,FUEL-JAN,5010,1070000,,Pipeline transport January
+JE-003,2025-01-31,January Fuel Cost,FUEL-JAN,5020,154000,,Fuel management fees January
+JE-003,2025-01-31,January Fuel Cost,FUEL-JAN,2000,,14674000,Fuel payable Shell Energy January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5100,486667,,Operations labor January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5110,136267,,Labor burden January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5200,285000,,Routine maintenance January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5300,154167,,Water makeup cooling tower
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5310,60000,,Chemicals water treatment
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5500,237500,,NOx allowance purchases
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5510,100000,,CO2 allowances
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5600,401667,,ERCOT fees and transmission
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5610,178333,,Interconnection costs
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5700,200000,,Admin and general January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5710,154167,,Legal and regulatory January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5720,81667,,IT and SCADA January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,5800,3183333,,Depreciation January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,1590,,3183333,Accumulated depreciation January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,2010,,1989235,O&M payables accrued January
+JE-004,2025-01-31,January Fixed O&M,OM-JAN,2020,,88332,Accrued liabilities January
+JE-005,2025-01-31,January Property Tax Accrual,TAX-JAN,5400,1066667,,Harris County property tax Q1
+JE-005,2025-01-31,January Property Tax Accrual,TAX-JAN,2010,,1066667,Property tax payable Q1
+JE-005,2025-01-31,January Insurance,INS-JAN,5410,516667,,Property insurance monthly amortization
+JE-005,2025-01-31,January Insurance,INS-JAN,5420,123333,,GL insurance January
+JE-005,2025-01-31,January Insurance,INS-JAN,1050,,639000,Prepaid insurance reduction January
+JE-006,2025-01-31,January Debt Service,DEBT-JAN,6000,3150000,,Interest expense January
+JE-006,2025-01-31,January Debt Service,DEBT-JAN,6010,154167,,Financing cost amortization
+JE-006,2025-01-31,January Debt Service,DEBT-JAN,6020,,175000,Interest income DSRA and cash
+JE-006,2025-01-31,January Debt Service,DEBT-JAN,2060,,3150000,Interest payable January
+JE-008,2025-02-28,February Fuel & O&M,FUEL-FEB,5000,11200000,,Gas commodity February
+JE-008,2025-02-28,February Fuel & O&M,FUEL-FEB,5010,985600,,Pipeline transport
+JE-008,2025-02-28,February Fuel & O&M,FUEL-FEB,5020,154000,,Fuel mgmt fees
+JE-008,2025-02-28,February Fuel & O&M,FUEL-FEB,5100,486667,,Labor
+JE-008,2025-02-28,February Fuel & O&M,FUEL-FEB,5110,136267,,Labor burden
+JE-008,2025-02-28,February Fuel & O&M,FUEL-FEB,5800,3183333,,Depreciation
+JE-008,2025-02-28,February Fuel & O&M,FUEL-FEB,1590,,3183333,Accum depr
+JE-008,2025-02-28,February Fuel & O&M,FUEL-FEB,2000,,12339600,Fuel payable
+JE-008,2025-02-28,February Fuel & O&M,FUEL-FEB,2010,,1423934,O&M accruals
+JE-009,2025-02-28,February Debt Service,DEBT-FEB,6000,3150000,,Interest
+JE-009,2025-02-28,February Debt Service,DEBT-FEB,6010,154167,,Fin cost amort
+JE-009,2025-02-28,February Debt Service,DEBT-FEB,6020,,175000,Interest income
+JE-009,2025-02-28,February Debt Service,DEBT-FEB,2060,,3150000,Interest payable
+JE-011,2025-03-31,March Fuel - GT1 Offline,FUEL-MAR,5000,8850000,,Gas commodity March - reduced for GT1 outage
+JE-011,2025-03-31,March Fuel - GT1 Offline,FUEL-MAR,5010,780000,,Pipeline transport March
+JE-011,2025-03-31,March Fuel - GT1 Offline,FUEL-MAR,5020,154000,,Fuel mgmt
+JE-011,2025-03-31,March Fuel - GT1 Offline,FUEL-MAR,2000,,9784000,Fuel payable
+JE-013,2025-03-31,March O&M and Debt,OM-DEBT-MAR,5100,486667,,Labor
+JE-013,2025-03-31,March O&M and Debt,OM-DEBT-MAR,5110,136267,,Burden
+JE-013,2025-03-31,March O&M and Debt,OM-DEBT-MAR,5800,3183333,,Depreciation
+JE-013,2025-03-31,March O&M and Debt,OM-DEBT-MAR,6000,3150000,,Interest
+JE-013,2025-03-31,March O&M and Debt,OM-DEBT-MAR,6010,154167,,Fin cost amort
+JE-013,2025-03-31,March O&M and Debt,OM-DEBT-MAR,6020,,175000,Interest income
+JE-013,2025-03-31,March O&M and Debt,OM-DEBT-MAR,1590,,3183333,Accum depr
+JE-013,2025-03-31,March O&M and Debt,OM-DEBT-MAR,2010,,1423934,O&M accruals
+JE-013,2025-03-31,March O&M and Debt,OM-DEBT-MAR,2060,,3150000,Interest payable
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,5000,12800000,,Gas commodity April
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,5010,1027200,,Pipeline
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,5020,154000,,Fuel mgmt
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,5100,486667,,Labor
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,5110,136267,,Burden
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,5400,1066667,,Property tax Q2
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,5200,285000,,Routine maintenance
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,5800,3183333,,Depreciation
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,6000,3150000,,Interest
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,6010,154167,,Fin cost amort
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,6020,,175000,Interest income
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,1590,,3183333,Accum depr
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,2000,,14981200,Fuel payable
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,2010,,2759101,O&M and tax payable
+JE-015,2025-04-30,April Fuel and O&M,FUEL-APR,2060,,3150000,Interest payable
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,5000,14200000,,Gas commodity May
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,5010,1138960,,Pipeline
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,5020,154000,,Fuel mgmt
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,5100,486667,,Labor
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,5110,136267,,Burden
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,5800,3183333,,Depreciation
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,6000,3150000,,Interest
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,6010,154167,,Fin cost amort
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,6020,,175000,Interest income
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,1590,,3183333,Accum depr
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,2000,,15492960,Fuel payable
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,2010,,1691434,O&M accruals
+JE-017,2025-05-31,May Fuel and O&M,FUEL-MAY,2060,,3150000,Interest payable
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,5000,15800000,,Gas commodity June peak
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,5010,1267840,,Pipeline
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,5020,154000,,Fuel mgmt
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,5100,486667,,Labor
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,5110,136267,,Burden
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,5800,3183333,,Depreciation
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,6000,3150000,,Interest
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,6010,154167,,Fin cost amort
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,6020,,175000,Interest income
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,1590,,3183333,Accum depr
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,2000,,17221840,Fuel payable
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,2010,,1770934,O&M accruals
+JE-019,2025-06-30,June Fuel Peak Season,FUEL-JUN,2060,,3150000,Interest payable
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,5000,18400000,,Gas commodity July peak
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,5010,1476160,,Pipeline
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,5020,154000,,Fuel mgmt
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,5100,486667,,Labor
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,5110,136267,,Burden
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,5400,1066667,,Property tax Q3
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,5800,3183333,,Depreciation
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,6000,3150000,,Interest
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,6010,154167,,Fin cost amort
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,6020,,175000,Interest income
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,1590,,3183333,Accum depr
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,2000,,19876160,Fuel payable
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,2010,,2573101,O&M and tax
+JE-021,2025-07-31,July Fuel Peak,FUEL-JUL,2060,,3150000,Interest payable
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,5000,17200000,,Gas commodity August
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,5010,1380320,,Pipeline
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,5020,154000,,Fuel mgmt
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,5100,486667,,Labor
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,5110,136267,,Burden
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,5800,3183333,,Depreciation
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,6000,3150000,,Interest
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,6010,154167,,Fin cost amort
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,6020,,175000,Interest income
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,1590,,3183333,Accum depr
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,2000,,18734320,Fuel payable
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,2010,,1570234,O&M accruals
+JE-023,2025-08-31,August Fuel and O&M,FUEL-AUG,2060,,3150000,Interest payable
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,5000,7800000,,Gas commodity September GT2 offline
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,5010,625560,,Pipeline
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,5020,154000,,Fuel mgmt
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,5100,486667,,Labor
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,5110,136267,,Burden
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,5800,3183333,,Depreciation
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,6000,3150000,,Interest
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,6010,154167,,Fin cost amort
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,6020,,175000,Interest income
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,1590,,3183333,Accum depr
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,2000,,9202560,Fuel payable
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,2010,,1177434,O&M accruals
+JE-026,2025-09-30,September Fuel Reduced,FUEL-SEP,2060,,3150000,Interest payable
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,5000,11800000,,Gas commodity October
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,5010,946480,,Pipeline
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,5020,154000,,Fuel mgmt
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,5100,486667,,Labor
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,5110,136267,,Burden
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,5400,1066667,,Property tax Q4
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,5200,285000,,Routine maintenance
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,5800,3183333,,Depreciation
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,6000,3150000,,Interest
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,6010,154167,,Fin cost amort
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,6020,,175000,Interest income
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,1590,,3183333,Accum depr
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,2000,,12897480,Fuel payable
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,2010,,2175101,O&M and tax
+JE-028,2025-10-31,October Fuel and O&M,FUEL-OCT,2060,,3150000,Interest payable
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,5000,13200000,,Gas commodity November
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,5010,1059840,,Pipeline
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,5020,154000,,Fuel mgmt
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,5100,486667,,Labor
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,5110,136267,,Burden
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,5800,3183333,,Depreciation
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,6000,3150000,,Interest
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,6010,154167,,Fin cost amort
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,6020,,175000,Interest income
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,1590,,3183333,Accum depr
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,2000,,14413840,Fuel payable
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,2010,,1580234,O&M accruals
+JE-030,2025-11-30,November Fuel and O&M,FUEL-NOV,2060,,3150000,Interest payable
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,5000,14203599,,Gas commodity December
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,5010,1139568,,Pipeline
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,5020,154000,,Fuel mgmt
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,5100,486667,,Labor
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,5110,136267,,Burden
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,5200,250000,,Routine maintenance
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,5800,3183333,,Depreciation
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,6000,3150000,,Interest
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,6010,154167,,Fin cost amort
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,6020,,175000,Interest income
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,1590,,3183333,Accum depr
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,2000,,15497167,Fuel payable
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,2010,,1227101,O&M accruals
+JE-032,2025-12-31,December Fuel and O&M,FUEL-DEC,2060,,3150000,Interest payable
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5300,1850000,,Water cost annual accrual adjustment
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5310,720000,,Chemicals annual
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5500,2850000,,NOx allowances purchased
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5510,1200000,,CO2 allowances
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5600,4820000,,ERCOT fees annual
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5610,2140000,,Interconnect charges
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5700,2400000,,Admin and general
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5710,1850000,,Legal and regulatory
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5720,980000,,IT and SCADA
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5410,6200000,,Property insurance
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5420,1480000,,GL insurance
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5400,12800000,,Property tax full year
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,5220,980000,,Unplanned maintenance year total
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,4050,,1800000,Carbon and RECs revenue recognition
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,4040,,4200000,HRCO revenue recognition
+JE-033,2025-12-31,December Year-End Adjustments,YE-ADJ,2020,,40270000,Year-end accrued liabilities and payables
+JE-034,2025-12-31,Texas Franchise Tax Accrual,TAX-DEC,5700,80212,,Texas franchise tax
+JE-034,2025-12-31,Texas Franchise Tax Accrual,TAX-DEC,2020,,80212,TX franchise tax payable

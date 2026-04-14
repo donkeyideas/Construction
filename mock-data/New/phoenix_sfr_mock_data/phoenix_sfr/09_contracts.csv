@@ -1,0 +1,19 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+AppFolio PM Software - Annual License,subcontractor,AppFolio Inc,t.novak@appfolio.com,18500,2025-01-01,2025-12-31,annual_prepaid
+AZ Landscape Professionals - Annual Maintenance All 127,subcontractor,AZ Landscape Professionals,s.burnham@azlandscapepros.com,144780,2025-01-01,2025-12-31,monthly_automatic
+Sunstate Pest Control - Annual Program All 127 Units,subcontractor,Sunstate Pest Control,c.mendez@sunstatepest.com,22860,2025-01-01,2025-12-31,monthly_automatic
+Cool Comfort AC - Annual HVAC Tune-Up Program,subcontractor,Cool Comfort AC & Heating,d.herrera@coolcomfortac.com,37400,2025-01-01,2025-12-31,milestone_based
+Desert Handyman - On-Call Repair Services,subcontractor,Desert Handyman Services,k.luu@deserthandyman.com,0,2025-01-01,2025-12-31,per_work_order
+Phoenix Turn & Clean - Turnover Cleaning,subcontractor,Phoenix Turn & Clean LLC,a.torres@phoenixclean.com,0,2025-01-01,2025-12-31,per_work_order
+Valley Plumbing - On-Call Plumbing Services,subcontractor,Valley Plumbing Solutions,m.patel@valleyplumbing.com,0,2025-01-01,2025-12-31,per_work_order
+Phoenix Paint Pros - Exterior Paint Program,subcontractor,Phoenix Paint Pros,r.estrada@phoenixpaintpros.com,36500,2025-10-01,2026-03-31,milestone_based
+AZ Insurance Brokerage - Portfolio Insurance 2025,subcontractor,AZ Insurance Brokerage,w.cross@azbrokerage.com,234950,2025-01-01,2025-12-31,annual_prepaid
+Property Management Agreement - James Whitfield (12 homes),owner,James Whitfield Investment Holdings,j.whitfield@whitfieldcap.com,0,2025-01-15,2027-01-15,monthly_auto_8pct
+Property Management Agreement - Phoenix Equity Partners (31 homes),owner,Phoenix Equity Partners LLC,mgr@phoenixequitypartners.com,0,2024-06-01,2026-06-01,monthly_auto_8pct
+Sun CPA Firm - Annual Accounting & Tax,subcontractor,Sun CPA Firm,d.sanchez@suncpafirm.com,28000,2025-01-01,2025-12-31,quarterly
+AZ Residential Tenancy Legal - Retainer,subcontractor,AZ Residential Tenancy Legal,h.rowe@azrta.org,10000,2025-01-01,2025-12-31,monthly_retainer
+First Interstate Portfolio Mortgage - Block 1 (42 homes),loan,First Interstate Bank AZ,f.dinapoli@firstinterstatebank.com,0,2022-03-01,2052-03-01,monthly_amortizing
+First Interstate Portfolio Mortgage - Block 2 (38 homes),loan,First Interstate Bank AZ,f.dinapoli@firstinterstatebank.com,0,2021-06-01,2051-06-01,monthly_amortizing
+Wells Fargo Portfolio Mortgage - Block 3 (31 homes),loan,Wells Fargo Home Lending,s.okafor@wellsfargo.com,0,2020-09-01,2050-09-01,monthly_amortizing
+Wells Fargo Portfolio Mortgage - Block 4 (16 homes),loan,Wells Fargo Home Lending,s.okafor@wellsfargo.com,0,2019-04-01,2049-04-01,monthly_amortizing
+Scottsdale Office Lease - 4820 N Scottsdale Rd Suite 200,subcontractor,Silverbell Property Partners,mgr@silverbellprop.com,45600,2023-06-01,2026-05-31,monthly_3800

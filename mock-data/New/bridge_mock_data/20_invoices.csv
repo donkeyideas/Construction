@@ -1,0 +1,18 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2025-07-01,18500000,0,2025-08-01,Progress Payment #4 – West Seattle Bridge Tower T1 Foundation Complete and Pylon to Level 8,paid,,Seattle Department of Transportation,West Seattle High-Rise Bridge Replacement
+receivable,2025-10-01,22000000,0,2025-11-01,Progress Payment #5 – West Seattle Bridge Pylon Level 9-14 and Approach Span 1-2 Girders,paid,,Seattle Department of Transportation,West Seattle High-Rise Bridge Replacement
+receivable,2026-01-15,26500000,0,2026-02-15,Progress Payment #6 – West Seattle Bridge Pylon Level 15-18 Stay Cables C01-C10 Approach Spans 3-4,pending,,Seattle Department of Transportation,West Seattle High-Rise Bridge Replacement
+receivable,2025-09-01,8800000,0,2025-10-01,Progress Payment #2 – SR-520 Lid Foundation and Deck Section A,paid,,Washington State DOT,SR-520 Montlake Lid & Lid Park
+receivable,2025-12-01,11200000,0,2026-01-01,Progress Payment #3 – SR-520 Lid Sections B and C Deck and Montlake Flap Bridge Steel,paid,,Washington State DOT,SR-520 Montlake Lid & Lid Park
+receivable,2026-01-15,9400000,0,2026-02-15,Progress Payment #4 – SR-520 Lid Section D and Pedestrian Bridge Truss,pending,,Washington State DOT,SR-520 Montlake Lid & Lid Park
+receivable,2025-10-15,4200000,0,2025-11-15,Progress Payment #1 – Ballard Bridge Seismic Mobilization and Pier 2 Foundation,paid,,Seattle Department of Transportation,Ballard Bridge Seismic Retrofit
+receivable,2026-01-01,3800000,0,2026-02-01,Progress Payment #2 – Ballard Bridge Piers 4 and 8 Concrete Jackets,pending,,Seattle Department of Transportation,Ballard Bridge Seismic Retrofit
+receivable,2025-06-01,2100000,0,2025-07-01,Progress Payment #1 – Magnolia Bridge Temporary Shoring and Mobilization,paid,,Seattle Department of Transportation,Magnolia Bridge Feasibility & Early Works
+receivable,2025-11-30,36200000,0,2025-12-30,Final Payment – Everett I-5 Interchange Ramp Reconstruction,paid,,Washington State DOT,Everett I-5 Interchange Ramp Reconstruction
+payable,2026-01-10,11200000,0,2026-02-10,Payment Application #7 – WSB Structural Steel Tower T1-T2 and Approach Spans 1-4,pending,Puget Sound Structural Steel,,West Seattle High-Rise Bridge Replacement
+payable,2026-01-10,4100000,0,2026-02-10,Payment Application #8 – WSB Marine Diving Operations October–January,pending,Pacific Sound Diving Services,,West Seattle High-Rise Bridge Replacement
+payable,2025-12-15,6800000,0,2026-01-15,Payment Application #6 – WSB Concrete Formwork and Deck Pours Spans 1-2,approved,Reyes Concrete & Formwork,,West Seattle High-Rise Bridge Replacement
+payable,2026-01-05,4800000,0,2026-02-05,Payment Application #4 – SR-520 Lid Structural Concrete Sections A-C,approved,Reyes Concrete & Formwork,,SR-520 Montlake Lid & Lid Park
+payable,2026-01-10,2100000,0,2026-02-10,Payment Application #3 – SR-520 MEP Rough-in Sections A and B,pending,Cascade MEP Systems,,SR-520 Montlake Lid & Lid Park
+payable,2025-12-01,5800000,0,2025-12-31,Payment Application #3 – Everett I-5 Precast Girder Supply – Final,paid,Concrete Technology Corporation,,Everett I-5 Interchange Ramp Reconstruction
+payable,2026-01-08,2400000,0,2026-02-08,Payment Application #2 – Ballard Bridge Isolation System Piers 2 and 4,pending,Earthquake Protection Systems,,Ballard Bridge Seismic Retrofit

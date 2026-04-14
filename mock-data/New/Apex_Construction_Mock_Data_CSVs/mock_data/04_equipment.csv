@@ -1,0 +1,14 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+Komatsu PC360 Excavator,excavator,Komatsu,PC360LC-11,KOM360-44218,390000,235.00,2019-03-10
+CAT 320 Hydraulic Excavator,excavator,Caterpillar,320 GC,CAT320GC-88321,265000,195.00,2021-08-15
+John Deere 644L Wheel Loader,loader,John Deere,644L,JD644L-29104,215000,175.00,2020-05-22
+CAT D6T Crawler Dozer,dozer,Caterpillar,D6T XW,CATD6T-61009,345000,210.00,2019-11-04
+Manitowoc 2250 Crawler Crane,crane,Manitowoc,2250,MAN2250-10042,1250000,485.00,2018-07-30
+Grove RT890E Rough Terrain Crane,crane,Grove,RT890E,GRT890E-55219,680000,325.00,2020-09-12
+Liebherr 250 EC-B Tower Crane,crane,Liebherr,250 EC-B 12,LIE250ECB-33010,520000,285.00,2022-01-18
+Dynapac CC6200VI Asphalt Paver,paver,Dynapac,CC6200VI,DYN6200-78801,185000,150.00,2021-03-25
+Wacker Neuson DPU6555 Compactor,compactor,Wacker Neuson,DPU6555,WN6555-12293,28000,65.00,2022-06-14
+Genie SX-180 Boom Lift,lift,Genie,SX-180,GEN180-94401,145000,110.00,2021-10-30
+Skyjack SJ63AJ Articulating Boom,lift,Skyjack,SJ63AJ,SKY63AJ-47721,88000,85.00,2022-04-08
+Kenworth T880 Dump Truck,truck,Kenworth,T880,KW880-22018,182000,115.00,2020-02-28
+Peterbilt 348 Water Truck,truck,Peterbilt,348,PB348-30419,165000,105.00,2020-08-16

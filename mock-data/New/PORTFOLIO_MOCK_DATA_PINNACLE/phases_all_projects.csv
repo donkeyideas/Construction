@@ -1,0 +1,37 @@
+name,color,start_date,end_date,project_name
+Preconstruction & Permitting,#6b7280,2023-01-01,2023-03-15,The Meridian at River North
+Foundation & Garage Structure,#92400e,2023-03-01,2023-12-31,The Meridian at River North
+Podium & Tower Structure,#b45309,2023-10-01,2025-04-30,The Meridian at River North
+Curtain Wall & Envelope,#d97706,2023-10-01,2025-12-31,The Meridian at River North
+MEP Rough-In,#65a30d,2023-07-01,2026-02-28,The Meridian at River North
+Interior Finishes & Residential,#16a34a,2025-01-01,2026-04-15,The Meridian at River North
+Elevator & Vertical Transport,#0d9488,2024-06-01,2026-03-31,The Meridian at River North
+Commissioning & Closeout,#7c3aed,2026-02-01,2026-04-30,The Meridian at River North
+Preconstruction & ICRA Planning,#6b7280,2024-03-01,2024-06-15,St. Dominic Medical Center Expansion
+Foundation & Level 1,#92400e,2024-06-01,2024-12-31,St. Dominic Medical Center Expansion
+Tower Structure Level 2-5,#b45309,2024-09-01,2026-06-30,St. Dominic Medical Center Expansion
+MOB Structure & Shell,#d97706,2024-12-01,2026-04-30,St. Dominic Medical Center Expansion
+MEP Rough-In & Critical Systems,#65a30d,2024-08-01,2027-01-31,St. Dominic Medical Center Expansion
+Interior Framing & Drywall,#16a34a,2025-02-01,2026-12-31,St. Dominic Medical Center Expansion
+Specialty Medical Systems,#0d9488,2026-01-01,2027-02-28,St. Dominic Medical Center Expansion
+Commissioning & Joint Commission Prep,#7c3aed,2026-09-01,2027-03-31,St. Dominic Medical Center Expansion
+Programming & Schematic Design,#6b7280,2025-09-01,2026-01-31,Paladin Resort & Casino
+Design Development,#0284c7,2025-12-01,2026-04-30,Paladin Resort & Casino
+GMP Development & Bidding,#b45309,2026-02-01,2026-05-31,Paladin Resort & Casino
+Permitting & NGCB Approvals,#d97706,2026-03-01,2026-07-31,Paladin Resort & Casino
+Mobilization & Site Prep,#65a30d,2026-06-01,2026-09-30,Paladin Resort & Casino
+Site Work & Utilities,#6b7280,2024-02-15,2024-08-31,Mid-South Logistics Park - Building 2
+Foundation & Tilt-Up Erection,#b45309,2024-03-01,2024-09-30,Mid-South Logistics Park - Building 2
+Structure & Roofing,#d97706,2024-07-01,2025-05-31,Mid-South Logistics Park - Building 2
+MEP & Dock Equipment,#65a30d,2024-06-01,2026-01-31,Mid-South Logistics Park - Building 2
+Site Paving & Stormwater,#16a34a,2024-08-01,2025-10-31,Mid-South Logistics Park - Building 2
+Office Tenant Improvement,#0d9488,2025-06-01,2026-01-31,Mid-South Logistics Park - Building 2
+Punchlist & Closeout,#7c3aed,2025-10-01,2026-02-28,Mid-South Logistics Park - Building 2
+Design Phase,#6b7280,2025-04-01,2025-12-31,Denver Southwest Recreation & Aquatics Center
+Site Work & Underground MEP,#92400e,2025-06-01,2025-12-31,Denver Southwest Recreation & Aquatics Center
+Structural Frame,#b45309,2025-09-01,2026-05-31,Denver Southwest Recreation & Aquatics Center
+Geothermal & MEP Rough-In,#d97706,2025-10-01,2026-07-31,Denver Southwest Recreation & Aquatics Center
+Building Envelope & Roofing,#65a30d,2026-03-01,2026-08-31,Denver Southwest Recreation & Aquatics Center
+Aquatics & Pool Systems,#16a34a,2026-04-01,2026-11-30,Denver Southwest Recreation & Aquatics Center
+Interior Finishes & Specialties,#0d9488,2026-06-01,2026-12-31,Denver Southwest Recreation & Aquatics Center
+Commissioning & Acceptance Testing,#7c3aed,2026-11-01,2027-01-31,Denver Southwest Recreation & Aquatics Center

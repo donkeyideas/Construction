@@ -1,0 +1,15 @@
+cert_name,cert_type,issuing_authority,cert_number,issued_date,expiry_date,contact_name
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2023-11201,2023-02-10,2028-02-10,James Whitfield
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2022-88420,2022-09-15,2027-09-15,Marcus Delaney
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2023-55182,2023-06-20,2028-06-20,Daniel Hargrove
+OSHA 30-Hour Construction Safety,safety,OSHA Training Institute,OSHA30-2024-21044,2024-01-08,2029-01-08,Kevin Osei
+EM-385-1-1 Corps of Engineers Safety,safety,U.S. Army Corps of Engineers,EM385-2022-4410,2022-11-01,2027-11-01,Raymond Torres
+GSA Federal Construction Safety,safety,U.S. General Services Administration,GSA-SAFE-2023-0091,2023-04-15,2026-04-15,Raymond Torres
+Davis-Bacon Compliance Specialist,compliance,Department of Labor,DBA-CS-2021-0884,2021-08-01,2026-08-01,Brenda Walsh
+Section 3 Compliance Officer,compliance,HUD Office of Fair Housing,S3CO-2022-0044,2022-03-10,2027-03-10,Brenda Walsh
+LEED AP Building Design & Construction,sustainability,U.S. Green Building Council,LEEDAP-BD-2020-88120,2020-05-15,2026-05-15,Patricia Nguyen
+PMP - Project Management Professional,project_management,Project Management Institute,PMP-2021-442200,2021-07-01,2024-07-01,Daniel Hargrove
+Security Clearance - SECRET,security,U.S. Office of Personnel Management,OPM-SEC-2022-114,2022-01-15,2027-01-15,James Whitfield
+Security Clearance - SECRET,security,U.S. Office of Personnel Management,OPM-SEC-2022-115,2022-01-15,2027-01-15,Marcus Delaney
+Tower Crane Operator - Class A,equipment,National Commission for the Certification of Crane Operators,NCCCO-TCA-2023-8814,2023-03-20,2026-03-20,Kevin Osei
+FAR/DFARS Federal Contracting Compliance,compliance,National Contract Management Association,NCMA-FAR-2021-0221,2021-11-01,2026-11-01,Angela Petrov

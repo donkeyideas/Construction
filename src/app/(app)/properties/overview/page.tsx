@@ -5,9 +5,11 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getPropertiesOverview } from "@/lib/queries/properties";
 import { formatCurrency, formatCompactCurrency, formatPercent } from "@/lib/utils/format";
 import { formatLocalDate } from "@/lib/utils/date";
-import OccupancyChart from "@/components/charts/OccupancyChart";
-import PropertyRevenueChart from "@/components/charts/PropertyRevenueChart";
+import dynamic from "next/dynamic";
 import { getTranslations } from "next-intl/server";
+
+const OccupancyChart = dynamic(() => import("@/components/charts/OccupancyChart"), { loading: () => <div style={{ height: 260 }} /> });
+const PropertyRevenueChart = dynamic(() => import("@/components/charts/PropertyRevenueChart"), { loading: () => <div style={{ height: 260 }} /> });
 
 export const metadata = {
   title: "Properties Overview - Buildwrk",

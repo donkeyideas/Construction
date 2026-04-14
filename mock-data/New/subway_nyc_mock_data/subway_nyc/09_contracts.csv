@@ -1,0 +1,6 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+Subway Franchise Agreement,franchise,Subway Franchisee Advertising Fund Trust,jsmith@subway.com,0,2020-06-15,2030-06-14,weekly_royalty
+Lease - 697 8th Ave Ground Floor,lease,Midtown Realty Partners,r.huang@midtownrealty.com,540000,2020-06-01,2030-05-31,net_30
+Morgan Stanley Catering Agreement,catering,Morgan Stanley Office Services,catering@morganstanley.com,18000,2025-01-01,2025-12-31,net_15
+WeWork 42nd Catering Agreement,catering,WeWork Community Manager,events@wework42nd.com,9600,2025-01-01,2025-12-31,net_15
+SBA Loan - Build-out & Equipment,loan,TD Bank Business Banking,r.torres@tdbank.com,185000,2020-06-01,2030-06-01,monthly

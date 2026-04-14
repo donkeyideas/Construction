@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       console.error("Insert rfi error:", error);
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: 500 }
       );
     }
 
@@ -199,7 +199,7 @@ export async function PATCH(request: NextRequest) {
       console.error("Update rfi error:", error);
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: 500 }
       );
     }
 

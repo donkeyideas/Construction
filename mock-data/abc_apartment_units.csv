@@ -1,0 +1,16 @@
+unit_number,unit_type,sqft,bedrooms,bathrooms,floor_number,market_rent,status
+102,1br,750,1,1,1,1200,vacant
+103,2br,1050,2,1,1,1600,vacant
+104,studio,500,0,1,1,950,vacant
+201,1br,780,1,1,2,1250,vacant
+202,2br,1100,2,2,2,1750,vacant
+203,studio,520,0,1,2,975,vacant
+204,1br,760,1,1,2,1200,vacant
+301,3br,1400,3,2,3,2200,vacant
+302,2br,1080,2,1,3,1650,vacant
+303,1br,740,1,1,3,1175,vacant
+304,2br,1120,2,2,3,1800,vacant
+401,3br,1450,3,2,4,2350,vacant
+402,2br,1100,2,2,4,1750,vacant
+403,1br,780,1,1,4,1275,vacant
+404,studio,510,0,1,4,975,vacant

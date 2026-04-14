@@ -1,0 +1,22 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Robert,Callahan,employee,r.callahan@blueridgehwy.com,540-555-0101,,President & CEO
+Patricia,Nguyen,employee,p.nguyen@blueridgehwy.com,540-555-0102,,CFO
+James,Whitfield,employee,j.whitfield@blueridgehwy.com,540-555-0103,,VP Operations
+Marcus,Deleon,employee,m.deleon@blueridgehwy.com,540-555-0104,,Senior Project Manager
+Donna,Hartley,employee,d.hartley@blueridgehwy.com,540-555-0105,,Project Manager
+Kyle,Brennan,employee,k.brennan@blueridgehwy.com,540-555-0106,,Superintendent - Earthwork
+Tanya,Roberson,employee,t.roberson@blueridgehwy.com,540-555-0107,,Superintendent - Paving
+Luis,Espinoza,employee,l.espinoza@blueridgehwy.com,540-555-0108,,Field Engineer
+Carla,Simmons,employee,c.simmons@blueridgehwy.com,540-555-0109,,Safety Manager
+Derek,Okafor,employee,d.okafor@blueridgehwy.com,540-555-0110,,Equipment Manager
+Sandra,Bloom,employee,s.bloom@blueridgehwy.com,540-555-0111,,Controller
+Aaron,Trent,employee,a.trent@blueridgehwy.com,540-555-0112,,Estimator
+Raymond,Flores,vendor,r.flores@appalachian-paving.com,540-555-0201,Appalachian Paving Inc,Project Executive
+Beth,Garrison,vendor,b.garrison@shenandoah-grading.com,540-555-0202,Shenandoah Grading LLC,Operations Manager
+Greg,Puckett,vendor,g.puckett@valley-concrete.com,540-555-0203,Valley Concrete & Pipe,Sales Manager
+Irene,Kowalski,vendor,i.kowalski@virginia-striping.com,540-555-0204,Virginia Line Striping Co,Account Manager
+Ted,Mabry,vendor,t.mabry@mabry-aggregate.com,540-555-0205,Mabry Aggregate Supply,Sales Director
+William,Stover,vendor,w.stover@vdot.virginia.gov,804-555-0301,Virginia Department of Transportation,Resident Engineer
+Anthony,Cruz,vendor,a.cruz@vdot.virginia.gov,540-555-0302,Virginia Department of Transportation,Project Inspector
+Heather,Moss,vendor,h.moss@travelers.com,804-555-0401,Travelers Surety & Casualty,Bond Agent
+Frank,DiMaggio,vendor,f.dimaggio@cna.com,804-555-0402,CNA Insurance,Commercial Lines

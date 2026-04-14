@@ -1,0 +1,29 @@
+contract_number,title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms,project_name
+HRL-CON-001,GMP Construction Agreement - Hard Rock Legacy Stadium,owner,University of Miami,j.alvarez@miami.edu,1100000000,2024-01-15,2027-08-30,monthly_draws,Hard Rock Legacy Stadium
+HRL-CON-002,GMP Construction Agreement - Football Performance Center,owner,University of Miami,j.alvarez@miami.edu,285000000,2024-03-01,2026-12-31,monthly_draws,Hurricane Football Performance Center
+HRL-CON-003,GMP Construction Agreement - Athlete Village,owner,University of Miami,j.alvarez@miami.edu,195000000,2024-06-01,2027-03-31,monthly_draws,Coral Gables Athlete Village
+HRL-CON-004,GMP Construction Agreement - Admin Tower,owner,University of Miami,j.alvarez@miami.edu,185000000,2024-09-01,2027-06-30,monthly_draws,Hurricane Athletic Administration Tower
+HRL-CON-005,Lump Sum Agreement - Site & Infrastructure,owner,University of Miami,j.alvarez@miami.edu,85000000,2024-01-08,2025-12-31,monthly_draws,Stadium District Site & Infrastructure
+HRL-CON-006,JV Agreement - PCL Construction,subcontractor,PCL Construction,t.granger@pcl.com,320000000,2024-01-15,2027-08-30,net_30,Hard Rock Legacy Stadium
+HRL-CON-007,Stadium Deep Foundation Package - Drilled Piers,subcontractor,Kiewit Foundation Co.,j.hendricks@kiewit.com,87500000,2024-02-01,2025-06-30,net_30,Hard Rock Legacy Stadium
+HRL-CON-008,Stadium Structural Concrete Package,subcontractor,Hensel Phelps Construction,g.staley@henselphelps.com,195000000,2024-04-01,2026-08-31,net_30,Hard Rock Legacy Stadium
+HRL-CON-009,Stadium Structural Steel Package - Roof & Superstructure,subcontractor,Barton Malow Company,e.kowalski@bartonmalow.com,215000000,2024-06-01,2026-12-31,net_30,Hard Rock Legacy Stadium
+HRL-CON-010,MEP Prime Package - Stadium,subcontractor,Bechtel Infrastructure,r.delgado@bechtel.com,185000000,2024-08-01,2027-04-30,net_30,Hard Rock Legacy Stadium
+HRL-CON-011,Site & Civil Work Package,subcontractor,Ajax Paving Industries,l.webb@ajaxpaving.com,62000000,2024-01-08,2025-10-31,net_30,Stadium District Site & Infrastructure
+HRL-CON-012,Stadium Technology & AV Systems,subcontractor,Elara Systems,c.nakamura@elarasystems.com,48500000,2025-06-01,2027-06-30,net_30,Hard Rock Legacy Stadium
+HRL-CON-013,Scoreboard & Video Board Systems,subcontractor,Daktronics Inc.,b.johannsen@daktronics.com,32000000,2025-09-01,2027-05-31,net_30,Hard Rock Legacy Stadium
+HRL-CON-014,Stadium Seating Package - 65000 Seats,subcontractor,Hussey Seating Company,p.hussey@husseyseating.com,38500000,2026-01-01,2027-04-30,net_30,Hard Rock Legacy Stadium
+HRL-CON-015,Synthetic Turf - Stadium & Practice Fields,subcontractor,FieldTurf USA,r.moreau@fieldturf.com,8200000,2026-10-01,2027-05-31,net_30,Hard Rock Legacy Stadium
+HRL-CON-016,Elevator & Escalator Package - Stadium,subcontractor,Otis Elevator Company,g.tanaka@otis.com,18500000,2025-10-01,2027-04-30,net_30,Hard Rock Legacy Stadium
+HRL-CON-017,HVAC Controls & BAS - All Buildings,subcontractor,Johnson Controls,s.fitzgerald@johnsoncontrols.com,22000000,2025-01-01,2027-06-30,net_30,Hard Rock Legacy Stadium
+HRL-CON-018,Landscape & Hardscape - Campus,subcontractor,Hargreaves Jones,c.hargreaves@hargreavesjones.com,14500000,2026-06-01,2027-07-31,net_30,Stadium District Site & Infrastructure
+HRL-CON-019,Plumbing & Fire Protection Package,subcontractor,Turner Industries Group,m.boudreaux@turnerindustries.com,45000000,2024-08-01,2027-04-30,net_30,Hard Rock Legacy Stadium
+HRL-CON-020,Waterproofing & Roofing Package,subcontractor,Southeast Waterproofing,t.garza@sewtproof.com,28500000,2025-04-01,2026-12-31,net_30,Hard Rock Legacy Stadium
+HRL-CON-021,Construction Loan Agreement - $1.4B,financing,Bank of America,r.haines@bofa.com,1400000000,2024-01-01,2028-12-31,draws_on_request,Hard Rock Legacy Stadium
+HRL-CON-022,Builders Risk Insurance - All Projects,vendor,Zurich Insurance Group,p.lee@zurich.com,4850000,2024-01-01,2027-12-31,annual,Hard Rock Legacy Stadium
+HRL-CON-023,Performance Bond - Stadium GMP,vendor,Travelers Surety,j.whitmore@travelers.com,11000000,2024-01-15,2027-11-30,upfront,Hard Rock Legacy Stadium
+HRL-CON-024,Payment Bond - Stadium GMP,vendor,Travelers Surety,j.whitmore@travelers.com,11000000,2024-01-15,2027-11-30,upfront,Hard Rock Legacy Stadium
+HRL-CON-025,Architectural Services - HOK,vendor,HOK Sport + Venue + Event,s.wu@hok.com,38500000,2022-06-01,2027-10-31,monthly,Hard Rock Legacy Stadium
+HRL-CON-026,Structural Engineering - Walter P Moore,vendor,Walter P Moore,d.castillo@walterpmoore.com,18200000,2022-06-01,2027-10-31,monthly,Hard Rock Legacy Stadium
+HRL-CON-027,MEP Engineering - WSP Global,vendor,WSP Global,a.patel@wsp.com,14800000,2022-06-01,2027-10-31,monthly,Hard Rock Legacy Stadium
+HRL-CON-028,Civil Engineering - Kimley-Horn,vendor,Kimley-Horn & Associates,m.henderson@kimley-horn.com,8500000,2022-06-01,2026-06-30,monthly,Stadium District Site & Infrastructure

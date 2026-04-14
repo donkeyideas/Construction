@@ -1,0 +1,20 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+LBM-2024 Prime Contract - GMP Hotel,owner,LuxeBridge Hotel Development,w.harrington@luxebridgedev.com,94500000,2024-01-15,2026-11-30,net_30
+LBM-2024 Foundation & Shoring Package,subcontractor,Southeast Foundation Group,n.cross@southeastfoundation.com,4200000,2024-01-20,2024-09-30,net_30
+LBM-2024 Structural Concrete Package,subcontractor,Tropical Concrete Inc,i.burgess@tropicalconcrete.com,11500000,2024-04-01,2025-10-31,net_30
+LBM-2024 Structural Steel Package,subcontractor,Sunbelt Steel Erectors,s.park@sunbeltsteelerectors.com,7800000,2024-07-01,2025-08-31,net_30
+LBM-2024 MEP - Full Package,subcontractor,Florida MEP Contractors,r.delgado@floridamep.com,14200000,2024-06-01,2026-09-30,net_30
+LBM-2024 Curtain Wall & Glazing,subcontractor,Premier Curtain Wall Systems,l.kovacs@premiercurtainwall.com,5800000,2024-10-01,2026-04-30,net_30
+LBM-2024 Drywall & Interior Framing,subcontractor,Caribbean Drywall & Framing,h.suarez@caribbeandrywall.com,6200000,2025-03-01,2026-09-30,net_30
+LBM-2024 Electrical Package,subcontractor,Southern Electrical Group,a.russo@southernelectric.com,8400000,2024-06-01,2026-10-31,net_30
+LBM-2024 Roofing & Waterproofing,subcontractor,Elite Roofing & Waterproofing,j.tran@eliteroofing.com,2200000,2025-08-01,2026-03-31,net_30
+LBM-2024 Pool Spa & Water Features,subcontractor,Aqua Hospitality Systems,m.williams@poolandspa.com,3800000,2025-06-01,2026-08-31,net_30
+LBM-2024 AV & Technology Systems,subcontractor,AV Integration Solutions FL,d.nakamura@avintegrationsfl.com,4100000,2025-10-01,2026-10-31,net_30
+LBM-2024 Marble & Stone - Lobbies and Amenities,subcontractor,Florida Marble & Stone Works,g.monroe@flamarble.com,2900000,2025-09-01,2026-08-31,net_30
+LBM-2024 Fire Protection Package,subcontractor,SunFire Protection Inc,r.holton@sunfireprotection.com,1800000,2024-09-01,2026-09-30,net_30
+LBM-2024 Elevator Package - 10 Cabs,subcontractor,Brickell Elevator Solutions,c.suarez@brickellelevaator.com,3200000,2025-01-01,2026-10-31,net_30
+LBM-2024 Masonry & Tile,subcontractor,Coastal Masonry & Tile,e.morales@coastalmasonry.com,1600000,2025-05-01,2026-08-31,net_30
+LBM-2024 Kitchen Equipment - All Outlets,subcontractor,Continental Kitchen Equipment,b.walsh@continentalkitchen.com,2800000,2025-12-01,2026-09-30,net_30
+LBM-2024 FF&E Procurement Management,vendor,Luxury FF&E Procurement LLC,p.owens@luxuryffefl.com,680000,2025-06-01,2026-10-31,net_45
+LBM-2024 Landscaping & Pool Deck Hardscape,subcontractor,Tropics Landscaping & Hardscape,s.obi@tropicslandscape.com,1400000,2026-04-01,2026-10-31,net_30
+LBM-2024 Signage & Wayfinding,subcontractor,Intercon Signage & Wayfinding,t.freeman@interconsign.com,580000,2026-05-01,2026-10-31,net_30

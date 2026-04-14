@@ -4,8 +4,10 @@ import { FileText, Map, Layers, Upload } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getDocumentsOverview } from "@/lib/queries/documents";
-import DocCategoryChart from "@/components/charts/DocCategoryChart";
-import DocUploadTrendChart from "@/components/charts/DocUploadTrendChart";
+import dynamic from "next/dynamic";
+
+const DocCategoryChart = dynamic(() => import("@/components/charts/DocCategoryChart"), { loading: () => <div style={{ height: 260 }} /> });
+const DocUploadTrendChart = dynamic(() => import("@/components/charts/DocUploadTrendChart"), { loading: () => <div style={{ height: 260 }} /> });
 import { formatDateSafe, formatDateLong, formatDateShort, formatDateFull, formatMonthYear, formatWeekdayShort, formatMonthLong, toDateStr } from "@/lib/utils/format";
 
 

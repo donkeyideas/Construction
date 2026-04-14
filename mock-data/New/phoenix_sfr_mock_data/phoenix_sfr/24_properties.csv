@@ -1,0 +1,171 @@
+name,property_type,address_line1,city,state,zip,year_built,total_sqft,total_units,purchase_price,current_value
+"9025 Baseline Rd, Mesa, AZ 85205",single_family,9025 Baseline Rd,Mesa,AZ,85205,2009,1920,1,438661,482527
+"1910 Country Club Dr, Mesa, AZ 85202",single_family,1910 Country Club Dr,Mesa,AZ,85202,2016,1480,1,323021,445768
+"4382 Southern Ave, Mesa, AZ 85201",single_family,4382 Southern Ave,Mesa,AZ,85201,2005,1480,1,413032,454335
+"1701 Country Club Dr, Mesa, AZ 85205",single_family,1701 Country Club Dr,Mesa,AZ,85205,2011,1480,1,337286,499183
+"7228 Country Club Dr, Mesa, AZ 85205",single_family,7228 Country Club Dr,Mesa,AZ,85205,2011,1920,1,490285,725621
+"8678 Greenfield Rd, Mesa, AZ 85201",single_family,8678 Greenfield Rd,Mesa,AZ,85201,2015,1480,1,366570,447215
+"5208 Mesa Dr, Mesa, AZ 85202",single_family,5208 Mesa Dr,Mesa,AZ,85202,2008,1920,1,459624,560741
+"2437 Baseline Rd, Mesa, AZ 85203",single_family,2437 Baseline Rd,Mesa,AZ,85203,2003,1480,1,345983,422099
+"3719 Greenfield Rd, Mesa, AZ 85203",single_family,3719 Greenfield Rd,Mesa,AZ,85203,2017,1480,1,342289,472358
+"1743 Southern Ave, Mesa, AZ 85202",single_family,1743 Southern Ave,Mesa,AZ,85202,2007,1480,1,337972,500198
+"1386 Country Club Dr, Mesa, AZ 85205",single_family,1386 Country Club Dr,Mesa,AZ,85205,2004,1480,1,335611,369172
+"5449 Baseline Rd, Mesa, AZ 85203",single_family,5449 Baseline Rd,Mesa,AZ,85203,2013,1920,1,437627,647687
+"2469 Baseline Rd, Mesa, AZ 85202",single_family,2469 Baseline Rd,Mesa,AZ,85202,2010,1920,1,444894,613953
+"1363 Mesa Dr, Mesa, AZ 85205",single_family,1363 Mesa Dr,Mesa,AZ,85205,2008,1920,1,438414,605011
+"3646 Stapley Dr, Mesa, AZ 85205",single_family,3646 Stapley Dr,Mesa,AZ,85205,2007,1150,1,325951,397660
+"5277 Baseline Rd, Mesa, AZ 85203",single_family,5277 Baseline Rd,Mesa,AZ,85203,2009,1920,1,433796,642018
+"2393 Country Club Dr, Mesa, AZ 85202",single_family,2393 Country Club Dr,Mesa,AZ,85202,2010,1920,1,435946,479540
+"3190 Mesa Dr, Mesa, AZ 85203",single_family,3190 Mesa Dr,Mesa,AZ,85203,2008,1150,1,304309,371256
+"8294 Stapley Dr, Mesa, AZ 85205",single_family,8294 Stapley Dr,Mesa,AZ,85205,2012,1920,1,477341,658730
+"8834 Baseline Rd, Mesa, AZ 85201",single_family,8834 Baseline Rd,Mesa,AZ,85201,2012,1480,1,418197,577111
+"5916 Country Club Dr, Mesa, AZ 85201",single_family,5916 Country Club Dr,Mesa,AZ,85201,2011,1920,1,446013,615497
+"7206 Dobson Rd, Mesa, AZ 85202",single_family,7206 Dobson Rd,Mesa,AZ,85202,2010,1480,1,401514,554089
+"9202 Dobson Rd, Mesa, AZ 85205",single_family,9202 Dobson Rd,Mesa,AZ,85205,2009,1480,1,348955,425725
+"6186 Stapley Dr, Mesa, AZ 85204",single_family,6186 Stapley Dr,Mesa,AZ,85204,2017,1150,1,292373,321610
+"7009 Baseline Rd, Mesa, AZ 85202",single_family,7009 Baseline Rd,Mesa,AZ,85202,2003,1480,1,390282,476144
+"8896 Baseline Rd, Mesa, AZ 85202",single_family,8896 Baseline Rd,Mesa,AZ,85202,2008,1920,1,470225,573674
+"5747 Stapley Dr, Mesa, AZ 85202",single_family,5747 Stapley Dr,Mesa,AZ,85202,2004,1480,1,364905,445184
+"9639 Country Club Dr, Mesa, AZ 85203",single_family,9639 Country Club Dr,Mesa,AZ,85203,2017,1480,1,348239,480569
+"6960 Baseline Rd, Mesa, AZ 85203",single_family,6960 Baseline Rd,Mesa,AZ,85203,2015,1480,1,417741,509644
+"1358 Baseline Rd, Mesa, AZ 85202",single_family,1358 Baseline Rd,Mesa,AZ,85202,2004,1150,1,333554,406935
+"2045 Southern Ave, Mesa, AZ 85205",single_family,2045 Southern Ave,Mesa,AZ,85205,2008,1480,1,398197,605259
+"7989 Lindsey Rd, Mesa, AZ 85202",single_family,7989 Lindsey Rd,Mesa,AZ,85202,2018,1480,1,352995,388294
+"6217 Mesa Dr, Mesa, AZ 85202",single_family,6217 Mesa Dr,Mesa,AZ,85202,2003,1480,1,371378,408515
+"3141 Southern Ave, Mesa, AZ 85201",single_family,3141 Southern Ave,Mesa,AZ,85201,2004,1920,1,429637,472600
+"9497 Greenfield Rd, Mesa, AZ 85204",single_family,9497 Greenfield Rd,Mesa,AZ,85204,2009,1480,1,393075,597474
+"3056 Price Rd, Chandler, AZ 85224",single_family,3056 Price Rd,Chandler,AZ,85224,2013,1480,1,312448,381186
+"5954 Price Rd, Chandler, AZ 85225",single_family,5954 Price Rd,Chandler,AZ,85225,2012,1920,1,449433,620217
+"6744 Chandler Blvd, Chandler, AZ 85226",single_family,6744 Chandler Blvd,Chandler,AZ,85226,2005,1920,1,472594,576564
+"3164 Ray Rd, Chandler, AZ 85249",single_family,3164 Ray Rd,Chandler,AZ,85249,2004,1480,1,386976,425673
+"4710 Price Rd, Chandler, AZ 85225",single_family,4710 Price Rd,Chandler,AZ,85225,2015,1480,1,366828,403510
+"4279 Chandler Blvd, Chandler, AZ 85225",single_family,4279 Chandler Blvd,Chandler,AZ,85225,2005,1920,1,505730,616990
+"3544 Ray Rd, Chandler, AZ 85224",single_family,3544 Ray Rd,Chandler,AZ,85224,2017,1920,1,488405,673998
+"6026 Chandler Blvd, Chandler, AZ 85226",single_family,6026 Chandler Blvd,Chandler,AZ,85226,2014,1920,1,397494,484942
+"5176 Ocotillo Rd, Chandler, AZ 85249",single_family,5176 Ocotillo Rd,Chandler,AZ,85249,2018,1920,1,463594,565584
+"3841 Cooper Rd, Chandler, AZ 85224",single_family,3841 Cooper Rd,Chandler,AZ,85224,2003,1920,1,509130,753512
+"1726 Cooper Rd, Chandler, AZ 85224",single_family,1726 Cooper Rd,Chandler,AZ,85224,2006,1150,1,309597,340556
+"9313 Chandler Blvd, Chandler, AZ 85249",single_family,9313 Chandler Blvd,Chandler,AZ,85249,2016,1920,1,445629,677356
+"3058 Cooper Rd, Chandler, AZ 85249",single_family,3058 Cooper Rd,Chandler,AZ,85249,2011,1920,1,465853,642877
+"1336 McQueen Rd, Chandler, AZ 85224",single_family,1336 McQueen Rd,Chandler,AZ,85224,2004,1920,1,466634,690618
+"7365 McQueen Rd, Chandler, AZ 85249",single_family,7365 McQueen Rd,Chandler,AZ,85249,2015,1920,1,511427,705769
+"2042 Ocotillo Rd, Chandler, AZ 85224",single_family,2042 Ocotillo Rd,Chandler,AZ,85224,2015,1480,1,340173,517062
+"6948 Ocotillo Rd, Chandler, AZ 85225",single_family,6948 Ocotillo Rd,Chandler,AZ,85225,2018,1480,1,342726,507234
+"8641 Ray Rd, Chandler, AZ 85249",single_family,8641 Ray Rd,Chandler,AZ,85249,2015,1150,1,339860,373846
+"9772 Alma School Rd, Chandler, AZ 85225",single_family,9772 Alma School Rd,Chandler,AZ,85225,2007,1480,1,344629,475588
+"7822 Chandler Blvd, Chandler, AZ 85224",single_family,7822 Chandler Blvd,Chandler,AZ,85224,2003,1920,1,488486,674110
+"1773 Ray Rd, Chandler, AZ 85224",single_family,1773 Ray Rd,Chandler,AZ,85224,2005,1480,1,351000,533520
+"6167 Price Rd, Chandler, AZ 85249",single_family,6167 Price Rd,Chandler,AZ,85249,2017,1920,1,468699,693674
+"6818 Cooper Rd, Chandler, AZ 85225",single_family,6818 Cooper Rd,Chandler,AZ,85225,2004,1920,1,413613,570785
+"2442 Price Rd, Chandler, AZ 85224",single_family,2442 Price Rd,Chandler,AZ,85224,2018,1480,1,415807,573813
+"4961 McQueen Rd, Chandler, AZ 85225",single_family,4961 McQueen Rd,Chandler,AZ,85225,2007,1150,1,279334,307267
+"6402 Arizona Ave, Chandler, AZ 85224",single_family,6402 Arizona Ave,Chandler,AZ,85224,2007,1480,1,382780,566514
+"8271 Alma School Rd, Chandler, AZ 85224",single_family,8271 Alma School Rd,Chandler,AZ,85224,2007,1480,1,342021,471988
+"1273 Alma School Rd, Chandler, AZ 85224",single_family,1273 Alma School Rd,Chandler,AZ,85224,2015,1480,1,394739,600003
+"7210 Ocotillo Rd, Chandler, AZ 85226",single_family,7210 Ocotillo Rd,Chandler,AZ,85226,2018,1920,1,406024,600915
+"8110 Alma School Rd, Chandler, AZ 85224",single_family,8110 Alma School Rd,Chandler,AZ,85224,2007,1920,1,412674,569490
+"8226 Chandler Blvd, Chandler, AZ 85249",single_family,8226 Chandler Blvd,Chandler,AZ,85249,2014,1480,1,407123,561829
+"2240 Chandler Blvd, Chandler, AZ 85224",single_family,2240 Chandler Blvd,Chandler,AZ,85224,2012,1150,1,293591,434514
+"2375 Warner Rd, Gilbert, AZ 85234",single_family,2375 Warner Rd,Gilbert,AZ,85234,2014,1480,1,355903,491146
+"2451 Gilbert Rd, Gilbert, AZ 85234",single_family,2451 Gilbert Rd,Gilbert,AZ,85234,2018,1480,1,371075,452711
+"7176 Greenfield Rd, Gilbert, AZ 85295",single_family,7176 Greenfield Rd,Gilbert,AZ,85295,2006,1920,1,390023,475828
+"1847 Guadalupe Rd, Gilbert, AZ 85233",single_family,1847 Guadalupe Rd,Gilbert,AZ,85233,2008,1480,1,396581,586939
+"9172 Warner Rd, Gilbert, AZ 85296",single_family,9172 Warner Rd,Gilbert,AZ,85296,2015,1920,1,401094,593619
+"8044 Gilbert Rd, Gilbert, AZ 85296",single_family,8044 Gilbert Rd,Gilbert,AZ,85296,2007,1480,1,362563,551095
+"2702 Greenfield Rd, Gilbert, AZ 85233",single_family,2702 Greenfield Rd,Gilbert,AZ,85233,2009,1480,1,419452,578843
+"7851 Lindsay Rd, Gilbert, AZ 85234",single_family,7851 Lindsay Rd,Gilbert,AZ,85234,2007,1480,1,383043,467312
+"1718 Higley Rd, Gilbert, AZ 85295",single_family,1718 Higley Rd,Gilbert,AZ,85295,2011,1480,1,331155,404009
+"4081 Guadalupe Rd, Gilbert, AZ 85295",single_family,4081 Guadalupe Rd,Gilbert,AZ,85295,2004,1480,1,326243,398016
+"4884 Elliot Rd, Gilbert, AZ 85234",single_family,4884 Elliot Rd,Gilbert,AZ,85234,2012,1920,1,518030,631996
+"7890 Greenfield Rd, Gilbert, AZ 85234",single_family,7890 Greenfield Rd,Gilbert,AZ,85234,2009,1920,1,519911,717477
+"5903 Higley Rd, Gilbert, AZ 85233",single_family,5903 Higley Rd,Gilbert,AZ,85233,2015,1920,1,392108,596004
+"4019 Gilbert Rd, Gilbert, AZ 85233",single_family,4019 Gilbert Rd,Gilbert,AZ,85233,2017,1480,1,324328,395680
+"5449 Elliot Rd, Gilbert, AZ 85234",single_family,5449 Elliot Rd,Gilbert,AZ,85234,2012,1480,1,389711,428682
+"4654 Greenfield Rd, Gilbert, AZ 85234",single_family,4654 Greenfield Rd,Gilbert,AZ,85234,2016,1480,1,372582,514163
+"9182 Higley Rd, Gilbert, AZ 85233",single_family,9182 Higley Rd,Gilbert,AZ,85233,2004,1920,1,426075,468682
+"6024 Lindsay Rd, Gilbert, AZ 85233",single_family,6024 Lindsay Rd,Gilbert,AZ,85233,2017,1150,1,319864,441412
+"7179 Warner Rd, Gilbert, AZ 85296",single_family,7179 Warner Rd,Gilbert,AZ,85296,2012,1480,1,353142,487335
+"2959 Higley Rd, Gilbert, AZ 85296",single_family,2959 Higley Rd,Gilbert,AZ,85296,2005,1480,1,342859,418287
+"5128 Guadalupe Rd, Gilbert, AZ 85295",single_family,5128 Guadalupe Rd,Gilbert,AZ,85295,2009,1480,1,351033,519528
+"1445 Higley Rd, Gilbert, AZ 85234",single_family,1445 Higley Rd,Gilbert,AZ,85234,2015,1920,1,403738,557158
+"4540 Lindsay Rd, Gilbert, AZ 85233",single_family,4540 Lindsay Rd,Gilbert,AZ,85233,2005,1150,1,347198,423581
+"7714 Guadalupe Rd, Gilbert, AZ 85295",single_family,7714 Guadalupe Rd,Gilbert,AZ,85295,2007,1480,1,384979,585168
+"8066 Warner Rd, Gilbert, AZ 85233",single_family,8066 Warner Rd,Gilbert,AZ,85233,2015,1150,1,275628,336266
+"4373 Gilbert Rd, Gilbert, AZ 85296",single_family,4373 Gilbert Rd,Gilbert,AZ,85296,2010,1480,1,342816,473086
+"8519 Val Vista Dr, Gilbert, AZ 85296",single_family,8519 Val Vista Dr,Gilbert,AZ,85296,2018,1480,1,322439,490107
+"3935 Val Vista Dr, Gilbert, AZ 85295",single_family,3935 Val Vista Dr,Gilbert,AZ,85295,2009,1920,1,397327,484738
+"5534 Price Rd, Tempe, AZ 85283",single_family,5534 Price Rd,Tempe,AZ,85283,2011,1920,1,471761,518937
+"8500 Price Rd, Tempe, AZ 85284",single_family,8500 Price Rd,Tempe,AZ,85284,2017,1480,1,354948,390442
+"6016 Rural Rd, Tempe, AZ 85283",single_family,6016 Rural Rd,Tempe,AZ,85283,2009,1920,1,462213,508434
+"2186 Kyrene Rd, Tempe, AZ 85281",single_family,2186 Kyrene Rd,Tempe,AZ,85281,2012,1480,1,330557,363612
+"6117 Mill Ave, Tempe, AZ 85281",single_family,6117 Mill Ave,Tempe,AZ,85281,2008,1920,1,479686,527654
+"6068 Warner Rd, Tempe, AZ 85284",single_family,6068 Warner Rd,Tempe,AZ,85284,2015,1480,1,380102,418112
+"8585 Price Rd, Tempe, AZ 85284",single_family,8585 Price Rd,Tempe,AZ,85284,2010,1920,1,478667,583973
+"1308 Rural Rd, Tempe, AZ 85283",single_family,1308 Rural Rd,Tempe,AZ,85283,2005,1480,1,363114,537408
+"7670 Baseline Rd, Tempe, AZ 85283",single_family,7670 Baseline Rd,Tempe,AZ,85283,2007,1480,1,398203,485807
+"5539 Price Rd, Tempe, AZ 85281",single_family,5539 Price Rd,Tempe,AZ,85281,2003,1480,1,330724,403483
+"7444 Kyrene Rd, Tempe, AZ 85283",single_family,7444 Kyrene Rd,Tempe,AZ,85283,2010,1480,1,373548,515496
+"9023 Elliot Rd, Tempe, AZ 85281",single_family,9023 Elliot Rd,Tempe,AZ,85281,2013,1480,1,322902,445604
+"5005 Mill Ave, Tempe, AZ 85281",single_family,5005 Mill Ave,Tempe,AZ,85281,2017,1480,1,384018,529944
+"7447 Price Rd, Tempe, AZ 85281",single_family,7447 Price Rd,Tempe,AZ,85281,2014,1480,1,401737,610640
+"4013 Price Rd, Tempe, AZ 85283",single_family,4013 Price Rd,Tempe,AZ,85283,2016,1480,1,337660,371426
+"6333 Warner Rd, Tempe, AZ 85281",single_family,6333 Warner Rd,Tempe,AZ,85281,2009,1920,1,515280,762614
+"7468 Price Rd, Tempe, AZ 85283",single_family,7468 Price Rd,Tempe,AZ,85283,2005,1480,1,336649,410711
+"3169 Baseline Rd, Tempe, AZ 85283",single_family,3169 Baseline Rd,Tempe,AZ,85283,2018,1150,1,347971,424524
+"5892 Elliot Rd, Tempe, AZ 85282",single_family,5892 Elliot Rd,Tempe,AZ,85282,2010,1480,1,384856,423341
+"1366 Kyrene Rd, Tempe, AZ 85281",single_family,1366 Kyrene Rd,Tempe,AZ,85281,2004,1480,1,341290,470980
+"1726 Thomas Rd, Scottsdale, AZ 85250",single_family,1726 Thomas Rd,Scottsdale,AZ,85250,2009,1480,1,379439,523625
+"6498 McDowell Rd, Scottsdale, AZ 85258",single_family,6498 McDowell Rd,Scottsdale,AZ,85258,2010,1480,1,311961,343157
+"8867 McDowell Rd, Scottsdale, AZ 85250",single_family,8867 McDowell Rd,Scottsdale,AZ,85250,2018,1480,1,310102,378324
+"4630 McDowell Rd, Scottsdale, AZ 85250",single_family,4630 McDowell Rd,Scottsdale,AZ,85250,2016,1920,1,447391,545817
+"8459 McDowell Rd, Scottsdale, AZ 85257",single_family,8459 McDowell Rd,Scottsdale,AZ,85257,2015,1920,1,423293,516417
+"1911 Indian School Rd, Scottsdale, AZ 85258",single_family,1911 Indian School Rd,Scottsdale,AZ,85258,2003,1920,1,446280,544461
+"2754 Shea Blvd, Scottsdale, AZ 85250",single_family,2754 Shea Blvd,Scottsdale,AZ,85250,2008,1920,1,470457,573957
+"6195 McDowell Rd, Scottsdale, AZ 85258",single_family,6195 McDowell Rd,Scottsdale,AZ,85258,2008,1480,1,346336,526430
+"3796 Camelback Rd, Scottsdale, AZ 85251",single_family,3796 Camelback Rd,Scottsdale,AZ,85251,2005,1480,1,387552,534821
+"1253 McDowell Rd, Scottsdale, AZ 85258",single_family,1253 McDowell Rd,Scottsdale,AZ,85258,2018,1920,1,517344,786362
+"1222 Shea Blvd, Scottsdale, AZ 85257",single_family,1222 Shea Blvd,Scottsdale,AZ,85257,2016,1480,1,387651,534958
+"9133 Camelback Rd, Scottsdale, AZ 85257",single_family,9133 Camelback Rd,Scottsdale,AZ,85257,2017,1480,1,365279,540612
+"6386 Greenway Rd, Peoria, AZ 85345 (3PM)",single_family,6386 Greenway Rd,Peoria,AZ,85345,2002,2100,1,426457,507833
+"1198 Cactus Rd, Peoria, AZ 85345 (3PM)",single_family,1198 Cactus Rd,Peoria,AZ,85345,2011,1250,1,425159,577678
+"9485 Main St, Mesa, AZ 85201 (3PM)",single_family,9485 Main St,Mesa,AZ,85201,2003,1480,1,378986,532318
+"4621 Galveston St, Chandler, AZ 85224 (3PM)",single_family,4621 Galveston St,Chandler,AZ,85224,2011,1250,1,322097,384490
+"9739 Frye Rd, Chandler, AZ 85224 (3PM)",single_family,9739 Frye Rd,Chandler,AZ,85224,2004,1920,1,421705,601788
+"9352 Broadway Rd, Tempe, AZ 85281 (3PM)",single_family,9352 Broadway Rd,Tempe,AZ,85281,2018,1480,1,446078,602267
+"4042 Northern Ave, Glendale, AZ 85301 (3PM)",single_family,4042 Northern Ave,Glendale,AZ,85301,2003,1250,1,393090,564294
+"6573 Peoria Ave, Surprise, AZ 85374 (3PM)",single_family,6573 Peoria Ave,Surprise,AZ,85374,2007,1920,1,412485,484673
+"7523 Union Hills Dr, Peoria, AZ 85345 (3PM)",single_family,7523 Union Hills Dr,Peoria,AZ,85345,2004,1680,1,423973,490265
+"2506 Main St, Mesa, AZ 85201 (3PM)",single_family,2506 Main St,Mesa,AZ,85201,2014,1480,1,418528,561009
+"8498 Brown Rd, Mesa, AZ 85201 (3PM)",single_family,8498 Brown Rd,Mesa,AZ,85201,2005,1680,1,331393,408240
+"3545 Galveston St, Chandler, AZ 85224 (3PM)",single_family,3545 Galveston St,Chandler,AZ,85224,2015,1680,1,366106,523593
+"6008 Cactus Rd, Surprise, AZ 85374 (3PM)",single_family,6008 Cactus Rd,Surprise,AZ,85374,2010,1480,1,305579,337715
+"6084 Maryland Ave, Glendale, AZ 85301 (3PM)",single_family,6084 Maryland Ave,Glendale,AZ,85301,2010,2100,1,366549,472988
+"4870 Pecos Rd, Gilbert, AZ 85233 (3PM)",single_family,4870 Pecos Rd,Gilbert,AZ,85233,2018,1480,1,387004,521862
+"6582 Ray Rd, Gilbert, AZ 85233 (3PM)",single_family,6582 Ray Rd,Gilbert,AZ,85233,2002,1250,1,411919,576713
+"4484 Warner Rd, Chandler, AZ 85224 (3PM)",single_family,4484 Warner Rd,Chandler,AZ,85224,2009,2100,1,448911,639417
+"5481 Elliot Rd, Mesa, AZ 85201 (3PM)",single_family,5481 Elliot Rd,Mesa,AZ,85201,2015,1920,1,353788,444216
+"4908 Cactus Rd, Surprise, AZ 85374 (3PM)",single_family,4908 Cactus Rd,Surprise,AZ,85374,2018,1480,1,345575,455992
+"9304 Northern Ave, Glendale, AZ 85301 (3PM)",single_family,9304 Northern Ave,Glendale,AZ,85301,2012,1480,1,319650,386164
+"3742 Williams Field Rd, Gilbert, AZ 85233 (3PM)",single_family,3742 Williams Field Rd,Gilbert,AZ,85233,2009,2100,1,330133,476541
+"9186 Frye Rd, Chandler, AZ 85224 (3PM)",single_family,9186 Frye Rd,Chandler,AZ,85224,2003,1680,1,470418,666864
+"9026 Maryland Ave, Glendale, AZ 85301 (3PM)",single_family,9026 Maryland Ave,Glendale,AZ,85301,2010,1680,1,446973,645425
+"3048 Bell Rd, Peoria, AZ 85345 (3PM)",single_family,3048 Bell Rd,Peoria,AZ,85345,2004,1250,1,399713,463693
+"1544 Apache Blvd, Tempe, AZ 85281 (3PM)",single_family,1544 Apache Blvd,Tempe,AZ,85281,2013,2100,1,478951,684583
+"6684 Bethany Home Rd, Glendale, AZ 85301 (3PM)",single_family,6684 Bethany Home Rd,Glendale,AZ,85301,2005,2100,1,438734,608554
+"4090 Baseline Rd, Mesa, AZ 85201 (3PM)",single_family,4090 Baseline Rd,Mesa,AZ,85201,2007,1480,1,377228,440552
+"6489 Greenway Rd, Peoria, AZ 85345 (3PM)",single_family,6489 Greenway Rd,Peoria,AZ,85345,2017,1680,1,338889,445489
+"9379 Bethany Home Rd, Glendale, AZ 85301 (3PM)",single_family,9379 Bethany Home Rd,Glendale,AZ,85301,2015,1480,1,392958,487488
+"9211 Guadalupe Rd, Tempe, AZ 85281 (3PM)",single_family,9211 Guadalupe Rd,Tempe,AZ,85281,2008,1250,1,405858,552246
+"7399 Galveston St, Chandler, AZ 85224 (3PM)",single_family,7399 Galveston St,Chandler,AZ,85224,2009,1480,1,298971,341507
+"1515 Northern Ave, Glendale, AZ 85301 (3PM)",single_family,1515 Northern Ave,Glendale,AZ,85301,2006,2100,1,434431,545103
+"5594 Pecos Rd, Gilbert, AZ 85233 (3PM)",single_family,5594 Pecos Rd,Gilbert,AZ,85233,2002,2100,1,464334,629134
+"4906 Southern Ave, Tempe, AZ 85281 (3PM)",single_family,4906 Southern Ave,Tempe,AZ,85281,2006,1680,1,407108,497269
+"9168 Thunderbird Rd, Peoria, AZ 85345 (3PM)",single_family,9168 Thunderbird Rd,Peoria,AZ,85345,2003,1250,1,325225,360891
+"7804 Bell Rd, Peoria, AZ 85345 (3PM)",single_family,7804 Bell Rd,Peoria,AZ,85345,2018,2100,1,377549,445700
+"2993 Baseline Rd, Mesa, AZ 85201 (3PM)",single_family,2993 Baseline Rd,Mesa,AZ,85201,2009,1920,1,406137,462695
+"7293 Bell Rd, Surprise, AZ 85374 (3PM)",single_family,7293 Bell Rd,Surprise,AZ,85374,2004,1480,1,315715,370910
+"9115 Broadway Rd, Tempe, AZ 85281 (3PM)",single_family,9115 Broadway Rd,Tempe,AZ,85281,2002,1920,1,475151,593998
+"2900 Southern Ave, Tempe, AZ 85281 (3PM)",single_family,2900 Southern Ave,Tempe,AZ,85281,2005,1250,1,372885,502843
+"3416 Elliot Rd, Mesa, AZ 85201 (3PM)",single_family,3416 Elliot Rd,Mesa,AZ,85201,2013,1680,1,368533,494716
+"4180 Cactus Rd, Surprise, AZ 85374 (3PM)",single_family,4180 Cactus Rd,Surprise,AZ,85374,2015,1480,1,326379,435167
+"8281 Pecos Rd, Gilbert, AZ 85233 (3PM)",single_family,8281 Pecos Rd,Gilbert,AZ,85233,2004,1250,1,431184,492957

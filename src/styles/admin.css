@@ -732,8 +732,6 @@
 .subscription-status {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: 10px;
   font-size: 0.72rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -741,21 +739,11 @@
 }
 
 .subscription-status.active {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .subscription-status.active {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .subscription-status.inactive {
-  background: var(--color-red-light);
   color: var(--color-red);
-}
-
-[data-theme="dark"] .subscription-status.inactive {
-  background: rgba(220, 38, 38, 0.15);
 }
 
 .subscription-info-row {
@@ -1082,24 +1070,16 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 10px;
-  border-radius: 6px;
   font-size: 0.72rem;
   font-weight: 500;
   font-family: var(--font-sans);
 }
 
 .user-detail-perm.allowed {
-  background: var(--color-green-light);
   color: var(--color-green);
 }
 
-[data-theme="dark"] .user-detail-perm.allowed {
-  background: rgba(22, 163, 74, 0.15);
-}
-
 .user-detail-perm.denied {
-  background: var(--surface);
   color: var(--muted);
 }
 

@@ -1,0 +1,40 @@
+invoice_type,invoice_date,amount,tax_amount,due_date,description,status,vendor_name,client_name,project_name
+receivable,2024-03-01,3200000,0,2024-04-01,AIA Application #01 - Mobilization site prep and foundation start,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2024-05-01,3800000,0,2024-06-01,AIA Application #02 - Foundation and shoring complete,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2024-07-01,4200000,0,2024-08-01,AIA Application #03 - Structural concrete Level 1-8,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2024-09-01,4800000,0,2024-10-01,AIA Application #04 - Structural concrete Level 9-16 and steel start,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2024-11-01,5200000,0,2024-12-01,AIA Application #05 - Structural concrete Level 17-24 and MEP starts,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2025-01-01,5500000,0,2025-02-01,AIA Application #06 - Structure complete Level 25-32 and curtain wall start,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2025-03-01,5800000,0,2025-04-01,AIA Application #07 - Curtain wall floors 1-12 and framing start,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2025-05-01,5600000,0,2025-06-01,AIA Application #08 - Curtain wall floors 13-24 and drywall Level 1-6,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2025-07-01,5900000,0,2025-08-01,AIA Application #09 - Curtain wall floors 25-35 MEP rough-in floors 1-12,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2025-09-01,6100000,0,2025-10-01,AIA Application #10 - Curtain wall floors 36-42 and drywall floors 1-10,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2025-11-01,6400000,0,2025-12-01,AIA Application #11 - Interior finishes floors 1-10 MEP rough-in floors 13-24,paid,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2026-01-01,5200000,0,2026-01-31,AIA Application #12 - Interior finishes floors 11-20 and approved COs 001-007,pending,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+receivable,2026-01-15,3500000,0,2026-02-14,AIA Application #13 - Guest room millwork floors 8-12 MEP rough-in floors 25-32,pending,,LuxeBridge Hotel Development,Lumière Brickell Marriott Autograph Collection
+payable,2024-02-28,4200000,0,2024-03-30,Final Payment - Foundation and shoring complete,paid,Southeast Foundation Group,,Lumière Brickell Marriott Autograph Collection
+payable,2024-07-31,2875000,0,2024-08-30,Concrete Payment #1 - Levels 1-8,paid,Tropical Concrete Inc,,Lumière Brickell Marriott Autograph Collection
+payable,2024-11-30,2875000,0,2024-12-30,Concrete Payment #2 - Levels 9-18,paid,Tropical Concrete Inc,,Lumière Brickell Marriott Autograph Collection
+payable,2025-03-31,2875000,0,2025-04-30,Concrete Payment #3 - Levels 19-30,paid,Tropical Concrete Inc,,Lumière Brickell Marriott Autograph Collection
+payable,2025-07-31,1380000,0,2025-08-30,Concrete Payment #4 - Levels 31-42 partial,paid,Tropical Concrete Inc,,Lumière Brickell Marriott Autograph Collection
+payable,2025-01-31,2600000,0,2025-02-28,Steel Payment #1 - Level 1-20,paid,Sunbelt Steel Erectors,,Lumière Brickell Marriott Autograph Collection
+payable,2025-05-31,2600000,0,2025-06-30,Steel Payment #2 - Level 21-42 and roof framing,paid,Sunbelt Steel Erectors,,Lumière Brickell Marriott Autograph Collection
+payable,2025-04-30,3550000,0,2025-05-30,MEP Payment #1 - Level B1 through Level 12,paid,Florida MEP Contractors,,Lumière Brickell Marriott Autograph Collection
+payable,2025-08-31,3550000,0,2025-09-30,MEP Payment #2 - Level 13 through Level 24,paid,Florida MEP Contractors,,Lumière Brickell Marriott Autograph Collection
+payable,2025-12-31,3550000,0,2026-01-30,MEP Payment #3 - Level 25 through Level 36 partial,pending,Florida MEP Contractors,,Lumière Brickell Marriott Autograph Collection
+payable,2025-06-30,1450000,0,2025-07-30,Curtain Wall Payment #1 - Floors 1-14,paid,Premier Curtain Wall Systems,,Lumière Brickell Marriott Autograph Collection
+payable,2025-10-31,1450000,0,2025-11-30,Curtain Wall Payment #2 - Floors 15-28,paid,Premier Curtain Wall Systems,,Lumière Brickell Marriott Autograph Collection
+payable,2026-01-15,1450000,0,2026-02-14,Curtain Wall Payment #3 - Floors 29-42 complete,pending,Premier Curtain Wall Systems,,Lumière Brickell Marriott Autograph Collection
+payable,2025-09-30,2480000,0,2025-10-30,Drywall Payment #1 - Level 1-12,paid,Caribbean Drywall & Framing,,Lumière Brickell Marriott Autograph Collection
+payable,2025-12-31,2480000,0,2026-01-30,Drywall Payment #2 - Level 13-24 partial,pending,Caribbean Drywall & Framing,,Lumière Brickell Marriott Autograph Collection
+payable,2025-05-31,2800000,0,2025-06-30,Electrical Payment #1 - Level B1 through Level 16,paid,Southern Electrical Group,,Lumière Brickell Marriott Autograph Collection
+payable,2025-09-30,2800000,0,2025-10-30,Electrical Payment #2 - Level 17 through Level 32,paid,Southern Electrical Group,,Lumière Brickell Marriott Autograph Collection
+payable,2025-12-31,1680000,0,2026-01-30,Electrical Payment #3 - Level 33-42 partial,pending,Southern Electrical Group,,Lumière Brickell Marriott Autograph Collection
+payable,2025-10-31,1710000,0,2025-11-30,Pool and Spa Payment #1 - Equipment and rough-in,paid,Aqua Hospitality Systems,,Lumière Brickell Marriott Autograph Collection
+payable,2025-12-31,1800000,0,2026-01-30,Roofing and Waterproofing Payment #1 - Complete,paid,Elite Roofing & Waterproofing,,Lumière Brickell Marriott Autograph Collection
+payable,2025-11-30,1160000,0,2025-12-30,Marble and Stone Payment #1 - Lobby and Level 2,paid,Florida Marble & Stone Works,,Lumière Brickell Marriott Autograph Collection
+payable,2026-01-15,900000,0,2026-02-14,Marble and Stone Payment #2 - Spa and amenity areas,pending,Florida Marble & Stone Works,,Lumière Brickell Marriott Autograph Collection
+payable,2025-10-31,1280000,0,2025-11-30,Fire Protection Payment #1 - Levels 1-22,paid,SunFire Protection Inc,,Lumière Brickell Marriott Autograph Collection
+payable,2025-08-31,1280000,0,2025-09-30,Elevator Payment #1 - Guide rails and equipment Level 1-22,paid,Brickell Elevator Solutions,,Lumière Brickell Marriott Autograph Collection
+payable,2025-10-31,640000,0,2025-11-30,Masonry and Tile Payment #1 - Pool deck and Level 4 spa,paid,Coastal Masonry & Tile,,Lumière Brickell Marriott Autograph Collection
+payable,2026-01-15,340000,0,2026-02-14,FF&E Procurement Management Fee - Q4 2025,pending,Luxury FF&E Procurement LLC,,Lumière Brickell Marriott Autograph Collection

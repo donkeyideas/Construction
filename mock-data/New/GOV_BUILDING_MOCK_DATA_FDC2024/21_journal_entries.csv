@@ -1,0 +1,34 @@
+entry_number,entry_date,description,reference,account_number,debit,credit,line_description
+JE-001,2024-02-15,GSA Federal Appropriation - Initial Grant Draw,GRANT-GSA-001,1005,8000000,,Federal grant funds received
+JE-001,2024-02-15,GSA Federal Appropriation - Initial Grant Draw,GRANT-GSA-001,4010,,8000000,Federal grant revenue recognized at draw
+JE-002,2024-03-01,State Public Safety Bond Appropriation - Draw 1,GRANT-STATE-001,1006,4100000,,State appropriation funds received
+JE-002,2024-03-01,State Public Safety Bond Appropriation - Draw 1,GRANT-STATE-001,4020,,4100000,State appropriation revenue recognized
+JE-003,2024-04-01,CDBG Grant - Initial Drawdown,GRANT-CDBG-001,1005,2000000,,CDBG federal grant funds received
+JE-003,2024-04-01,CDBG Grant - Initial Drawdown,GRANT-CDBG-001,4010,,2000000,CDBG grant revenue recognized
+JE-007,2025-12-31,Record costs incurred through year end - direct labor,ACCRUAL-YE25,5000,3200000,,Direct labor YTD through December 2025
+JE-007,2025-12-31,Record costs incurred through year end - direct labor,ACCRUAL-YE25,2040,,3200000,Accrued wages payable
+JE-008,2025-12-31,Record costs incurred - materials through year end,ACCRUAL-YE25,5020,1450000,,Materials costs YTD through December 2025
+JE-008,2025-12-31,Record costs incurred - materials through year end,ACCRUAL-YE25,2000,,1450000,Accounts payable - materials
+JE-009,2025-12-31,Record equipment costs through year end,ACCRUAL-YE25,5030,420000,,Equipment costs on FDC-2024
+JE-009,2025-12-31,Record equipment costs through year end,ACCRUAL-YE25,1100,,420000,Equipment accumulated costs
+JE-010,2025-12-31,Record other direct costs through year end,ACCRUAL-YE25,5040,139000,,Permits testing and compliance costs
+JE-010,2025-12-31,Record other direct costs through year end,ACCRUAL-YE25,2000,,139000,Accounts payable - other direct
+JE-011,2025-12-31,Costs in excess of billings - underbilling adjustment,WIP-ADJ-YE25,1030,1364200,,CIE - earned revenue in excess of billings
+JE-011,2025-12-31,Costs in excess of billings - underbilling adjustment,WIP-ADJ-YE25,4000,,1364200,Contract revenue adjustment for underbilling
+JE-012,2025-12-31,Record retainage payable to subcontractors,RET-YE25,2020,2817500,,Retainage payable to subcontractors
+JE-012,2025-12-31,Record retainage payable to subcontractors,RET-YE25,5010,,2817500,Subcontractor cost - retainage offset
+JE-013,2026-01-05,GSA Additional Grant Draw - Federal Appropriation,GRANT-GSA-002,1005,200000,,Federal grant additional draw
+JE-013,2026-01-05,GSA Additional Grant Draw - Federal Appropriation,GRANT-GSA-002,4010,,200000,Federal grant revenue recognized
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6000,233333,,PM salaries January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6010,100000,,G&A overhead January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6020,70833,,Insurance January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6030,57083,,Bond premiums January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6040,35417,,Depreciation January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6050,23333,,Professional fees January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6060,10000,,Marketing January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6070,20000,,Office and facilities January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6080,7917,,Vehicle and travel January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,6090,7083,,IT and software January allocation
+JE-014,2026-01-31,Monthly G&A allocation - January 2026,GA-2026-01,2040,,565000,Accrued G&A expenses payable
+JE-015,2026-01-31,Interest on equipment notes - January 2026,INT-2026-01,7000,38000,,Interest expense on equipment financing
+JE-015,2026-01-31,Interest on equipment notes - January 2026,INT-2026-01,2080,,38000,Notes payable - interest accrued

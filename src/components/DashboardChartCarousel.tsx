@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import ARAPAgingChart from "@/components/charts/ARAPAgingChart";
-import CashFlowChart from "@/components/CashFlowChart";
-import IncomeExpensesChart from "@/components/charts/IncomeExpensesChart";
-import ProjectBudgetChart from "@/components/charts/ProjectBudgetChart";
-import ProjectCompletionChart from "@/components/charts/ProjectCompletionChart";
-import IncidentTrendChart from "@/components/charts/IncidentTrendChart";
-import IncidentTypeChart from "@/components/charts/IncidentTypeChart";
-import EquipmentStatusChart from "@/components/charts/EquipmentStatusChart";
-import EquipmentTypeChart from "@/components/charts/EquipmentTypeChart";
+
+const ARAPAgingChart = dynamic(() => import("@/components/charts/ARAPAgingChart"), { ssr: false });
+const CashFlowChart = dynamic(() => import("@/components/CashFlowChart"), { ssr: false });
+const IncomeExpensesChart = dynamic(() => import("@/components/charts/IncomeExpensesChart"), { ssr: false });
+const ProjectBudgetChart = dynamic(() => import("@/components/charts/ProjectBudgetChart"), { ssr: false });
+const ProjectCompletionChart = dynamic(() => import("@/components/charts/ProjectCompletionChart"), { ssr: false });
+const IncidentTrendChart = dynamic(() => import("@/components/charts/IncidentTrendChart"), { ssr: false });
+const IncidentTypeChart = dynamic(() => import("@/components/charts/IncidentTypeChart"), { ssr: false });
+const EquipmentStatusChart = dynamic(() => import("@/components/charts/EquipmentStatusChart"), { ssr: false });
+const EquipmentTypeChart = dynamic(() => import("@/components/charts/EquipmentTypeChart"), { ssr: false });
 import type { AgingBucket, CashFlowItem } from "@/lib/queries/dashboard";
 
 interface SubChart {

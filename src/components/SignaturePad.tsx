@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Eraser, Check, X } from "lucide-react";
 
@@ -131,7 +132,7 @@ export default function SignaturePad({
           {t("signaturePad.signature")}
         </div>
         <div style={{ border: "1px solid var(--border)", borderRadius: "8px", padding: "8px", background: "#fff", display: "inline-block" }}>
-          <img src={existingSignature} alt={t("signaturePad.signature")} style={{ maxWidth: "300px", height: "auto" }} />
+          <Image src={existingSignature} alt={t("signaturePad.signature")} width={300} height={100} unoptimized style={{ maxWidth: "300px", height: "auto" }} />
         </div>
       </div>
     );

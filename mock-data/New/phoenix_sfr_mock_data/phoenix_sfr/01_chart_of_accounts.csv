@@ -1,0 +1,59 @@
+account_number,name,account_type,sub_type,description
+1000,Cash - Operating,asset,Current Asset,Primary operating checking account
+1010,Cash - Security Deposit Trust,asset,Current Asset,Tenant security deposit trust account (restricted)
+1020,Cash - Capital Reserve,asset,Current Asset,Capital expenditure reserve fund
+1030,Accounts Receivable - Rent,asset,Current Asset,Tenant rent receivable outstanding at month end
+1040,Accounts Receivable - Management Fees,asset,Current Asset,3rd-party management fees receivable
+1050,Security Deposits - Held for Tenants,asset,Current Asset,Security deposits held matching trust account liability
+1060,Prepaid Expenses,asset,Current Asset,Prepaid insurance landscaping contracts and licenses
+1070,Inventory - Maintenance Supplies,asset,Current Asset,On-hand maintenance supplies and materials
+1500,Real Estate - Land,asset,Fixed Asset,Land cost allocated to all 127 owned properties
+1510,Real Estate - Buildings & Improvements,asset,Fixed Asset,Building cost and capital improvements all properties
+1520,Accumulated Depreciation - Buildings,asset,Fixed Asset,Accumulated straight-line depreciation on buildings
+1530,Furniture, Fixtures & Equipment,asset,Fixed Asset,Office furniture computers and equipment
+1540,Vehicles - Company Fleet,asset,Fixed Asset,Company vehicles (4 trucks)
+1550,Accumulated Depreciation - FF&E & Vehicles,asset,Fixed Asset,Accumulated depreciation on FF&E and vehicles
+2000,Accounts Payable - Vendors,liability,Current Liability,Maintenance contractor and vendor payables
+2010,Accrued Liabilities,liability,Current Liability,Accrued wages management fees and other accruals
+2020,Tenant Security Deposits Payable,liability,Current Liability,Security deposits held - offsetting asset in trust
+2030,Prepaid Rent - Tenants,liability,Current Liability,Tenant rent paid in advance
+2040,Current Portion - Mortgage Loans,liability,Current Liability,Annual mortgage principal due within 12 months
+2500,Mortgage Loans - Long Term,liability,Long-Term Liability,Portfolio mortgage balances due beyond 12 months
+3000,Member Capital Contributions,equity,Equity,Capital invested by LLC members at property acquisition
+3010,Retained Earnings - Prior Years,equity,Equity,Accumulated net income/loss from prior periods
+4000,Rental Income - Mesa Portfolio,revenue,Revenue,Monthly rent collected from Mesa AZ properties
+4010,Rental Income - Chandler Portfolio,revenue,Revenue,Monthly rent collected from Chandler AZ properties
+4020,Rental Income - Gilbert Portfolio,revenue,Revenue,Monthly rent collected from Gilbert AZ properties
+4030,Rental Income - Tempe Portfolio,revenue,Revenue,Monthly rent collected from Tempe AZ properties
+4040,Rental Income - Scottsdale Portfolio,revenue,Revenue,Monthly rent collected from Scottsdale AZ properties
+4050,Late Fees - Tenant,revenue,Revenue,Late payment fees charged to tenants
+4060,Pet Rent Income,revenue,Revenue,Monthly pet rent from tenants with pets
+4070,Application Fees,revenue,Revenue,Tenant application and screening fees
+4080,Property Management Fees - 3rd Party,revenue,Revenue,8% management fee on 3rd-party managed properties
+4090,Lease-Up Fees - 3rd Party,revenue,Revenue,Lease-up and new tenant placement fees
+4100,Maintenance Coordination Markup - 3rd Party,revenue,Revenue,Maintenance coordination markup on 3rd-party properties
+4110,Administrative Fees - 3rd Party Owners,revenue,Revenue,Inspection admin and other fee income from owner clients
+5000,Property Taxes - Maricopa County,expense,Property Expense,Ad valorem property taxes on all 127 owned properties
+5010,HOA Fees - Property,expense,Property Expense,Homeowners association dues on properties in HOA communities
+5020,Property Insurance - Landlord Policy,expense,Property Expense,Dwelling/landlord insurance on all owned properties
+5100,Repairs & Maintenance - Routine,expense,Property Expense,Routine repair and maintenance on owned properties
+5110,Repairs & Maintenance - Turnover,expense,Property Expense,Make-ready and turnover costs between tenants
+5120,Capital Repairs - Major Items,expense,Property Expense,HVAC water heaters and major system replacements
+5130,Landscaping - Owned Properties,expense,Property Expense,Monthly landscaping and yard maintenance service
+5140,Utilities - Vacant & Common,expense,Property Expense,Utilities during vacancy and common area utilities
+5150,Pest Control,expense,Property Expense,Annual pest control contracts all properties
+5160,Leasing Commissions - In-House,expense,Property Expense,In-house leasing agent commissions for owned portfolio
+6000,Salaries - Management Staff,expense,Operating,GM Operations Director PM and Leasing staff salaries
+6010,Salaries - Maintenance Staff,expense,Operating,Maintenance coordinator wages
+6020,Payroll Taxes & Benefits,expense,Operating,Employer FICA health insurance and 401k match
+6100,Office Rent - Scottsdale,expense,Operating,Management office lease - Scottsdale AZ
+6110,Property Management Software,expense,Operating,AppFolio PM software and digital tools
+6120,Vehicle Expense - Fleet,expense,Operating,Fuel maintenance and registration for 4 company trucks
+6130,Marketing & Advertising,expense,Operating,Website Zillow and digital marketing
+6140,Professional Fees - Legal & Accounting,expense,Operating,CPA audit legal compliance and state licensing
+6150,Company Insurance - E&O & GL,expense,Operating,Errors & omissions and general liability insurance
+6160,Other Administrative,expense,Operating,Phone internet office supplies and miscellaneous
+6200,Depreciation - FF&E & Vehicles,expense,Operating,Straight-line depreciation on company equipment and vehicles
+6300,Depreciation - Real Estate,expense,Operating,27.5-year straight-line depreciation on building values
+7000,Mortgage Interest Expense,expense,Other,Interest on all portfolio mortgage loans
+7010,Loan Fees & Amortization,expense,Other,Loan origination fee amortization

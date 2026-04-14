@@ -1,0 +1,55 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Marcus,Delgado,employee,m.delgado@titanbuilds.com,305-555-0101,,CEO & Executive Project Sponsor
+Victoria,Chen,employee,v.chen@titanbuilds.com,305-555-0102,,Chief Financial Officer
+Raymond,Kowalski,employee,r.kowalski@titanbuilds.com,305-555-0103,,Senior Vice President - Operations
+James,Okafor,employee,j.okafor@titanbuilds.com,305-555-0104,,Project Executive
+Sandra,Fuentes,employee,s.fuentes@titanbuilds.com,305-555-0105,,Senior Project Manager - Stadium
+Derek,Washington,employee,d.washington@titanbuilds.com,305-555-0106,,Senior Project Manager - Athletic Facilities
+Priya,Nair,employee,p.nair@titanbuilds.com,305-555-0107,,Senior Project Manager - Dorms & Office
+Carlos,Reyes,employee,c.reyes@titanbuilds.com,305-555-0108,,Project Manager - MEP
+Alicia,Torres,employee,a.torres@titanbuilds.com,305-555-0109,,Project Manager - Site & Civil
+Brian,McGrath,employee,b.mcgrath@titanbuilds.com,305-555-0110,,Project Manager - Steel & Structure
+Kevin,Yamamoto,employee,k.yamamoto@titanbuilds.com,305-555-0111,,Senior Project Engineer - Stadium
+Natasha,Bowen,employee,n.bowen@titanbuilds.com,305-555-0112,,Project Engineer - Architectural
+Eduardo,Silva,employee,e.silva@titanbuilds.com,305-555-0113,,Project Engineer - Structural
+Megan,Frost,employee,m.frost@titanbuilds.com,305-555-0114,,Project Engineer - MEP Coordination
+Tyler,Banks,employee,t.banks@titanbuilds.com,305-555-0115,,Senior Field Superintendent - Stadium Bowl
+Roberto,Castillo,employee,r.castillo@titanbuilds.com,305-555-0116,,Field Superintendent - Superstructure
+Diana,Park,employee,d.park@titanbuilds.com,305-555-0117,,Field Superintendent - Football Facility
+Jerome,Williams,employee,j.williams@titanbuilds.com,305-555-0118,,Field Superintendent - Athlete Village
+Craig,Ellison,employee,c.ellison@titanbuilds.com,305-555-0119,,Equipment Manager
+Lisa,Huang,employee,l.huang@titanbuilds.com,305-555-0120,,Safety Director
+Frank,Morales,employee,f.morales@titanbuilds.com,305-555-0121,,Assistant Safety Manager
+Angela,Brooks,employee,a.brooks@titanbuilds.com,305-555-0122,,Project Controls Manager / Scheduler
+Patricia,Kim,employee,p.kim@titanbuilds.com,305-555-0123,,Cost Engineer
+Darius,Freeman,employee,d.freeman@titanbuilds.com,305-555-0124,,BIM Manager
+Rachel,Stone,employee,r.stone@titanbuilds.com,305-555-0125,,Contract Administrator
+University of Miami,,client,athletics@miami.edu,305-555-0200,University of Miami,Athletic Department
+Paul,Rosenberg,client,p.rosenberg@miami.edu,305-555-0201,University of Miami,Athletic Director
+Dr. William,Santos,client,w.santos@miami.edu,305-555-0202,University of Miami,VP of Finance & Operations
+Jennifer,Alvarez,client,j.alvarez@miami.edu,305-555-0203,University of Miami,Director of Capital Projects
+PCL Construction,,vendor,miami@pcl.com,305-555-0300,PCL Construction,JV Partner - Project Director
+HOK Sports,,vendor,miami@hok.com,305-555-0301,HOK Sport + Venue + Event,Lead Architect
+Walter P Moore,,vendor,miami@walterpmoore.com,305-555-0302,Walter P Moore,Structural Engineer of Record
+WSP Global,,vendor,miami@wsp.com,305-555-0303,WSP Global,MEP Engineer of Record
+Populous,,vendor,miami@populous.com,305-555-0304,Populous,Stadium Design Consultant
+Kimley-Horn,,vendor,miami@kimley-horn.com,305-555-0305,Kimley-Horn & Associates,Civil Engineer of Record
+Barton Malow,,vendor,miami@bartonmalow.com,305-555-0306,Barton Malow Company,Structural Steel Subcontractor
+Bechtel Infrastructure,,vendor,miami@bechtel.com,305-555-0307,Bechtel Infrastructure,MEP Prime Subcontractor
+Ajax Paving Industries,,vendor,miami@ajaxpaving.com,305-555-0308,Ajax Paving Industries,Sitework & Paving Subcontractor
+Kiewit Foundation,,vendor,miami@kiewit.com,305-555-0309,Kiewit Foundation Co.,Deep Foundation Subcontractor
+Hensel Phelps,,vendor,miami@henselphelps.com,305-555-0310,Hensel Phelps Construction,Concrete Subcontractor
+Elara Systems,,vendor,miami@elarasystems.com,305-555-0311,Elara Systems,Stadium Technology & AV
+Daktronics,,vendor,sales@daktronics.com,605-555-0312,Daktronics Inc.,Scoreboard & Video Systems
+Hussey Seating,,vendor,projects@husseyseating.com,207-555-0313,Hussey Seating Company,Stadium Seating Contractor
+FieldTurf,,vendor,projects@fieldturf.com,800-555-0314,FieldTurf USA,Synthetic Turf Contractor
+Otis Elevator,,vendor,miami@otis.com,305-555-0315,Otis Elevator Company,Elevator & Escalator Contractor
+Johnson Controls,,vendor,miami@johnsoncontrols.com,305-555-0316,Johnson Controls,HVAC Controls & BAS
+Hargreaves Jones,,vendor,miami@hargreavesjones.com,305-555-0317,Hargreaves Jones,Landscape Architect
+Turner Industries,,vendor,miami@turnerindustries.com,305-555-0318,Turner Industries Group,Plumbing & Fire Protection
+Calfrac Well Services,,vendor,miami@calfrac.com,305-555-0319,Southeast Waterproofing,Waterproofing & Roofing
+FPL Group,,vendor,commercial@fpl.com,305-555-0320,Florida Power & Light,Permanent Utility Provider
+AT&T Enterprise,,vendor,enterprise@att.com,305-555-0321,AT&T Enterprise,Telecommunications
+Bank of America Stadium Finance,,vendor,stadiumfinance@bofa.com,212-555-0330,Bank of America,Construction Lender
+Zurich Insurance,,vendor,construction@zurich.com,212-555-0331,Zurich Insurance Group,Builders Risk & GL Insurance
+Travelers Surety,,vendor,surety@travelers.com,212-555-0332,Travelers Surety,Performance & Payment Bond

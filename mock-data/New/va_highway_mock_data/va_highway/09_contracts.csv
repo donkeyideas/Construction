@@ -1,0 +1,13 @@
+title,contract_type,party_name,party_email,contract_amount,start_date,end_date,payment_terms
+VDOT Prime Contract - I-81 SVA Widening UPC 118842,owner,Virginia Department of Transportation,w.stover@vdot.virginia.gov,48500000,2024-03-01,2026-08-31,net_30
+VDOT Prime Contract - US-11 Overlay UPC 121044,owner,Virginia Department of Transportation,w.stover@vdot.virginia.gov,8200000,2025-04-01,2025-12-15,net_30
+VDOT Prime Contract - VA-259 Bridge Approach UPC 122801,owner,Virginia Department of Transportation,w.stover@vdot.virginia.gov,3400000,2025-06-01,2026-03-31,net_30
+Asphalt Paving Subcontract - I-81 SVA,subcontractor,Appalachian Paving Inc,r.flores@appalachian-paving.com,14200000,2024-06-01,2026-07-31,net_30
+Grading & Earthwork Subcontract - I-81 SVA,subcontractor,Shenandoah Grading LLC,b.garrison@shenandoah-grading.com,6800000,2024-03-15,2025-12-31,net_30
+Drainage & Pipe Supply - All Projects,subcontractor,Valley Concrete & Pipe,g.puckett@valley-concrete.com,2400000,2024-04-01,2026-08-31,net_30
+Traffic Control - I-81 SVA,subcontractor,Valley Traffic Control Inc,c.alderman@valleytrafficcontrol.com,3200000,2024-03-01,2026-08-31,net_30
+Line Striping & Pavement Marking - All Projects,subcontractor,Virginia Line Striping Co,i.kowalski@virginia-striping.com,580000,2025-06-01,2026-08-31,net_30
+Erosion & Sediment Control - All Projects,subcontractor,Eastern States Erosion Control,m.fuentes@esec.com,920000,2024-03-01,2026-08-31,net_30
+Performance & Payment Bond - I-81 SVA,bond,Travelers Surety & Casualty,h.moss@travelers.com,485000,2024-03-01,2026-08-31,annual_premium
+Equipment Loan - Wirtgen W200 Cold Planer,loan,Highlands Equipment Finance,k.thornton@highlandsequip.com,920000,2023-02-28,2028-02-28,monthly
+Equipment Loan - CAT AP1000F Paver,loan,Highlands Equipment Finance,k.thornton@highlandsequip.com,384000,2021-09-15,2026-09-15,monthly

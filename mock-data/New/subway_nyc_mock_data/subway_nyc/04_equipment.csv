@@ -1,0 +1,10 @@
+name,equipment_type,make,model,serial_number,purchase_cost,hourly_rate,purchase_date
+Subway Oven - Primary,oven,TurboChef,Rapid Cook NGC,TC-NGC-44821,8500,0.00,2020-06-15
+Subway Oven - Secondary,oven,TurboChef,Rapid Cook NGC,TC-NGC-44822,8500,0.00,2020-06-15
+Sandwich Prep Table - 12 ft,prep equipment,True,TSSU-72-30,TRUE-778821,6200,0.00,2020-06-15
+Refrigerated Display Case,refrigeration,True,GDM-23,TRUE-882910,4800,0.00,2020-06-15
+Walk-in Cooler,refrigeration,Manitowoc,WC-72-84,MAN-110482,12000,0.00,2020-06-15
+POS Terminal - Main,POS system,Verifone,MX925,VF-MX-881001,2200,0.00,2020-06-15
+POS Terminal - Secondary,POS system,Verifone,MX925,VF-MX-881002,2200,0.00,2020-06-15
+Ice Machine,equipment,Hoshizaki,KM-320MAH,HOS-320-5511,4500,0.00,2020-06-15
+Commercial Slicer,equipment,Globe,C12,GLO-C12-74491,2800,0.00,2020-06-15

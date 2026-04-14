@@ -318,5 +318,8 @@ html[lang="zh"] h1, html[lang="zh"] h2, html[lang="zh"] h3, html[lang="zh"] h4 {
   font-family: var(--font-cjk), var(--font-sans);
 }
 
+/* ===== Loading Skeletons ===== */
+@import "../styles/loading.css";
+
 /* ===== RTL Layout Overrides ===== */
 @import "../styles/rtl.css";

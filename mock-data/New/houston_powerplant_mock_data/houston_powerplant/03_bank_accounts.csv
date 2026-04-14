@@ -1,0 +1,6 @@
+name,bank_name,account_type,account_number_last4,routing_number_last4,current_balance
+Operating Account,JPMorgan Chase,checking,4481,0210,18250000.00
+Fuel Payables Account,JPMorgan Chase,checking,4482,0210,8400000.00
+Debt Service Reserve Account,JPMorgan Chase,savings,4483,0210,42500000.00
+Revenue Lock Box,JPMorgan Chase,checking,4484,0210,6800000.00
+O&M Reserve,JPMorgan Chase,savings,4485,0210,12000000.00

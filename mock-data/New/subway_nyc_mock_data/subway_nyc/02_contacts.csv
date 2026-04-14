@@ -1,0 +1,12 @@
+first_name,last_name,contact_type,email,phone,company_name,job_title
+Marcus,Rivera,employee,m.rivera@subwaynyc42.com,212-555-0101,,Owner & Operator
+Diana,Chen,employee,d.chen@subwaynyc42.com,212-555-0102,,Store Manager
+Tyrone,Jackson,employee,t.jackson@subwaynyc42.com,212-555-0103,,Assistant Manager
+Priya,Patel,employee,p.patel@subwaynyc42.com,212-555-0104,,Shift Leader
+Carlos,Mendoza,employee,c.mendoza@subwaynyc42.com,212-555-0105,,Sandwich Artist
+Aisha,Williams,employee,a.williams@subwaynyc42.com,212-555-0106,,Sandwich Artist
+Kevin,Park,employee,k.park@subwaynyc42.com,212-555-0107,,Sandwich Artist
+Fatima,Osei,employee,f.osei@subwaynyc42.com,212-555-0108,,Sandwich Artist
+James,O'Brien,vendor,jobrien@ipc.subway.com,800-888-4848,Subway IPC,Account Manager
+Linda,Stavros,vendor,l.stavros@nyfoodservice.com,718-555-0201,NY Food Service Distributors,Sales Rep
+Robert,Huang,vendor,r.huang@midtownrealty.com,212-555-0301,Midtown Realty Partners,Property Manager
