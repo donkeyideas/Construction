@@ -5,6 +5,9 @@ import { getInvoices, createInvoice, syncBudgetActualsFromInvoices } from "@/lib
 import type { InvoiceFilters, InvoiceCreateData } from "@/lib/queries/financial";
 import { buildCompanyAccountMap, generateInvoiceJournalEntry, generateInvoiceDeferralSchedule } from "@/lib/utils/invoice-accounting";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { assertPeriodOpen } from "@/lib/guards/period-lock-guard";
+import { nextDocumentNumber } from "@/lib/utils/document-sequence";
+import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
 import { parseJsonBody, isErrorResponse } from "@/lib/utils/api-response";
 
 export async function GET(request: NextRequest) {
@@ -83,8 +86,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Period lock check
+    try {
+      await assertPeriodOpen(supabase, userCompany.companyId, body.invoice_date);
+    } catch (lockErr: unknown) {
+      const err = lockErr as { status?: number; message?: string };
+      return NextResponse.json({ error: err.message }, { status: err.status || 409 });
+    }
+
+    // Auto-generate sequential invoice number if not provided
+    const invoiceNumber = body.invoice_number || await nextDocumentNumber(supabase, userCompany.companyId, "INV");
+
     const data: InvoiceCreateData = {
-      invoice_number: body.invoice_number,
+      invoice_number: invoiceNumber,
       invoice_type: body.invoice_type,
       vendor_name: body.vendor_name,
       client_name: body.client_name,
@@ -183,6 +197,19 @@ export async function POST(request: NextRequest) {
         await syncBudgetActualsFromInvoices(supabase, userCompany.companyId, data.project_id);
       } catch (e) { console.warn("Budget sync after invoice create failed (non-blocking):", e); }
     }
+
+    // Audit log
+    const meta = extractRequestMeta(request);
+    logAuditEvent({
+      supabase,
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      action: "create",
+      entityType: "invoice",
+      entityId: result.id,
+      details: { invoice_number: invoiceNumber, invoice_type: data.invoice_type, total_amount: data.total_amount },
+      ipAddress: meta.ipAddress,
+    });
 
     return NextResponse.json({ id: result.id, warnings }, { status: 201 });
   } catch (error) {

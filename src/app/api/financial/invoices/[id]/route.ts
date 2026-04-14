@@ -10,6 +10,9 @@ import {
   generateInvoiceDeferralSchedule,
 } from "@/lib/utils/invoice-accounting";
 import { parseJsonBody, isErrorResponse } from "@/lib/utils/api-response";
+import { assertPeriodOpen } from "@/lib/guards/period-lock-guard";
+import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
+import { trackChanges } from "@/lib/utils/change-tracker";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -85,6 +88,39 @@ export async function PATCH(
     // Note: balance_due is a Postgres GENERATED COLUMN (total_amount - amount_paid)
     // It auto-recomputes when total_amount or amount_paid change. Do NOT set it directly.
     delete body.balance_due;
+
+    // Period lock check on financially-relevant changes
+    if (body.invoice_date || body.total_amount !== undefined || body.subtotal !== undefined) {
+      try {
+        await assertPeriodOpen(supabase, userCompany.companyId, body.invoice_date ?? existing.invoice_date);
+      } catch (lockErr: unknown) {
+        const err = lockErr as { status?: number; message?: string };
+        return NextResponse.json({ error: err.message }, { status: err.status || 409 });
+      }
+    }
+
+    // Separation of duties: creator cannot approve their own invoice
+    if (body.status === "approved") {
+      const { data: company } = await supabase
+        .from("companies")
+        .select("enforce_separation_of_duties")
+        .eq("id", userCompany.companyId)
+        .single();
+
+      if (company?.enforce_separation_of_duties) {
+        const raw = existing as unknown as Record<string, unknown>;
+        if (raw.created_by === userCompany.userId) {
+          return NextResponse.json(
+            { error: "Separation of duties: the creator of an invoice cannot also approve it." },
+            { status: 403 }
+          );
+        }
+      }
+
+      // Set approved_by and approved_at
+      body.approved_by = userCompany.userId;
+      body.approved_at = new Date().toISOString();
+    }
 
     const result = await updateInvoice(supabase, id, body);
 
@@ -186,6 +222,27 @@ export async function PATCH(
       } catch (e) { console.warn("Budget sync after invoice update failed (non-blocking):", e); }
     }
 
+    // Change tracking + audit log
+    const meta = extractRequestMeta(request);
+    trackChanges(supabase, {
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      entityType: "invoice",
+      entityId: id,
+      before: existing as unknown as Record<string, unknown>,
+      after: body,
+    });
+    logAuditEvent({
+      supabase,
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      action: "update",
+      entityType: "invoice",
+      entityId: id,
+      details: { changed_fields: Object.keys(body) },
+      ipAddress: meta.ipAddress,
+    });
+
     return NextResponse.json({ success: true, warnings });
   } catch (error) {
     console.error("PATCH /api/financial/invoices/[id] error:", error);
@@ -215,9 +272,6 @@ export async function DELETE(
     const subBlock2 = await checkSubscriptionAccess(userCompany.companyId, "DELETE");
     if (subBlock2) return subBlock2;
 
-    const { searchParams } = new URL(request.url);
-    const hard = searchParams.get("hard") === "true";
-
     // Fetch payments and invoice type to reverse bank balances
     const { data: payments } = await supabase
       .from("payments")
@@ -226,15 +280,26 @@ export async function DELETE(
 
     const { data: invoiceInfo } = await supabase
       .from("invoices")
-      .select("invoice_type, project_id")
+      .select("invoice_type, project_id, invoice_number, invoice_date")
       .eq("id", id)
       .single();
 
+    if (!invoiceInfo) {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
+
+    // Period lock check
+    try {
+      await assertPeriodOpen(supabase, userCompany.companyId, invoiceInfo.invoice_date);
+    } catch (lockErr: unknown) {
+      const err = lockErr as { status?: number; message?: string };
+      return NextResponse.json({ error: err.message }, { status: err.status || 409 });
+    }
+
     // Reverse bank balances for all payments
-    if (payments && payments.length > 0 && invoiceInfo) {
+    if (payments && payments.length > 0) {
       for (const pmt of payments) {
         if (pmt.bank_account_id) {
-          // Payable payment subtracted cash → add back. Receivable added → subtract.
           const reversal = invoiceInfo.invoice_type === "payable" ? pmt.amount : -pmt.amount;
           await supabase.rpc("adjust_bank_balance", {
             p_bank_id: pmt.bank_account_id,
@@ -242,7 +307,7 @@ export async function DELETE(
           });
         }
 
-        // Delete payment JE lines + JEs
+        // Void payment JEs (soft void — never hard-delete)
         const { data: pmtJEs } = await supabase
           .from("journal_entries")
           .select("id")
@@ -250,13 +315,21 @@ export async function DELETE(
           .eq("reference", `payment:${pmt.id}`);
         if (pmtJEs && pmtJEs.length > 0) {
           const jeIds = pmtJEs.map((je) => je.id);
-          await supabase.from("journal_entry_lines").delete().in("journal_entry_id", jeIds);
-          await supabase.from("journal_entries").delete().in("id", jeIds);
+          await supabase
+            .from("journal_entries")
+            .update({ status: "voided", voided_by: userCompany.userId, voided_at: new Date().toISOString() })
+            .in("id", jeIds);
         }
+
+        // Void the payment record itself
+        await supabase
+          .from("payments")
+          .update({ status: "voided", voided_by: userCompany.userId, voided_at: new Date().toISOString() })
+          .eq("id", pmt.id);
       }
     }
 
-    // Helper: collect deferral recognition JEs for this invoice
+    // Collect deferral recognition JEs for this invoice
     const { data: deferralJEs } = await supabase
       .from("journal_entries")
       .select("id")
@@ -264,69 +337,30 @@ export async function DELETE(
       .like("reference", `deferral:${id}:%`);
     const deferralJEIds = (deferralJEs ?? []).map((je) => je.id);
 
-    if (hard) {
-      // Hard delete: remove invoice JE, deferral JEs, payments, and the invoice row
+    // Soft void: reset amount_paid, void invoice + all linked JEs
+    await supabase
+      .from("invoices")
+      .update({
+        amount_paid: 0,
+        status: "voided",
+        voided_by: userCompany.userId,
+        voided_at: new Date().toISOString(),
+      })
+      .eq("id", id);
 
-      // Delete main invoice JE
-      const { data: invJEs } = await supabase
-        .from("journal_entries")
-        .select("id")
-        .eq("company_id", userCompany.companyId)
-        .eq("reference", `invoice:${id}`);
-      if (invJEs && invJEs.length > 0) {
-        const jeIds = invJEs.map((je) => je.id);
-        await supabase.from("journal_entry_lines").delete().in("journal_entry_id", jeIds);
-        await supabase.from("journal_entries").delete().in("id", jeIds);
-      }
+    // Void main invoice journal entry
+    await supabase
+      .from("journal_entries")
+      .update({ status: "voided", voided_by: userCompany.userId, voided_at: new Date().toISOString() })
+      .eq("company_id", userCompany.companyId)
+      .eq("reference", `invoice:${id}`);
 
-      // Delete all deferral recognition JEs
-      if (deferralJEIds.length > 0) {
-        await supabase.from("journal_entry_lines").delete().in("journal_entry_id", deferralJEIds);
-        await supabase.from("journal_entries").delete().in("id", deferralJEIds);
-      }
-
-      // Delete payments
-      await supabase.from("payments").delete().eq("invoice_id", id);
-
-      // Delete the invoice itself (cascades invoice_deferral_schedule rows)
-      const { error } = await supabase
-        .from("invoices")
-        .delete()
-        .eq("id", id)
-        .eq("company_id", userCompany.companyId);
-      if (error) {
-        return NextResponse.json(
-          { error: "Failed to delete invoice" },
-          { status: 500 }
-        );
-      }
-    } else {
-      // Soft void: reset amount_paid, void invoice + all linked JEs
-      // Delete payments (already reversed bank balances above)
-      if (payments && payments.length > 0) {
-        await supabase.from("payments").delete().eq("invoice_id", id);
-      }
-
-      // Reset amount_paid to 0 and set status to voided
-      await supabase
-        .from("invoices")
-        .update({ amount_paid: 0, status: "voided" })
-        .eq("id", id);
-
-      // Void main invoice journal entry
+    // Void all deferral recognition JEs
+    if (deferralJEIds.length > 0) {
       await supabase
         .from("journal_entries")
-        .update({ status: "voided" })
-        .eq("company_id", userCompany.companyId)
-        .eq("reference", `invoice:${id}`);
-
-      // Void all deferral recognition JEs
-      if (deferralJEIds.length > 0) {
-        await supabase
-          .from("journal_entries")
-          .update({ status: "voided" })
-          .in("id", deferralJEIds);
-      }
+        .update({ status: "voided", voided_by: userCompany.userId, voided_at: new Date().toISOString() })
+        .in("id", deferralJEIds);
     }
 
     // Auto-sync budget actuals when invoice was linked to a project
@@ -335,6 +369,19 @@ export async function DELETE(
         await syncBudgetActualsFromInvoices(supabase, userCompany.companyId, invoiceInfo.project_id);
       } catch (e) { console.warn("Budget sync after invoice delete failed (non-blocking):", e); }
     }
+
+    // Audit log
+    const meta = extractRequestMeta(request);
+    logAuditEvent({
+      supabase,
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      action: "void",
+      entityType: "invoice",
+      entityId: id,
+      details: { invoice_number: invoiceInfo.invoice_number, payments_voided: payments?.length ?? 0 },
+      ipAddress: meta.ipAddress,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -4,6 +4,9 @@ import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getJournalEntries, createJournalEntry, getChartOfAccounts } from "@/lib/queries/financial";
 import type { JournalEntryCreateData } from "@/lib/queries/financial";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { assertPeriodOpen } from "@/lib/guards/period-lock-guard";
+import { nextDocumentNumber } from "@/lib/utils/document-sequence";
+import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,11 +57,19 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    if (!body.entry_number || !body.entry_date || !body.description || !body.lines?.length) {
+    if (!body.entry_date || !body.description || !body.lines?.length) {
       return NextResponse.json(
-        { error: "Missing required fields: entry_number, entry_date, description, lines" },
+        { error: "Missing required fields: entry_date, description, lines" },
         { status: 400 }
       );
+    }
+
+    // Period lock check
+    try {
+      await assertPeriodOpen(supabase, userCompany.companyId, body.entry_date);
+    } catch (lockErr: unknown) {
+      const err = lockErr as { status?: number; message?: string };
+      return NextResponse.json({ error: err.message }, { status: err.status || 409 });
     }
 
     // Validate balanced entry
@@ -72,8 +83,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Auto-generate sequential entry number if not provided
+    const entryNumber = body.entry_number || await nextDocumentNumber(supabase, userCompany.companyId, "JE");
+
     const data: JournalEntryCreateData = {
-      entry_number: body.entry_number,
+      entry_number: entryNumber,
       entry_date: body.entry_date,
       description: body.description,
       reference: body.reference,
@@ -87,7 +101,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create journal entry" }, { status: 500 });
     }
 
-    return NextResponse.json({ id: result.id }, { status: 201 });
+    // Set created_by on the entry
+    await supabase
+      .from("journal_entries")
+      .update({ created_by: userCompany.userId })
+      .eq("id", result.id);
+
+    // Audit log
+    const meta = extractRequestMeta(request);
+    logAuditEvent({
+      supabase,
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      action: "create",
+      entityType: "journal_entry",
+      entityId: result.id,
+      details: { entry_number: entryNumber, total_debit: totalDebit },
+      ipAddress: meta.ipAddress,
+    });
+
+    return NextResponse.json({ id: result.id, entry_number: entryNumber }, { status: 201 });
   } catch (error) {
     console.error("POST /api/financial/journal-entries error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

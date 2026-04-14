@@ -6,6 +6,9 @@ import type { PaymentCreateData } from "@/lib/queries/financial";
 import { buildCompanyAccountMap, generatePaymentJournalEntry, generateInvoiceJournalEntry } from "@/lib/utils/invoice-accounting";
 import { createNotifications } from "@/lib/utils/notifications";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { assertPeriodOpen } from "@/lib/guards/period-lock-guard";
+import { nextDocumentNumber } from "@/lib/utils/document-sequence";
+import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
 import { formatCurrency } from "@/lib/utils/format";
 
 export async function GET(request: NextRequest) {
@@ -65,6 +68,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Period lock check
+    try {
+      await assertPeriodOpen(supabase, userCompany.companyId, body.payment_date);
+    } catch (lockErr: unknown) {
+      const err = lockErr as { status?: number; message?: string };
+      return NextResponse.json({ error: err.message }, { status: err.status || 409 });
+    }
+
     // Validate payment doesn't exceed invoice balance due
     const { data: targetInvoice } = await supabase
       .from("invoices")
@@ -108,11 +119,22 @@ export async function POST(request: NextRequest) {
       notes: body.notes,
     };
 
+    // Auto-generate sequential reference number if not provided
+    if (!data.reference_number) {
+      data.reference_number = await nextDocumentNumber(supabase, userCompany.companyId, "PAY");
+    }
+
     const result = await recordPayment(supabase, userCompany.companyId, data);
 
     if (!result) {
       return NextResponse.json({ error: "Failed to record payment" }, { status: 500 });
     }
+
+    // Set created_by on the payment
+    await supabase
+      .from("payments")
+      .update({ created_by: userCompany.userId })
+      .eq("id", result.id);
 
     // Auto-generate journal entries for the payment (non-blocking)
     try {
@@ -235,6 +257,19 @@ export async function POST(request: NextRequest) {
         entityId: result.id,
       });
     } catch (e) { console.warn("Notification failed:", e); }
+
+    // Audit log
+    const meta = extractRequestMeta(request);
+    logAuditEvent({
+      supabase,
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      action: "create",
+      entityType: "payment",
+      entityId: result.id,
+      details: { invoice_id: data.invoice_id, amount: data.amount, method: data.method },
+      ipAddress: meta.ipAddress,
+    });
 
     return NextResponse.json({ id: result.id }, { status: 201 });
   } catch (error) {

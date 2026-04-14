@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
+import { trackChanges } from "@/lib/utils/change-tracker";
 
 export async function PATCH(
   request: NextRequest,
@@ -16,10 +18,13 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const subBlock = await checkSubscriptionAccess(userCompany.companyId, "PATCH");
+    if (subBlock) return subBlock;
+
     // Verify the payment belongs to this company
     const { data: existing, error: fetchErr } = await supabase
       .from("payments")
-      .select("id, company_id")
+      .select("id, company_id, method, bank_account_id, reference_number, notes")
       .eq("id", id)
       .eq("company_id", userCompany.companyId)
       .single();
@@ -51,6 +56,27 @@ export async function PATCH(
       return NextResponse.json({ error: "Failed to update payment" }, { status: 500 });
     }
 
+    // Change tracking + audit log
+    const meta = extractRequestMeta(request);
+    trackChanges(supabase, {
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      entityType: "payment",
+      entityId: id,
+      before: existing as unknown as Record<string, unknown>,
+      after: updatePayload,
+    });
+    logAuditEvent({
+      supabase,
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      action: "update",
+      entityType: "payment",
+      entityId: id,
+      details: { changed_fields: Object.keys(updatePayload) },
+      ipAddress: meta.ipAddress,
+    });
+
     return NextResponse.json({ success: true, id });
   } catch (error) {
     console.error("PATCH /api/financial/payments/[id] error:", error);
@@ -59,7 +85,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -77,13 +103,18 @@ export async function DELETE(
     // Fetch the payment with its invoice info
     const { data: payment, error: fetchErr } = await supabase
       .from("payments")
-      .select("id, invoice_id, amount, bank_account_id, company_id")
+      .select("id, invoice_id, amount, bank_account_id, company_id, status")
       .eq("id", id)
       .eq("company_id", userCompany.companyId)
       .single();
 
     if (fetchErr || !payment) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+    }
+
+    // Prevent voiding an already-voided payment
+    if (payment.status === "voided") {
+      return NextResponse.json({ error: "Payment is already voided" }, { status: 400 });
     }
 
     // 1. Reverse the bank balance adjustment
@@ -104,7 +135,7 @@ export async function DELETE(
       }
     }
 
-    // 2. Void the payment journal entry
+    // 2. Void the payment journal entries (soft void — never hard-delete)
     const { data: paymentJEs } = await supabase
       .from("journal_entries")
       .select("id")
@@ -114,12 +145,8 @@ export async function DELETE(
     if (paymentJEs && paymentJEs.length > 0) {
       const jeIds = paymentJEs.map((je) => je.id);
       await supabase
-        .from("journal_entry_lines")
-        .delete()
-        .in("journal_entry_id", jeIds);
-      await supabase
         .from("journal_entries")
-        .delete()
+        .update({ status: "voided", voided_by: userCompany.userId, voided_at: new Date().toISOString() })
         .in("id", jeIds);
     }
 
@@ -134,7 +161,7 @@ export async function DELETE(
       const newAmountPaid = Math.max(0, (inv.amount_paid ?? 0) - payment.amount);
       const newBalanceDue = (inv.total_amount ?? 0) - newAmountPaid;
 
-      // Determine correct status after payment removal
+      // Determine correct status after payment voiding
       let newStatus: string;
       if (newBalanceDue <= 0.01) {
         newStatus = "paid";
@@ -146,8 +173,6 @@ export async function DELETE(
         newStatus = dueDate < new Date() ? "overdue" : "approved";
       }
 
-      // Only update amount_paid and status — balance_due is a Postgres
-      // GENERATED COLUMN (total_amount - amount_paid) and cannot be set directly
       await supabase
         .from("invoices")
         .update({
@@ -157,16 +182,33 @@ export async function DELETE(
         .eq("id", payment.invoice_id);
     }
 
-    // 4. Delete the payment record
-    const { error: deleteErr } = await supabase
+    // 4. Soft void the payment (not hard delete)
+    const { error: voidErr } = await supabase
       .from("payments")
-      .delete()
+      .update({
+        status: "voided",
+        voided_by: userCompany.userId,
+        voided_at: new Date().toISOString(),
+      })
       .eq("id", id);
 
-    if (deleteErr) {
-      console.error("Failed to delete payment:", deleteErr);
-      return NextResponse.json({ error: "Failed to delete payment" }, { status: 500 });
+    if (voidErr) {
+      console.error("Failed to void payment:", voidErr);
+      return NextResponse.json({ error: "Failed to void payment" }, { status: 500 });
     }
+
+    // Audit log
+    const meta = extractRequestMeta(request);
+    logAuditEvent({
+      supabase,
+      companyId: userCompany.companyId,
+      userId: userCompany.userId,
+      action: "void",
+      entityType: "payment",
+      entityId: id,
+      details: { invoice_id: payment.invoice_id, amount: payment.amount },
+      ipAddress: meta.ipAddress,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

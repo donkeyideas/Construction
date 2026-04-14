@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserCompany } from "@/lib/queries/user";
 import { getJournalEntryById, postJournalEntry, voidJournalEntry } from "@/lib/queries/financial";
 import { checkSubscriptionAccess } from "@/lib/guards/subscription-guard";
+import { assertPeriodOpen } from "@/lib/guards/period-lock-guard";
+import { logAuditEvent, extractRequestMeta } from "@/lib/utils/audit-logger";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -46,20 +48,96 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const body = await request.json();
     const action = body.action;
+    const meta = extractRequestMeta(request);
+
+    // Fetch entry for period lock + separation of duties checks
+    const entry = await getJournalEntryById(supabase, id);
+    if (!entry) {
+      return NextResponse.json({ error: "Journal entry not found" }, { status: 404 });
+    }
 
     if (action === "post") {
+      // Period lock check
+      try {
+        await assertPeriodOpen(supabase, userCompany.companyId, entry.entry_date);
+      } catch (lockErr: unknown) {
+        const err = lockErr as { status?: number; message?: string };
+        return NextResponse.json({ error: err.message }, { status: err.status || 409 });
+      }
+
+      // Separation of duties: creator cannot post their own entry
+      const { data: company } = await supabase
+        .from("companies")
+        .select("enforce_separation_of_duties")
+        .eq("id", userCompany.companyId)
+        .single();
+
+      if (company?.enforce_separation_of_duties) {
+        const raw = entry as unknown as Record<string, unknown>;
+        if (raw.created_by === userCompany.userId) {
+          return NextResponse.json(
+            { error: "Separation of duties: the creator of a journal entry cannot also post it." },
+            { status: 403 }
+          );
+        }
+      }
+
       const success = await postJournalEntry(supabase, id, userCompany.userId);
       if (!success) {
         return NextResponse.json({ error: "Failed to post entry. It may already be posted." }, { status: 400 });
       }
+
+      // Set approved_by and approved_at
+      await supabase
+        .from("journal_entries")
+        .update({ approved_by: userCompany.userId, approved_at: new Date().toISOString() })
+        .eq("id", id);
+
+      logAuditEvent({
+        supabase,
+        companyId: userCompany.companyId,
+        userId: userCompany.userId,
+        action: "post",
+        entityType: "journal_entry",
+        entityId: id,
+        details: { entry_number: entry.entry_number },
+        ipAddress: meta.ipAddress,
+      });
+
       return NextResponse.json({ success: true });
     }
 
     if (action === "void") {
+      // Period lock check
+      try {
+        await assertPeriodOpen(supabase, userCompany.companyId, entry.entry_date);
+      } catch (lockErr: unknown) {
+        const err = lockErr as { status?: number; message?: string };
+        return NextResponse.json({ error: err.message }, { status: err.status || 409 });
+      }
+
       const success = await voidJournalEntry(supabase, id);
       if (!success) {
         return NextResponse.json({ error: "Failed to void entry" }, { status: 400 });
       }
+
+      // Set voided_by and voided_at
+      await supabase
+        .from("journal_entries")
+        .update({ voided_by: userCompany.userId, voided_at: new Date().toISOString() })
+        .eq("id", id);
+
+      logAuditEvent({
+        supabase,
+        companyId: userCompany.companyId,
+        userId: userCompany.userId,
+        action: "void",
+        entityType: "journal_entry",
+        entityId: id,
+        details: { entry_number: entry.entry_number },
+        ipAddress: meta.ipAddress,
+      });
+
       return NextResponse.json({ success: true });
     }
 
@@ -88,30 +166,12 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Journal entry not found" }, { status: 404 });
     }
 
-    if (entry.status === "posted") {
-      return NextResponse.json(
-        { error: "Cannot delete a posted journal entry. Void it first." },
-        { status: 400 }
-      );
-    }
-
-    // Delete line items first, then the entry
-    await supabase
-      .from("journal_entry_lines")
-      .delete()
-      .eq("journal_entry_id", id);
-
-    const { error: deleteError } = await supabase
-      .from("journal_entries")
-      .delete()
-      .eq("id", id);
-
-    if (deleteError) {
-      console.error("Delete journal entry error:", deleteError);
-      return NextResponse.json({ error: "Failed to delete journal entry" }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true });
+    // Hard deletes are not allowed for audit compliance.
+    // Use PATCH with action=void instead.
+    return NextResponse.json(
+      { error: "Hard deletion of journal entries is not allowed. Use PATCH with action='void' to void the entry." },
+      { status: 405 }
+    );
   } catch (error) {
     console.error("DELETE /api/financial/journal-entries/[id] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
